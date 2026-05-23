@@ -181,16 +181,28 @@
   </style>
 </head>
 <body>
-<!-- ★ 授權遮罩（未登入時顯示，登入後隱藏）-->
-<div id="authOverlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#f5f7fa;z-index:9999;display:flex;justify-content:center;align-items:center;">
-  <div style="background:white;border-radius:16px;padding:40px 32px;max-width:380px;width:90%;box-shadow:0 4px 20px rgba(0,0,0,0.1);text-align:center;">
-    <div style="font-size:40px;margin-bottom:16px;">🔐</div>
-    <h2 style="color:#333;font-size:20px;margin-bottom:8px;">產險保單數位特助</h2>
-    <p style="color:#888;font-size:14px;margin-bottom:24px;">請使用授權的 Google 帳號登入</p>
-    <div id="googleSignInBtn"></div>
-    <div id="authStatus" style="margin-top:16px;font-size:13px;color:#E65100;min-height:20px;"></div>
+<!-- ★ 授權遮罩 -->
+<div id="authOverlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#1a73e8 0%,#0d47a1 100%);z-index:9999;display:flex;justify-content:center;align-items:center;transition:opacity 0.4s ease;">
+  <div style="background:white;border-radius:20px;padding:40px 32px;max-width:360px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.2);text-align:center;">
+    <!-- 載入中動畫（快取自動登入時顯示）-->
+    <div id="autoLoginSpinner" style="display:none;margin-bottom:16px;">
+      <div style="width:48px;height:48px;border:4px solid #e3f2fd;border-top:4px solid #1a73e8;border-radius:50%;margin:0 auto 12px;animation:spin 0.8s linear infinite;"></div>
+      <div style="color:#1a73e8;font-weight:600;font-size:15px;">正在登入...</div>
+    </div>
+    <!-- 正常登入畫面 -->
+    <div id="loginPanel">
+      <div style="font-size:48px;margin-bottom:12px;">🛡️</div>
+      <h2 style="color:#1a73e8;font-size:22px;margin-bottom:4px;font-weight:700;">產險保單數位特助</h2>
+      <p style="color:#888;font-size:13px;margin-bottom:24px;">請使用授權的 Google 帳號登入</p>
+      <div id="googleSignInBtn"></div>
+    </div>
+    <div id="authStatus" style="margin-top:12px;font-size:13px;color:#E65100;min-height:18px;"></div>
   </div>
 </div>
+<style>
+@keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+#authOverlay.hiding { opacity:0; pointer-events:none; }
+</style>
 
 <div class="container">
   <h2>產險保單數位特助</h2>
@@ -395,6 +407,13 @@
   var CACHE_EXPIRY  = 'ins_user_expiry';
   var CACHE_HOURS   = 24; // 24小時內自動登入，每次開啟都重新計時
 
+  // 遮罩淡出（加入動畫，視覺更順暢）
+  function hideAuthOverlay() {
+    var overlay = document.getElementById('authOverlay');
+    overlay.classList.add('hiding');
+    setTimeout(function() { overlay.style.display = 'none'; }, 400);
+  }
+
   function saveLoginCache(email) {
     try {
       localStorage.setItem(CACHE_KEY,    email);
@@ -424,7 +443,7 @@
     // ── 測試模式：直接跳過 Google 登入 ──
     if (TEST_EMAIL) {
       _userEmail = TEST_EMAIL;
-      document.getElementById('authOverlay').style.display = 'none';
+      hideAuthOverlay();
       ADVISOR_NAME = TEST_EMAIL.split('@')[0];
       gasCall('getSystemConfig', {}, function(cfg) {
         if (cfg && !cfg.error) {
@@ -440,7 +459,10 @@
     var cachedEmail = loadLoginCache();
     if (cachedEmail) {
       _userEmail = cachedEmail;
-      document.getElementById('authStatus').textContent = '⏳ 自動登入中...';
+      // 顯示轉圈動畫，隱藏登入按鈕
+      document.getElementById('autoLoginSpinner').style.display = 'block';
+      document.getElementById('loginPanel').style.display = 'none';
+      document.getElementById('authStatus').textContent = '';
       gasCall('getSystemConfig', {}, function(cfg) {
         if (cfg && (cfg.error === 'unauthorized' || cfg.error === 'no_shell_url')) {
           // 快取的帳號失效，清除並重新登入
@@ -451,13 +473,13 @@
           return;
         }
         // 自動登入成功
-        document.getElementById('authOverlay').style.display = 'none';
+        hideAuthOverlay();
         if (cfg && cfg['顧問姓名']) ADVISOR_NAME = cfg['顧問姓名'];
         if (cfg && cfg['顧問LINE'])  ADVISOR_LINE = cfg['顧問LINE'];
         initSystem();
       }, function() {
         // 連線失敗，還是直接進入（避免每次失敗都要重登）
-        document.getElementById('authOverlay').style.display = 'none';
+        hideAuthOverlay();
         initSystem();
       });
       return;
@@ -533,7 +555,7 @@
       }
       // 授權通過 → 儲存快取（12小時免登入）
       saveLoginCache(_userEmail);
-      document.getElementById('authOverlay').style.display = 'none';
+      hideAuthOverlay();
       if (cfg && cfg['顧問姓名']) ADVISOR_NAME = cfg['顧問姓名'];
       if (cfg && cfg['顧問LINE'])  ADVISOR_LINE = cfg['顧問LINE'];
       initSystem();
