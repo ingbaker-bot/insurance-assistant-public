@@ -393,7 +393,7 @@
   // ══════════════════════════════════════════════════════
   var CACHE_KEY     = 'ins_user_email';
   var CACHE_EXPIRY  = 'ins_user_expiry';
-  var CACHE_HOURS   = 12; // 12小時內自動登入，不需要再點
+  var CACHE_HOURS   = 24; // 24小時內自動登入，每次開啟都重新計時
 
   function saveLoginCache(email) {
     try {
@@ -406,7 +406,10 @@
     try {
       var expiry = parseInt(localStorage.getItem(CACHE_EXPIRY) || '0');
       if (Date.now() > expiry) { localStorage.removeItem(CACHE_KEY); return ''; }
-      return localStorage.getItem(CACHE_KEY) || '';
+      var email = localStorage.getItem(CACHE_KEY) || '';
+      // ★ 每次開啟都重新延長24小時（只要有進入，時間就重新計算）
+      if (email) localStorage.setItem(CACHE_EXPIRY, Date.now() + CACHE_HOURS * 3600 * 1000);
+      return email;
     } catch(e) { return ''; }
   }
 
