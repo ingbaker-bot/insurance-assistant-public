@@ -388,6 +388,32 @@
   // Google Client ID（需在 Google Cloud Console 建立）
   var GOOGLE_CLIENT_ID = '524622074888-i2o91rammkos6u1suh39gu1gia59v6sm.apps.googleusercontent.com';
 
+  // ══════════════════════════════════════════════════════
+  // ★ 登入狀態快取（存在 localStorage，避免每次都要點選）
+  // ══════════════════════════════════════════════════════
+  var CACHE_KEY     = 'ins_user_email';
+  var CACHE_EXPIRY  = 'ins_user_expiry';
+  var CACHE_HOURS   = 12; // 12小時內自動登入，不需要再點
+
+  function saveLoginCache(email) {
+    try {
+      localStorage.setItem(CACHE_KEY,    email);
+      localStorage.setItem(CACHE_EXPIRY, Date.now() + CACHE_HOURS * 3600 * 1000);
+    } catch(e) {}
+  }
+
+  function loadLoginCache() {
+    try {
+      var expiry = parseInt(localStorage.getItem(CACHE_EXPIRY) || '0');
+      if (Date.now() > expiry) { localStorage.removeItem(CACHE_KEY); return ''; }
+      return localStorage.getItem(CACHE_KEY) || '';
+    } catch(e) { return ''; }
+  }
+
+  function clearLoginCache() {
+    try { localStorage.removeItem(CACHE_KEY); localStorage.removeItem(CACHE_EXPIRY); } catch(e) {}
+  }
+
   function initGoogleSignIn() {
     // ── 測試模式：直接跳過 Google 登入 ──
     if (TEST_EMAIL) {
@@ -403,44 +429,75 @@
       }, function() { initSystem(); });
       return;
     }
+
+    // ── 快取登入：12小時內自動進入，不需要再點 ──
+    var cachedEmail = loadLoginCache();
+    if (cachedEmail) {
+      _userEmail = cachedEmail;
+      document.getElementById('authStatus').textContent = '⏳ 自動登入中...';
+      gasCall('getSystemConfig', {}, function(cfg) {
+        if (cfg && (cfg.error === 'unauthorized' || cfg.error === 'no_shell_url')) {
+          // 快取的帳號失效，清除並重新登入
+          clearLoginCache();
+          _userEmail = '';
+          document.getElementById('authStatus').textContent = '請重新登入';
+          startGoogleSignIn();
+          return;
+        }
+        // 自動登入成功
+        document.getElementById('authOverlay').style.display = 'none';
+        if (cfg && cfg['顧問姓名']) ADVISOR_NAME = cfg['顧問姓名'];
+        if (cfg && cfg['顧問LINE'])  ADVISOR_LINE = cfg['顧問LINE'];
+        initSystem();
+      }, function() {
+        // 連線失敗，還是直接進入（避免每次失敗都要重登）
+        document.getElementById('authOverlay').style.display = 'none';
+        initSystem();
+      });
+      return;
+    }
+
+    // ── 沒有快取，啟動 Google 登入 ──
+    startGoogleSignIn();
+  }
+
+  function startGoogleSignIn() {
     if (typeof google === 'undefined' || !google.accounts) {
-      setTimeout(initGoogleSignIn, 500); return;
+      setTimeout(startGoogleSignIn, 500); return;
     }
     google.accounts.id.initialize({
-      client_id: GOOGLE_CLIENT_ID,
-      callback:  handleGoogleSignIn,
-      auto_select: true  // 若之前登入過，自動選取
+      client_id:   GOOGLE_CLIENT_ID,
+      callback:    handleGoogleSignIn,
+      auto_select: true
     });
     google.accounts.id.renderButton(
       document.getElementById('googleSignInBtn'),
       { theme: 'outline', size: 'large', text: 'signin_with', locale: 'zh-TW' }
     );
-    google.accounts.id.prompt(); // 嘗試自動登入
+    google.accounts.id.prompt();
   }
 
   function handleGoogleSignIn(response) {
-    // 解析 JWT token 取得 email
     try {
       var payload = JSON.parse(atob(response.credential.split('.')[1]));
       _userEmail = payload.email || '';
     } catch(e) { console.error('JWT parse error', e); return; }
     if (!_userEmail) { document.getElementById('authStatus').textContent = '無法取得帳號，請重試'; return; }
 
-    // 顯示驗證中
     document.getElementById('authStatus').textContent = '⏳ 驗證中... ' + _userEmail;
 
-    // 呼叫 GAS 驗證授權（getSystemConfig 帶 email，後端會驗證）
     gasCall('getSystemConfig', {}, function(cfg) {
       if (cfg && cfg.error === 'unauthorized') {
         document.getElementById('authStatus').textContent = '⛔ 帳號未授權：' + _userEmail + '\n請聯繫管理員申請授權';
         _userEmail = '';
         return;
       }
-      // 授權通過 → 隱藏遮罩，啟動系統
+      // 授權通過 → 儲存快取（12小時免登入）
+      saveLoginCache(_userEmail);
       document.getElementById('authOverlay').style.display = 'none';
       if (cfg && cfg['顧問姓名']) ADVISOR_NAME = cfg['顧問姓名'];
       if (cfg && cfg['顧問LINE'])  ADVISOR_LINE = cfg['顧問LINE'];
-      initSystem(); // 載入到期提醒
+      initSystem();
     }, function() {
       document.getElementById('authStatus').textContent = '⚠️ 連線失敗，請重新整理頁面';
     });
