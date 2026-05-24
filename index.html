@@ -755,10 +755,19 @@
 
   function openDetailFromExpiry(policyNo) {
     document.getElementById('loading').style.display = 'block';
-    gasCall('getPolicyDetails', { no: policyNo }, renderModal, function() {
+    
+    // 【雙軌優化】到期提醒的明細查看同樣加入雙軌路由
+    if (_directShellUrl) {
+      directGasCall('getPolicyDetails', { no: policyNo }, renderModal, function() {
         document.getElementById('loading').style.display = 'none';
         alert('讀取保單詳情失敗，請稍後再試。');
       });
+    } else {
+      gasCall('getPolicyDetails', { no: policyNo }, renderModal, function() {
+        document.getElementById('loading').style.display = 'none';
+        alert('讀取保單詳情失敗，請稍後再試。');
+      });
+    }
   }
 
   function toggleExpiryAlert() {
@@ -1021,7 +1030,13 @@
     if (!val) return alert('請輸入搜尋條件');
     document.getElementById('loading').style.display = 'block';
     document.getElementById('resultsList').innerHTML = '';
-    gasCall('searchPolicies', { q: val }, showResults);
+    
+    // 【雙軌優化】如果直連網址存在，走直連搜尋；否則走傳統中央轉發
+    if (_directShellUrl) {
+      directGasCall('searchPolicies', { q: val }, showResults);
+    } else {
+      gasCall('searchPolicies', { q: val }, showResults);
+    }
   }
 
   function showResults(data) {
@@ -1186,9 +1201,14 @@
     if (!val) return alert('請輸入搜尋條件');
     document.getElementById('loading').style.display = 'block';
     document.getElementById('resultsList').innerHTML = '';
-    gasCall('searchTravelCards', { q: val }, showTravelResults);
+    
+    // 【雙軌優化】如果直連網址存在，走直連搜尋；否則走傳統中央轉發
+    if (_directShellUrl) {
+      directGasCall('searchTravelCards', { q: val }, showTravelResults);
+    } else {
+      gasCall('searchTravelCards', { q: val }, showTravelResults);
+    }
   }
-
   function showTravelResults(data) {
     document.getElementById('loading').style.display = 'none';
     var list = document.getElementById('resultsList');
@@ -1228,7 +1248,13 @@
   // ── 產險 Modal ──
   function openDetail(no) {
     document.getElementById('loading').style.display = 'block';
-    gasCall('getPolicyDetails', { no: no }, renderModal);
+    
+    // 【雙軌優化】明細查看同樣加入雙軌路由
+    if (_directShellUrl) {
+      directGasCall('getPolicyDetails', { no: no }, renderModal);
+    } else {
+      gasCall('getPolicyDetails', { no: no }, renderModal);
+    }
   }
 
   function renderModal(data) {
