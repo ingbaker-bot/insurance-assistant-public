@@ -1105,10 +1105,19 @@
   function loadUncoveredList() {
     document.getElementById('loading').style.display = 'block';
     document.getElementById('resultsList').innerHTML = '';
-    gasCall('getUncoveredList', {}, showUncoveredList, function() {
+    
+    // 【雙軌優化】如果是直連模式，直接找個人薄殼要未申辦名單；否則走傳統中央驗證
+    if (_directShellUrl) {
+      directGasCall('getUncoveredList', {}, showUncoveredList, function() {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('resultsList').innerHTML = '<p style="text-align:center;color:#d32f2f;">讀取失敗，請確認網路連線</p>';
+      });
+    } else {
+      gasCall('getUncoveredList', {}, showUncoveredList, function() {
         document.getElementById('loading').style.display = 'none';
         document.getElementById('resultsList').innerHTML = '<p style="text-align:center;color:#d32f2f;">讀取失敗，請先執行「比對旅平卡覆蓋率」</p>';
       });
+    }
   }
 
   function showUncoveredList(result) {
@@ -1979,23 +1988,45 @@
   function loadFireGapList() {
     document.getElementById('loading').style.display = 'block';
     document.getElementById('resultsList').innerHTML = '';
-    gasCall('getFireInsuranceGap', {}, showFireGapList, function() {
+    
+    // 【雙軌優化】加入直連與傳統中央判定路由
+    if (_directShellUrl) {
+      directGasCall('getFireInsuranceGap', {}, showFireGapList, function() {
         document.getElementById('loading').style.display = 'none';
         document.getElementById('resultsList').innerHTML = '<p style="text-align:center;color:#d32f2f;">讀取失敗，請稍後再試</p>';
       });
+    } else {
+      gasCall('getFireInsuranceGap', {}, showFireGapList, function() {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('resultsList').innerHTML = '<p style="text-align:center;color:#d32f2f;">讀取失敗，請稍後再試</p>';
+      });
+    }
   }
 
   function showFireGapList(result) {
     document.getElementById('loading').style.display = 'none';
     var list = document.getElementById('resultsList');
-    if (!result || result.total === 0) {
-      list.innerHTML = '<p style="text-align:center;color:#2E7D32;font-weight:bold;">🎉 所有客戶都已有住宅火險！</p>';
+    
+    // 【防呆優化】如果後端因為虛擬身份或其他原因報錯，先阻斷防止 forEach 崩潰
+    if (!result || result.error) {
+      list.innerHTML = '<p style="text-align:center;color:#d32f2f;">⚠️ 資料讀取異常：' + (result ? result.error : '未知錯誤') + '</p>';
       return;
     }
+    
+    // 【 Baker 老師提議優化】當完全沒有資料（total 等於 0 或 list 為空）時，給予溫馨通知
+    if (!result.list || result.list.length === 0 || result.total === 0) {
+      list.innerHTML = '<div style="text-align:center; padding:30px 20px; background:#E8F5E9; border:1px solid #A5D6A7; border-radius:10px; color:#2E7D32; font-weight:bold; margin-top:15px;">' +
+        '🎉 恭喜！目前您名下的所有客戶都已經擁有住宅火險保障，暫無缺口名單。' +
+        '</div>';
+      return;
+    }
+    
+    // 以下保留您原本有資料時的渲染邏輯
     var html = '<div style="background:#FFF3E0;border:1px solid #FFB74D;border-radius:10px;padding:14px 16px;margin-bottom:16px;">' +
       '<div style="color:#E65100;font-weight:bold;font-size:15px;">🏠 尚無住宅火險：共 ' + result.total + ' 人</div>' +
       '<div style="font-size:12px;color:#888;margin-top:4px;">比對方式：身分證 + 地址雙重比對</div>' +
       '</div>';
+      
     result.list.forEach(function(item) {
       var encoded = encodeURIComponent(JSON.stringify({ name: item.name, applicant: item.applicant, address: item.address }));
       html += '<div style="background:white;border-radius:10px;padding:14px 16px;margin-bottom:10px;box-shadow:0 2px 6px rgba(0,0,0,0.06);border-left:5px solid #FF9800;">' +
@@ -2003,8 +2034,8 @@
           '<div style="font-weight:bold;font-size:15px;color:#333;">' + item.name + '</div>' +
           '<button onclick="recommendFire(\'' + encoded + '\')" style="background:#FF9800;color:white;border:none;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:bold;cursor:pointer;">🏠 推薦住火</button>' +
         '</div>' +
-        '<div style="font-size:12px;color:#888;">' + item.insType + '　到期：' + item.expiry +
-          (item.applicant && item.applicant !== item.name ? '　要保人：' + item.applicant : '') + '</div>' +
+        '<div style="font-size:12px;color:#888;">' + item.insType + ' 到期：' + item.expiry +
+          (item.applicant && item.applicant !== item.name ? ' 要保人：' + item.applicant : '') + '</div>' +
         (item.address && item.address !== '無' ? '<div style="font-size:11px;color:#aaa;margin-top:4px;word-break:break-all;">🏠 ' + item.address + '</div>' : '') +
       '</div>';
     });
