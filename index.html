@@ -1660,13 +1660,19 @@
     withNickname(maskedId || '', name, function(salutation) {
       document.getElementById('loading').style.display = 'block';
       
-      // 定義撈取明細成功後組裝話術的共用邏輯
+      // 1. 定義撈取細項明細成功後的回呼邏輯
       var onDetailsLoaded = function(data) {
         document.getElementById('loading').style.display = 'none';
         
-        // 確保如果變數傳進來是 "undefined" 字串或真的無值，給予乾淨的預設值，不打破畫面
-        var effStr = (effectiveDate && effectiveDate !== 'undefined' && effectiveDate !== '無') ? effectiveDate : '—';
-        var premStr = (premium && premium !== 'undefined' && premium !== '無') ? premium : '—';
+        // 智慧型交叉比對：優先採用地方試算表帶回來的最新真實數據，否則才降級用外層卡片的舊資料
+        var finalEffective = (data && data.main && data.main.effectiveDate && data.main.effectiveDate !== '無') ? data.main.effectiveDate : effectiveDate;
+        var finalPremium   = (data && data.main && data.main.premium       && data.main.premium !== '無')       ? data.main.premium       : premium;
+        var finalExpiry    = (data && data.main && data.main.expiry        && data.main.expiry !== '無')        ? data.main.expiry        : expiry;
+        
+        // 清洗與防護：防範 undefined 或橫線亂跳
+        var effStr  = (finalEffective && finalEffective !== 'undefined' && finalEffective !== '—') ? finalEffective : '—';
+        var premStr = (finalPremium   && finalPremium   !== 'undefined' && finalPremium   !== '—') ? finalPremium   : '—';
+        var expStr  = (finalExpiry    && finalExpiry    !== 'undefined' && finalExpiry    !== '—') ? finalExpiry    : expiry;
         
         var msg = "✨【保單到期提醒】✨\n\n";
         msg += salutation + " 您好！\n\n";
@@ -1677,10 +1683,10 @@
           msg += "🚗 車號：" + plateNo + "\n";
         }
         msg += "📅 生效日：" + effStr + "\n";
-        msg += "⏰ 到期日：" + expiry + "\n";
+        msg += "⏰ 到期日欄位：" + expStr + "\n";
         msg += "💰 總保費：NT$ " + premStr + " 元\n";
         
-        // 如果有撈到核心保障明細，則加進話術中
+        // 如果後端有抓到保障細項明細，加進話術中
         if (data && data.details && data.details.length > 0) {
           msg += "\n📌 保障明細：\n";
           data.details.forEach(function(d) {
@@ -1694,9 +1700,9 @@
         msg += "若需續約或有任何問題，請隨時回覆聯繫 " + ADVISOR_NAME + "！🙌";
         if (ADVISOR_LINE) msg += "\n📲 加入 LINE：https://line.me/ti/p/" + ADVISOR_LINE;
         
-        shareViaLine(msg); // 喚起傳送或複製
+        shareViaLine(msg); // 執行雙軌發送或複製
         
-        // 背景自動標記 Z 欄為「已聯繫」
+        // 背景自動更新試算表 Z 欄紀錄為「已聯繫」
         if (_directShellUrl) {
           directGasCall('updateRenewalStatus', { policyNo: policyNo, status: '已聯繫' }, null);
         } else {
@@ -1704,11 +1710,11 @@
         }
       };
 
-      // 錯誤處理降級：撈不到明細時依然可以發送基本提醒，絕對不吐出 undefined
+      // 2. 定義斷線或降級時的備用邏輯
       var onDetailsFailed = function() {
         document.getElementById('loading').style.display = 'none';
-        var effStr = (effectiveDate && effectiveDate !== 'undefined' && effectiveDate !== '無') ? effectiveDate : '—';
-        var premStr = (premium && premium !== 'undefined' && premium !== '無') ? premium : '—';
+        var effStr  = (effectiveDate && effectiveDate !== 'undefined' && effectiveDate !== '無') ? effectiveDate : '—';
+        var premStr = (premium       && premium       !== 'undefined' && premium       !== '無') ? premium       : '—';
         
         var msg = "✨【保單到期提醒】✨\n\n";
         msg += salutation + " 您好！\n\n";
@@ -1728,7 +1734,7 @@
         shareViaLine(msg);
       };
 
-      // 【雙軌優化核心】依據當前連線模式，決定跟哪裡的後端要細項資料
+      // 3. 雙軌判斷路由執行發送
       if (_directShellUrl) {
         directGasCall('getPolicyDetails', { no: policyNo }, onDetailsLoaded, onDetailsFailed);
       } else {
