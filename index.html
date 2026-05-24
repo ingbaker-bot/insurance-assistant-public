@@ -1092,6 +1092,7 @@
     if (!data || data.length === 0) { list.innerHTML = '<p style="text-align:center;color:#888;">查無資料。</p>'; return; }
     var today = new Date(); today.setHours(0,0,0,0);
     var html = '';
+    
     data.forEach(function(item) {
       var agentTag = item.agentCode && item.agentCode !== '無' ? ' <span style="color:#FF9800;font-weight:bold;">[' + item.agentCode + ']</span>' : '';
 
@@ -1111,6 +1112,9 @@
         }
       }
 
+      // 【核心修正】修正 quickShare 括號內的變數名稱，對齊 Library 的回傳特徵
+      // 原本 item.effectDate -> 修正為 item.effectiveDate
+      // 原本 item.totalPremium -> 修正為 item.premium
       html += '<div class="card" onclick="openDetail(\'' + item.policyNo + '\')">' +
         '<div style="margin-bottom:10px;">' +
           '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;margin-bottom:6px;">' +
