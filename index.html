@@ -1456,7 +1456,13 @@
 
   function loadFamilyReport(familyId) {
     document.getElementById('familyReportArea').querySelector('button').textContent = '載入中...';
-    gasCall('getFamilyReport', { id: familyId }, renderFamilyReport);
+    
+    // 【雙軌優化】直連捷徑模式走 directGasCall 直達地方薄殼，傳統模式走中央轉發
+    if (_directShellUrl) {
+      directGasCall('checkTravelCoverage', { id: main.maskedId }, renderTravelStatus);
+    } else {
+      gasCall('checkTravelCoverage', { id: main.maskedId }, renderTravelStatus);
+    }
   }
 
   // ── 旅平卡 Modal ──
