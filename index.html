@@ -440,6 +440,32 @@
     // ── 先檢查是否從 OAuth2 redirect 回來 ──
     if (checkOAuthCallback()) return;
 
+    // 新增一個全局變數，用來儲存直接連線的專屬 Shell URL
+    var _directShellUrl = ''; 
+
+    function initGoogleSignIn() {
+      // ── 【核心優化：Token 捷徑直連檢查】 ──
+      var urlParams = new URLSearchParams(window.location.search);
+      var tokenUrl  = urlParams.get('shell'); // 從網址列抓取加密的 shell url 參數
+  
+    if (tokenUrl) {
+      // 解密或還原 Base64 編碼的 Shell URL (提高安全性，避免網址列直接暴露 exec 網址)
+      try {
+        _directShellUrl = atob(decodeURIComponent(tokenUrl)); 
+        if (_directShellUrl.startsWith('https://script.google.com/')) {
+          // 成功取得直連通道！徹底隱藏登入遮罩，0 秒進入系統
+          hideAuthOverlay();
+          _userEmail = 'direct_token_user'; // 虛擬 Email 繞過驗證
+        
+          // 直接向自己的 Shell 抓取系統設定與到期提醒，不經過中央 Libcode
+          initDirectSystem();
+          return;
+        }
+      } catch(e) {
+        console.error('Token 解析失敗，降級走傳統登入流程');
+       }
+    }
+    
     // ── 測試模式：直接跳過 Google 登入 ──
     if (TEST_EMAIL) {
       _userEmail = TEST_EMAIL;
@@ -489,6 +515,44 @@
     startGoogleSignIn();
   }
 
+  // 新增：繞過中央、直接與地方 Shell 通訊的初始化函式
+function initDirectSystem() {
+  var hint = document.getElementById('expiryLoadingHint');
+  
+  // 改造原來的 gasCall，如果是直連模式，直接呼叫自己的 Shell
+  directGasCall('getSystemConfig', {}, function(cfg) {
+    if (cfg && cfg['顧問姓名']) ADVISOR_NAME = cfg['顧問姓名'];
+    if (cfg && cfg['顧問LINE'])  ADVISOR_LINE = cfg['顧問LINE'];
+    
+    // 載入到期提醒
+    directGasCall('getExpiringLists', {}, function(result) {
+      if (hint) hint.style.display = 'none';
+      if (result && result.urgent)  renderExpiryAlert(result.urgent);
+      if (result && result.warning) renderEarlyWarning(result.warning);
+    });
+  });
+}
+
+// 新增：直連模式專用的輕量化網路請求
+function directGasCall(action, params, successFn) {
+  var cbName = '_dirCb_' + (++_gasCallSeq);
+  window[cbName] = function(data) {
+    var el = document.getElementById(cbName); if (el) el.parentNode.removeChild(el);
+    delete window[cbName];
+    if (successFn) successFn(data);
+  };
+  
+  // 直接將請求發往業務員自己的 Shell Web App，省去中央轉發的 2~3 秒延遲！
+  var url = _directShellUrl + '?action=' + encodeURIComponent(action) + '&callback=' + cbName;
+  if (params) Object.keys(params).forEach(function(k) {
+    url += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k] !== undefined ? params[k] : '');
+  });
+  
+  var script = document.createElement('script');
+  script.id = cbName; script.src = url;
+  document.head.appendChild(script);
+}
+    
   // ── WebView 偵測：LINE/Facebook 內建瀏覽器不支援 Google 登入 ──
   function isWebView() {
     var ua = navigator.userAgent || '';
