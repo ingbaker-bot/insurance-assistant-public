@@ -437,83 +437,77 @@
   }
 
   function initGoogleSignIn() {
-    // ── 先檢查是否從 OAuth2 redirect 回來 ──
-    if (checkOAuthCallback()) return;
-
-    // 新增一個全局變數，用來儲存直接連線的專屬 Shell URL
-    var _directShellUrl = ''; 
-
-    function initGoogleSignIn() {
-      // ── 【核心優化：Token 捷徑直連檢查】 ──
-      var urlParams = new URLSearchParams(window.location.search);
-      var tokenUrl  = urlParams.get('shell'); // 從網址列抓取加密的 shell url 參數
+  // ── 【直連強效檢查：確保 100% 繞過 Google 登入】 ──
+  var urlParams = new URLSearchParams(window.location.search);
+  var tokenUrl  = urlParams.get('shell'); // 抓取 shell 參數
   
-    if (tokenUrl) {
-      // 解密或還原 Base64 編碼的 Shell URL (提高安全性，避免網址列直接暴露 exec 網址)
-      try {
-        _directShellUrl = atob(decodeURIComponent(tokenUrl)); 
-        if (_directShellUrl.startsWith('https://script.google.com/')) {
-          // 成功取得直連通道！徹底隱藏登入遮罩，0 秒進入系統
-          hideAuthOverlay();
-          _userEmail = 'direct_token_user'; // 虛擬 Email 繞過驗證
+  if (tokenUrl) {
+    try {
+      // 1. 進行解碼（解開網址百分比編碼與 Base64）
+      var decodedString = atob(decodeURIComponent(tokenUrl)); 
+      
+      if (decodedString && decodedString.indexOf('https://script.google.com/') !== -1) {
+        _directShellUrl = decodedString; // 精准將直連網址交給全局變數
         
-          // 直接向自己的 Shell 抓取系統設定與到期提醒，不經過中央 Libcode
-          initDirectSystem();
-          return;
+        // 2. 徹底隱藏並移除 Google 登入遮罩，達成 0 秒秒開
+        var overlay = document.getElementById('authOverlay');
+        if (overlay) {
+          overlay.style.display = 'none'; // 強制關閉遮罩
+          overlay.classList.add('hiding');
         }
-      } catch(e) {
-        console.error('Token 解析失敗，降級走傳統登入流程');
-       }
+        
+        // 3. 設定虛擬身分，直接跳過 Libcode 機制，直奔地方資料庫！
+        _userEmail = 'direct_token_user'; 
+        initDirectSystem();
+        return; // 成功通關，徹底結束函式，不讓傳統登入機制有機會露臉！
+      }
+    } catch(e) {
+      console.error('捷徑網址解析失敗，原因：', e);
     }
-    
-    // ── 測試模式：直接跳過 Google 登入 ──
-    if (TEST_EMAIL) {
-      _userEmail = TEST_EMAIL;
-      hideAuthOverlay();
-      ADVISOR_NAME = TEST_EMAIL.split('@')[0];
-      gasCall('getSystemConfig', {}, function(cfg) {
-        if (cfg && !cfg.error) {
-          if (cfg['顧問姓名']) ADVISOR_NAME = cfg['顧問姓名'];
-          if (cfg['顧問LINE'])  ADVISOR_LINE = cfg['顧問LINE'];
-        }
-        initSystem();
-      }, function() { initSystem(); });
-      return;
-    }
-
-    // ── 快取登入：12小時內自動進入，不需要再點 ──
-    var cachedEmail = loadLoginCache();
-    if (cachedEmail) {
-      _userEmail = cachedEmail;
-      // 顯示轉圈動畫，隱藏登入按鈕
-      document.getElementById('autoLoginSpinner').style.display = 'block';
-      document.getElementById('loginPanel').style.display = 'none';
-      document.getElementById('authStatus').textContent = '';
-      gasCall('getSystemConfig', {}, function(cfg) {
-        if (cfg && (cfg.error === 'unauthorized' || cfg.error === 'no_shell_url')) {
-          // 快取的帳號失效，清除並重新登入
-          clearLoginCache();
-          _userEmail = '';
-          document.getElementById('authStatus').textContent = '請重新登入';
-          startGoogleSignIn();
-          return;
-        }
-        // 自動登入成功
-        hideAuthOverlay();
-        if (cfg && cfg['顧問姓名']) ADVISOR_NAME = cfg['顧問姓名'];
-        if (cfg && cfg['顧問LINE'])  ADVISOR_LINE = cfg['顧問LINE'];
-        initSystem();
-      }, function() {
-        // 連線失敗，還是直接進入（避免每次失敗都要重登）
-        hideAuthOverlay();
-        initSystem();
-      });
-      return;
-    }
-
-    // ── 沒有快取，啟動 Google 登入 ──
-    startGoogleSignIn();
   }
+
+  // ── 以下維持您原本的傳統登入流程 (當捷徑網址不存在時的後備方案) ──
+  if (TEST_EMAIL) {
+    _userEmail = TEST_EMAIL;
+    hideAuthOverlay();
+    ADVISOR_NAME = TEST_EMAIL.split('@')[0];
+    gasCall('getSystemConfig', {}, function(cfg) {
+      if (cfg && !cfg.error) {
+        if (cfg['顧問姓名']) ADVISOR_NAME = cfg['顧問姓名'];
+        if (cfg['顧問LINE'])  ADVISOR_LINE = cfg['顧問LINE'];
+      }
+      initSystem();
+    }, function() { initSystem(); });
+    return;
+  }
+
+  var cachedEmail = loadLoginCache();
+  if (cachedEmail) {
+    _userEmail = cachedEmail;
+    document.getElementById('autoLoginSpinner').style.display = 'block';
+    document.getElementById('loginPanel').style.display = 'none';
+    document.getElementById('authStatus').textContent = '';
+    gasCall('getSystemConfig', {}, function(cfg) {
+      if (cfg && (cfg.error === 'unauthorized' || cfg.error === 'no_shell_url')) {
+        clearLoginCache();
+        _userEmail = '';
+        document.getElementById('authStatus').textContent = '請重新登入';
+        startGoogleSignIn();
+        return;
+      }
+      hideAuthOverlay();
+      if (cfg && cfg['顧問姓名']) ADVISOR_NAME = cfg['顧問姓名'];
+      if (cfg && cfg['顧問LINE'])  ADVISOR_LINE = cfg['顧問LINE'];
+      initSystem();
+    }, function() {
+      hideAuthOverlay();
+      initSystem();
+    });
+    return;
+  }
+
+  startGoogleSignIn();
+}
 
   // 新增：繞過中央、直接與地方 Shell 通訊的初始化函式
 function initDirectSystem() {
