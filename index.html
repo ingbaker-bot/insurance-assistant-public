@@ -834,8 +834,12 @@
   function expiryQuickShare(encodedItem, policyNo) {
     var item = JSON.parse(decodeURIComponent(encodedItem));
     // 先標記已聯繫
+    if (_directShellUrl) {
+    directGasCall('updateRenewalStatus', { policyNo: policyNo, status: '已聯繫' }, null);
+  } else {
     gasCall('updateRenewalStatus', { policyNo: policyNo, status: '已聯繫' }, null, null);
-    updateExpiryRowStatus(policyNo, '已聯繫');
+  }
+  updateExpiryRowStatus(policyNo, '已聯繫');
 
     // 查詢稱呼後組訊息
     withNickname(item.maskedId || '', item.name, function(salutation) {
@@ -848,16 +852,24 @@
     });
   }
 
+  // 5天內到期提醒的按鈕控制
   function setRenewalStatus(policyNo, status) {
-    gasCall('updateRenewalStatus', { policyNo: policyNo, status: status }, function(result) {
-        if (result && result.success) {
-          if (status === '已續保' || status === '不續保' || status === '已過戶' || status === '已報廢') {
-            removeExpiryRow(policyNo);
-          } else {
-            updateExpiryRowStatus(policyNo, status);
-          }
+    var onSuccess = function(result) {
+      if (result && result.success) {
+        if (status === '已續保' || status === '不續保' || status === '已過戶' || status === '已報廢') {
+          removeExpiryRow(policyNo);
+        } else {
+          updateExpiryRowStatus(policyNo, status);
         }
-      });
+      }
+    };
+
+    // 【雙軌優化】直連模式直接寫入地方試算表 Z 欄
+    if (_directShellUrl) {
+      directGasCall('updateRenewalStatus', { policyNo: policyNo, status: status }, onSuccess);
+    } else {
+      gasCall('updateRenewalStatus', { policyNo: policyNo, status: status }, onSuccess);
+    }
   }
 
   function updateExpiryRowStatus(policyNo, status) {
@@ -951,8 +963,12 @@
   function earlyWarnShare(encodedItem, policyNo) {
     var item = JSON.parse(decodeURIComponent(encodedItem));
     // 標記已聯繫
-    gasCall('updateRenewalStatus', { policyNo: policyNo, status: '已聯繫' }, null, null);
-    updateEarlyWarningStatus(policyNo, '已聯繫');
+    if (_directShellUrl) {
+        directGasCall('updateRenewalStatus', { policyNo: policyNo, status: '已聯繫' }, null);
+      } else {
+        gasCall('updateRenewalStatus', { policyNo: policyNo, status: '已聯繫' }, null, null);
+      }
+      updateEarlyWarningStatus(policyNo, '已聯繫');
 
     withNickname(item.maskedId || '', item.name, function(salutation) {
       gasCall('getPolicyDetails', { no: policyNo }, function(data) {
@@ -982,16 +998,24 @@
     });
   }
 
+  // 45~51天提前預警的按鈕控制
   function setEarlyWarningStatus(policyNo, status) {
-    gasCall('updateRenewalStatus', { policyNo: policyNo, status: status }, function(result) {
-        if (result && result.success) {
-          if (status === '已續保' || status === '不續保' || status === '已過戶' || status === '已報廢') {
-            removeEarlyWarningRow(policyNo);
-          } else {
-            updateEarlyWarningStatus(policyNo, status);
-          }
+    var onSuccess = function(result) {
+      if (result && result.success) {
+        if (status === '已續保' || status === '不續保' || status === '已過戶' || status === '已報廢') {
+          removeEarlyWarningRow(policyNo);
+        } else {
+          updateEarlyWarningStatus(policyNo, status);
         }
-      });
+      }
+    };
+
+    // 【雙軌優化】直連模式直接寫入地方試算表 Z 欄
+    if (_directShellUrl) {
+      directGasCall('updateRenewalStatus', { policyNo: policyNo, status: status }, onSuccess);
+    } else {
+      gasCall('updateRenewalStatus', { policyNo: policyNo, status: status }, onSuccess);
+    }
   }
 
   function updateEarlyWarningStatus(policyNo, status) {
