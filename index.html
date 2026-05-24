@@ -1800,13 +1800,24 @@
   var _tasks = [];
 
   function loadTasks() {
-    gasCall('getTasks', {}, function(result) {
+    // 【雙軌優化】如果是直連捷徑，直連地方薄殼；否則走傳統中央驗證
+    if (_directShellUrl) {
+      directGasCall('getTasks', {}, function(result) {
         _tasks = (result && result.tasks) ? result.tasks : [];
         renderTasks();
       }, function() {
         document.getElementById('taskListBody').innerHTML =
           '<div style="color:#999;font-size:13px;text-align:center;padding:10px;">載入失敗，請稍後再試</div>';
       });
+    } else {
+      gasCall('getTasks', {}, function(result) {
+        _tasks = (result && result.tasks) ? result.tasks : [];
+        renderTasks();
+      }, function() {
+        document.getElementById('taskListBody').innerHTML =
+          '<div style="color:#999;font-size:13px;text-align:center;padding:10px;">載入失敗，請稍後再試</div>';
+      });
+    }
   }
 
   function renderTasks() {
@@ -1936,18 +1947,36 @@
     var note      = noteEl ? noteEl.value.trim() : '';
     var saveBtn   = document.getElementById('taskSaveBtn_' + taskId);
     if (saveBtn) { saveBtn.textContent = '儲存中...'; saveBtn.disabled = true; }
-    gasCall('updateTask', { taskId: taskId, status: newStatus, note: note }, function(result) {
-        if (result && result.success) { loadTasks(); }
-        else {
-          if (saveBtn) { saveBtn.textContent = '💾 儲存'; saveBtn.disabled = false; }
-          alert('儲存失敗，請稍後再試');
-        }
-      }, function() {
+    
+    var onSuccess = function(result) {
+      if (result && result.success) { loadTasks(); }
+      else {
         if (saveBtn) { saveBtn.textContent = '💾 儲存'; saveBtn.disabled = false; }
-        alert('連線失敗，請重試');
-      });
+        alert('儲存失敗，請稍後再試');
+      }
+    };
+    
+    var onFail = function() {
+      if (saveBtn) { saveBtn.textContent = '💾 儲存'; saveBtn.disabled = false; }
+      alert('連線失敗，請重試');
+    };
+
+    // 【雙軌優化】
+    if (_directShellUrl) {
+      directGasCall('updateTask', { taskId: taskId, status: newStatus, note: note }, onSuccess, onFail);
+    } else {
+      gasCall('updateTask', { taskId: taskId, status: newStatus, note: note }, onSuccess, onFail);
+    }
   }
 
+  function clearTaskDone(taskId) {
+    // 【雙軌優化】重置任務進度
+    if (_directShellUrl) {
+      directGasCall('updateTask', { taskId: taskId, status: '', note: '' }, function() { loadTasks(); }, null);
+    } else {
+      gasCall('updateTask', { taskId: taskId, status: '', note: '' }, function() { loadTasks(); }, null);
+    }
+  }
   function clearTaskDone(taskId) {
     gasCall('updateTask', { taskId: taskId, status: '', note: '' }, function() { loadTasks(); }, null);
   }
@@ -1958,21 +1987,39 @@
     if (!date || !taskCont) { alert('請填寫日期和內容'); return; }
     var btn = document.getElementById('taskSubmitBtn');
     btn.disabled = true; btn.textContent = '儲存中...';
-    gasCall('saveTask', { date: date, content: taskCont, author: ADVISOR_NAME }, function(result) {
-        btn.disabled = false; btn.textContent = '➕ 新增';
-        if (result && result.success) { document.getElementById('taskContent').value = ''; loadTasks(); }
-        else { alert('儲存失敗'); }
-      }, function() {
-        btn.disabled = false; btn.textContent = '➕ 新增';
-        alert('連線失敗，請重試');
-      });
-  }
+    
+    // 定義儲存成功的共用回呼
+    var onSuccess = function(result) {
+      btn.disabled = false; btn.textContent = '➕ 新增';
+      if (result && result.success) { document.getElementById('taskContent').value = ''; loadTasks(); }
+      else { alert('儲存失敗'); }
+    };
+    
+    var onFail = function() {
+      btn.disabled = false; btn.textContent = '➕ 新增';
+      alert('連線失敗，請重試');
+    };
 
+    // 【雙軌優化】
+    if (_directShellUrl) {
+      directGasCall('saveTask', { date: date, content: taskCont, author: ADVISOR_NAME }, onSuccess, onFail);
+    } else {
+      gasCall('saveTask', { date: date, content: taskCont, author: ADVISOR_NAME }, onSuccess, onFail);
+    }
+  }
   function deleteTaskItem(taskId) {
     if (!confirm('確定刪除此代辦事項？')) return;
-    gasCall('deleteTask', { taskId: taskId }, function(result) {
-        if (result && result.success) { _tasks = _tasks.filter(function(t) { return t.taskId !== taskId; }); renderTasks(); }
-      }, null);
+    
+    var onSuccess = function(result) {
+      if (result && result.success) { _tasks = _tasks.filter(function(t) { return t.taskId !== taskId; }); renderTasks(); }
+    };
+
+    // 【雙軌優化】
+    if (_directShellUrl) {
+      directGasCall('deleteTask', { taskId: taskId }, onSuccess, null);
+    } else {
+      gasCall('deleteTask', { taskId: taskId }, onSuccess, null);
+    }
   }
 
   function toggleTaskPanel() {
