@@ -1888,16 +1888,31 @@
     var name     = currentPolicyData.main.insuredName;
     var label    = status === '已過戶' ? '已過戶 🔄' : '已報廢 🗑️';
     if (!confirm('確定將「' + name + '」的保單標記為【' + label + '】？\n\n此保單將不再出現在到期提醒名單中。')) return;
-    gasCall('updateRenewalStatus', { policyNo: policyNo, status: status }, function(result) {
-        if (result && result.success) {
-          alert('✅ 已標記為【' + label + '】');
-          closeModal();
-        } else {
-          alert('❌ 標記失敗，請稍後再試。');
-        }
-      });
-  }
+    
+    // 定義更新成功後的回呼行為
+    var onSuccess = function(result) {
+      if (result && result.success) {
+        alert('✅ 已標記為【' + label + '】');
+        closeModal();
+        // 貼心加強：標記成功後自動重新整理列表或移除到期欄位紀錄
+        if (typeof removeExpiryRow === 'function') removeExpiryRow(policyNo);
+        if (typeof removeEarlyWarningRow === 'function') removeEarlyWarningRow(policyNo);
+      } else {
+        alert('❌ 標記失敗，請稍後再試。');
+      }
+    };
+    
+    var onFail = function() {
+      alert('❌ 網路連線失敗，請稍後再試。');
+    };
 
+    // 【雙軌優化核心】如果是直連捷徑模式，走 directGasCall 直達地方薄殼 Z 欄；否則走中央轉發
+    if (_directShellUrl) {
+      directGasCall('updateRenewalStatus', { policyNo: policyNo, status: status }, onSuccess, onFail);
+    } else {
+      gasCall('updateRenewalStatus', { policyNo: policyNo, status: status }, onSuccess, onFail);
+    }
+  }
   function closeModal() {
     document.getElementById('detailModal').style.display = 'none';
     document.getElementById('travelStatusArea').innerHTML = '';
