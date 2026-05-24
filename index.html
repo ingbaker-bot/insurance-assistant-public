@@ -1368,16 +1368,23 @@
     var main     = data.main;
     var agentTag = main.agentCode && main.agentCode !== "無" ? " <span style='color:#FF9800;'>[" + main.agentCode + "]</span>" : "";
 
+    // 【智慧防護】如果後端改傳 main.expiry，前端優先讀取！否則相容 main.expiryDate 舊規格
+    var finalExpiry = main.expiry || main.expiryDate || "—";
+    var expStr = (finalExpiry && finalExpiry !== 'undefined') ? finalExpiry : '—';
+
+    // 【核心修正】將原本的 main.expiryDate 修正替換為我們清洗過的 expStr 變數
     var html = '<div class="detail-section">' +
       '<div class="detail-title" style="font-size:20px;color:#00A3E0;">' + main.insuredName + ' 的專屬保障摘要' + agentTag + '</div>' +
       '<div class="info-grid">' +
         '<div><div class="info-label">保單號碼</div><b>' + main.policyNo + '</b></div>' +
         '<div><div class="info-label">險種</div><b>' + main.type + '</b></div>' +
-        '<div><div class="info-label">生效日期</div>' + main.effectiveDate + '</div>' +
-        '<div><div class="info-label">到期日期</div><b style="color:#d32f2f;">' + main.expiryDate + '</b></div>' +
+        '<div><div class="info-label">生效日期</div>' + (main.effectiveDate || '—') + '</div>' +
+        '<div><div class="info-label">到期日期</div><b style="color:#d32f2f;">' + expStr + '</b></div>' + // 這裡改用 expStr
         '<div><div class="info-label">總保費</div><b style="color:#00B900;">NT$ ' + (main.premium || 0) + '</b></div>' +
         '<div><div class="info-label">車牌</div>' + main.plateNo + '</div>' +
       '</div></div>';
+      
+    // ── 以下保留您原本的核心保障明細表格及後續 familyReport 渲染邏輯，請勿更動 ──
     html += '<div class="detail-section"><div class="detail-title">🛡️ 核心保障明細</div>' +
       '<table><tr><th>保障項目</th><th>保額</th><th style="text-align:right;">保費</th></tr>';
     if (data.details && data.details.length > 0) {
