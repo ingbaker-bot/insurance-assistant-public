@@ -1638,17 +1638,86 @@
   }
 
   function quickShare(name, type, policyNo, effectiveDate, expiry, plateNo, premium, maskedId) {
+    // 記錄目前的身分證號供稱呼管理快取使用
+    _nicknameInsuredId = maskedId || '';
+
     withNickname(maskedId || '', name, function(salutation) {
       document.getElementById('loading').style.display = 'block';
-      gasCall('getPolicyDetails', { no: policyNo }, function(data) {
-          document.getElementById('loading').style.display = 'none';
-          shareViaLine(buildPolicyMsg(salutation, type, plateNo, effectiveDate, expiry, premium, data ? data.details : []));
+      
+      // 定義撈取明細成功後組裝話術的共用邏輯
+      var onDetailsLoaded = function(data) {
+        document.getElementById('loading').style.display = 'none';
+        
+        // 確保如果變數傳進來是 "undefined" 字串或真的無值，給予乾淨的預設值，不打破畫面
+        var effStr = (effectiveDate && effectiveDate !== 'undefined' && effectiveDate !== '無') ? effectiveDate : '—';
+        var premStr = (premium && premium !== 'undefined' && premium !== '無') ? premium : '—';
+        
+        var msg = "✨【保單到期提醒】✨\n\n";
+        msg += salutation + " 您好！\n\n";
+        msg += "📋 以下保單即將到期，請檢視原保單內容：\n";
+        msg += "────────────────────\n";
+        msg += "📄 險種：" + type + "\n";
+        if (plateNo && plateNo !== '無' && plateNo !== 'undefined') {
+          msg += "🚗 車號：" + plateNo + "\n";
+        }
+        msg += "📅 生效日：" + effStr + "\n";
+        msg += "⏰ 到期日：" + expiry + "\n";
+        msg += "💰 總保費：NT$ " + premStr + " 元\n";
+        
+        // 如果有撈到核心保障明細，則加進話術中
+        if (data && data.details && data.details.length > 0) {
+          msg += "\n📌 保障明細：\n";
+          data.details.forEach(function(d) {
+            msg += "  • " + d.name;
+            if (d.amount && d.amount !== '無') msg += " 保額 " + d.amount;
+            if (d.premium && d.premium !== '無' && d.premium !== '0') msg += " 保費 " + d.premium + " 元";
+            msg += "\n";
+          });
+        }
+        msg += "────────────────────\n\n";
+        msg += "若需續約或有任何問題，請隨時回覆聯繫 " + ADVISOR_NAME + "！🙌";
+        if (ADVISOR_LINE) msg += "\n📲 加入 LINE：https://line.me/ti/p/" + ADVISOR_LINE;
+        
+        shareViaLine(msg); // 喚起傳送或複製
+        
+        // 背景自動標記 Z 欄為「已聯繫」
+        if (_directShellUrl) {
+          directGasCall('updateRenewalStatus', { policyNo: policyNo, status: '已聯繫' }, null);
+        } else {
           gasCall('updateRenewalStatus', { policyNo: policyNo, status: '已聯繫' }, null, null);
-        }, function() {
-          document.getElementById('loading').style.display = 'none';
-          shareViaLine(buildPolicyMsg(salutation, type, plateNo, effectiveDate, expiry, premium, []));
-          gasCall('updateRenewalStatus', { policyNo: policyNo, status: '已聯繫' }, null, null);
-        });
+        }
+      };
+
+      // 錯誤處理降級：撈不到明細時依然可以發送基本提醒，絕對不吐出 undefined
+      var onDetailsFailed = function() {
+        document.getElementById('loading').style.display = 'none';
+        var effStr = (effectiveDate && effectiveDate !== 'undefined' && effectiveDate !== '無') ? effectiveDate : '—';
+        var premStr = (premium && premium !== 'undefined' && premium !== '無') ? premium : '—';
+        
+        var msg = "✨【保單到期提醒】✨\n\n";
+        msg += salutation + " 您好！\n\n";
+        msg += "📋 以下保單即將到期，請檢視原保單內容：\n";
+        msg += "────────────────────\n";
+        msg += "📄 險種：" + type + "\n";
+        if (plateNo && plateNo !== '無' && plateNo !== 'undefined') {
+          msg += "🚗 車號：" + plateNo + "\n";
+        }
+        msg += "📅 生效日：" + effStr + "\n";
+        msg += "⏰ 到期日：" + expiry + "\n";
+        msg += "💰 總保費：NT$ " + premStr + " 元\n";
+        msg += "────────────────────\n\n";
+        msg += "若需續約或有任何問題，請隨時回覆聯繫 " + ADVISOR_NAME + "！🙌";
+        if (ADVISOR_LINE) msg += "\n📲 加入 LINE：https://line.me/ti/p/" + ADVISOR_LINE;
+        
+        shareViaLine(msg);
+      };
+
+      // 【雙軌優化核心】依據當前連線模式，決定跟哪裡的後端要細項資料
+      if (_directShellUrl) {
+        directGasCall('getPolicyDetails', { no: policyNo }, onDetailsLoaded, onDetailsFailed);
+      } else {
+        gasCall('getPolicyDetails', { no: policyNo }, onDetailsLoaded, onDetailsFailed);
+      }
     });
   }
 
