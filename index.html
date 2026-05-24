@@ -1455,13 +1455,18 @@
   }
 
   function loadFamilyReport(familyId) {
+    if (!familyId || familyId === "無") {
+      alert("此保戶尚無家庭保障資料。");
+      return;
+    }
+    
     document.getElementById('familyReportArea').querySelector('button').textContent = '載入中...';
     
-    // 【雙軌優化】直連捷徑模式走 directGasCall 直達地方薄殼，傳統模式走中央轉發
+    // 【雙軌智慧優化】確保只使用區域變數 familyId，徹底消滅 main is not defined 錯誤！
     if (_directShellUrl) {
-      directGasCall('checkTravelCoverage', { id: main.maskedId }, renderTravelStatus);
+      directGasCall('getFamilyReport', { id: familyId }, renderFamilyReport);
     } else {
-      gasCall('checkTravelCoverage', { id: main.maskedId }, renderTravelStatus);
+      gasCall('getFamilyReport', { id: familyId }, renderFamilyReport);
     }
   }
 
