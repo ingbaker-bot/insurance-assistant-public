@@ -809,7 +809,20 @@
     var val = document.getElementById('nicknameInput').value.trim();
     document.getElementById('nicknameOverlay').classList.remove('show');
     if (_nicknameCallback) {
-      _nicknameCallback(val || document.getElementById('nicknameTitleText').textContent.replace('請輸入 ', '').replace(' 的稱呼', ''));
+      var targetName = document.getElementById('nicknameTitleText').textContent.replace('請輸入 ', '').replace(' 的稱呼', '');
+      var salutation = val || targetName;
+      
+      // 異步儲存新稱呼到 Sheets 中，但「不等待它儲存完」，立刻放行去發送訊息，搶抓剪貼簿黃金時間！
+      if (val && val !== targetName && _directShellUrl) {
+        var urlParams = new URLSearchParams(window.location.search);
+        var insuredId = _nicknameInsuredId || ''; // 確保有記錄身分證號
+        directGasCall('saveCustomerNickname', { id: insuredId, nick: salutation }, null);
+      } else if (val && val !== targetName) {
+        var insuredId = _nicknameInsuredId || '';
+        gasCall('saveCustomerNickname', { id: insuredId, nick: salutation }, null, null);
+      }
+      
+      _nicknameCallback(salutation);
       _nicknameCallback = null;
     }
   }
@@ -817,7 +830,6 @@
   function nicknameSkip() {
     document.getElementById('nicknameOverlay').classList.remove('show');
     if (_nicknameCallback) {
-      // 用姓名（從標題取回）
       var name = document.getElementById('nicknameTitleText').textContent.replace('請輸入 ', '').replace(' 的稱呼', '');
       _nicknameCallback(name);
       _nicknameCallback = null;
@@ -962,39 +974,50 @@
 
   function earlyWarnShare(encodedItem, policyNo) {
     var item = JSON.parse(decodeURIComponent(encodedItem));
-    // 標記已聯繫
+    
+    // 背景同步標記 Z 欄為「已聯繫」
     if (_directShellUrl) {
-        directGasCall('updateRenewalStatus', { policyNo: policyNo, status: '已聯繫' }, null);
-      } else {
-        gasCall('updateRenewalStatus', { policyNo: policyNo, status: '已聯繫' }, null, null);
-      }
-      updateEarlyWarningStatus(policyNo, '已聯繫');
+      directGasCall('updateRenewalStatus', { policyNo: policyNo, status: '已聯繫' }, null);
+    } else {
+      gasCall('updateRenewalStatus', { policyNo: policyNo, status: '已聯繫' }, null, null);
+    }
+    updateEarlyWarningStatus(policyNo, '已聯繫');
+
+    // 記錄目前的身分證號供稱呼表快取使用
+    _nicknameInsuredId = item.maskedId || '';
 
     withNickname(item.maskedId || '', item.name, function(salutation) {
-      gasCall('getPolicyDetails', { no: policyNo }, function(data) {
-          var msg = "🌟【保單續保提前通知】🌟\n\n";
-          msg += salutation + " 您好！\n\n";
-          msg += "📋 您的以下保單將於 " + item.daysLeft + " 天後到期，請檢視原保單內容，後續我再傳送今年續保內容：\n";
-          msg += "────────────────────\n";
-          msg += "📄 險種：" + item.type + "\n";
-          if (item.plateNo && item.plateNo !== '無') msg += "🚗 車號：" + item.plateNo + "\n";
-          if (item.effectiveDate && item.effectiveDate !== '無') msg += "📅 生效日：" + item.effectiveDate + "\n";
-          msg += "⏰ 到期日：" + item.expiry + "\n";
-          if (item.premium && item.premium !== '無') msg += "💰 總保費：NT$ " + item.premium + " 元\n";
-          if (data && data.details && data.details.length > 0) {
-            msg += "\n📌 保障明細：\n";
-            data.details.forEach(function(d) {
-              msg += "  • " + d.name;
-              if (d.amount && d.amount !== '無') msg += "　保額 " + d.amount;
-              if (d.premium && d.premium !== '無' && d.premium !== '0') msg += "　保費 " + d.premium + " 元";
-              msg += "\n";
-            });
-          }
-          msg += "────────────────────\n\n";
-          msg += "若有任何問題，請隨時回覆聯繫 " + ADVISOR_NAME + "！🙌";
-          if (ADVISOR_LINE) msg += "\n📲 加入 LINE：https://line.me/ti/p/" + ADVISOR_LINE;
-          shareViaLine(msg);
-        });
+      var onDetailsLoaded = function(data) {
+        var msg = "🌟【保單續保提前通知】🌟\n\n";
+        msg += salutation + " 您好！\n\n";
+        msg += "📋 您的以下保單將於 " + item.daysLeft + " 天後到期，請檢視原保單內容，後續我再傳送今年續保內容：\n";
+        msg += "────────────────────\n";
+        msg += "📄 險種：" + item.type + "\n";
+        if (item.plateNo && item.plateNo !== '無') msg += "🚗 車號：" + item.plateNo + "\n";
+        msg += "⏰ 到期日：" + item.expiry + "\n";
+        if (item.premium && item.premium !== '無') msg += "💰 總保費：NT$ " + item.premium + " 元\n";
+        if (data && data.details && data.details.length > 0) {
+          msg += "\n📌 保障明細：\n";
+          data.details.forEach(function(d) {
+            msg += "  • " + d.name;
+            if (d.amount && d.amount !== '無') msg += " 保額 " + d.amount;
+            if (d.premium && d.premium !== '無' && d.premium !== '0') msg += " 保費 " + d.premium + " 元";
+            msg += "\n";
+          });
+        }
+        msg += "────────────────────\n\n";
+        msg += "若有任何問題，請隨時回覆聯繫 " + ADVISOR_NAME + "！🙌";
+        if (ADVISOR_LINE) msg += "\n📲 加入 LINE：https://line.me/ti/p/" + ADVISOR_LINE;
+        
+        shareViaLine(msg); // 核心：呼叫雙軌發送！
+      };
+
+      // 根據直連狀態獲取明細
+      if (_directShellUrl) {
+        directGasCall('getPolicyDetails', { no: policyNo }, onDetailsLoaded);
+      } else {
+        gasCall('getPolicyDetails', { no: policyNo }, onDetailsLoaded);
+      }
     });
   }
 
