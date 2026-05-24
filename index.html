@@ -987,33 +987,33 @@
     _nicknameInsuredId = item.maskedId || '';
 
     withNickname(item.maskedId || '', item.name, function(salutation) {
-      // 【終極優化】撈取明細成功後，100% 採用後端 mainInfo 回傳的真實最新數據
+      // 1. 定義撈取細項明細成功後的回呼邏輯
       var onDetailsLoaded = function(data) {
         document.getElementById('loading').style.display = 'none';
         
-        // 智慧型安全防護：如果 data.main 裡有最新、最準的資料，優先採用！否則才降級採用外層卡片的資料
-        var finalEffective = (data && data.main && data.main.effectiveDate && data.main.effectiveDate !== '無') ? data.main.effectiveDate : effectiveDate;
-        var finalPremium   = (data && data.main && data.main.premium       && data.main.premium !== '無')       ? data.main.premium       : premium;
-        var finalExpiry    = (data && data.main && data.main.expiry        && data.main.expiry !== '無')        ? data.main.expiry        : expiry;
+        // 智慧型交叉比對：優先採用地方試算表帶回來的最新真實數據，否則才降級用外層卡片的舊資料
+        var finalEffective = (data && data.main && data.main.effectiveDate && data.main.effectiveDate !== '無') ? data.main.effectiveDate : item.effectiveDate;
+        var finalPremium   = (data && data.main && data.main.premium       && data.main.premium !== '無')       ? data.main.premium       : item.premium;
+        var finalExpiry    = (data && data.main && data.main.expiry        && data.main.expiry !== '無')        ? data.main.expiry        : item.expiry;
         
-        // 清洗轉換，確保不會出現字串 undefined 或橫線
+        // 清洗與防護：防範 undefined 或橫線亂跳
         var effStr  = (finalEffective && finalEffective !== 'undefined' && finalEffective !== '—') ? finalEffective : '—';
         var premStr = (finalPremium   && finalPremium   !== 'undefined' && finalPremium   !== '—') ? finalPremium   : '—';
-        var expStr  = (finalExpiry    && finalExpiry    !== 'undefined' && finalExpiry    !== '—') ? finalExpiry    : expiry;
+        var expStr  = (finalExpiry    && finalExpiry    !== 'undefined' && finalExpiry    !== '—') ? finalExpiry    : item.expiry;
         
-        var msg = "✨【保單到期提醒】✨\n\n";
+        var msg = "🌟【保單續保提前通知】🌟\n\n";
         msg += salutation + " 您好！\n\n";
-        msg += "📋 以下保單即將到期，請檢視原保單內容：\n";
+        msg += "📋 您的以下保單將於 " + item.daysLeft + " 天後到期，請檢視原保單內容，後續我再傳送今年續保內容：\n";
         msg += "────────────────────\n";
-        msg += "📄 險種：" + type + "\n";
-        if (plateNo && plateNo !== '無' && plateNo !== 'undefined') {
-          msg += "🚗 車號：" + plateNo + "\n";
+        msg += "📄 險種：" + item.type + "\n";
+        if (item.plateNo && item.plateNo !== '無' && item.plateNo !== 'undefined') {
+          msg += "🚗 車號：" + item.plateNo + "\n";
         }
         msg += "📅 生效日：" + effStr + "\n";
         msg += "⏰ 到期日：" + expStr + "\n";
         msg += "💰 總保費：NT$ " + premStr + " 元\n";
         
-        // 撈到核心保障明細，加進話術中
+        // 如果後端有抓到保障細項明細，加進話術中
         if (data && data.details && data.details.length > 0) {
           msg += "\n📌 保障明細：\n";
           data.details.forEach(function(d) {
@@ -1024,20 +1024,46 @@
           });
         }
         msg += "────────────────────\n\n";
-        msg += "若需續約或有任何問題，請隨時回覆聯繫 " + ADVISOR_NAME + "！🙌";
+        msg += "若有任何問題，請隨時回覆聯繫 " + ADVISOR_NAME + "！🙌";
         if (ADVISOR_LINE) msg += "\n📲 加入 LINE：https://line.me/ti/p/" + ADVISOR_LINE;
         
         shareViaLine(msg); // 執行雙軌發送或複製
-        
-        // 自動回填變更 Z 欄為已聯繫
-        if (_directShellUrl) {
-          directGasCall('updateRenewalStatus', { policyNo: policyNo, status: '已聯繫' }, null);
-        } else {
-          gasCall('updateRenewalStatus', { policyNo: policyNo, status: '已聯繫' }, null, null);
-        }
       };
 
-  // 45~51天提前預警的按鈕控制
+      // 2. 定義斷線或降級時的備用邏輯
+      var onDetailsFailed = function() {
+        document.getElementById('loading').style.display = 'none';
+        var effStr  = (item.effectiveDate && item.effectiveDate !== 'undefined' && item.effectiveDate !== '無') ? item.effectiveDate : '—';
+        var premStr = (item.premium       && item.premium       !== 'undefined' && item.premium       !== '無') ? item.premium       : '—';
+        
+        var msg = "🌟【保單續保提前通知】🌟\n\n";
+        msg += salutation + " 您好！\n\n";
+        msg += "📋 您的以下保單將於 " + item.daysLeft + " 天後到期，請檢視原保單內容，後續我再傳送今年續保內容：\n";
+        msg += "────────────────────\n";
+        msg += "📄 險種：" + item.type + "\n";
+        if (item.plateNo && item.plateNo !== '無' && item.plateNo !== 'undefined') {
+          msg += "🚗 車號：" + item.plateNo + "\n";
+        }
+        msg += "📅 生效日：" + effStr + "\n";
+        msg += "⏰ 到期日：" + item.expiry + "\n";
+        msg += "💰 總保費：NT$ " + premStr + " 元\n";
+        msg += "────────────────────\n\n";
+        msg += "若有任何問題，請隨時回覆聯繫 " + ADVISOR_NAME + "！🙌";
+        if (ADVISOR_LINE) msg += "\n📲 加入 LINE：https://line.me/ti/p/" + ADVISOR_LINE;
+        
+        shareViaLine(msg);
+      };
+
+      // 3. 雙軌判斷路由執行發送
+      if (_directShellUrl) {
+        directGasCall('getPolicyDetails', { no: policyNo }, onDetailsLoaded, onDetailsFailed);
+      } else {
+        gasCall('getPolicyDetails', { no: policyNo }, onDetailsLoaded, onDetailsFailed);
+      }
+    });
+  }
+
+  // 45~51天提前預警的按鈕控制 (已被正確分離出來)
   function setEarlyWarningStatus(policyNo, status) {
     var onSuccess = function(result) {
       if (result && result.success) {
@@ -1049,7 +1075,7 @@
       }
     };
 
-    // 【雙軌優化】直連模式直接寫入地方試算表 Z 欄
+    // 直連模式直接寫入地方試算表 Z 欄
     if (_directShellUrl) {
       directGasCall('updateRenewalStatus', { policyNo: policyNo, status: status }, onSuccess);
     } else {
