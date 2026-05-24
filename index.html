@@ -437,123 +437,119 @@
   }
 
   function initGoogleSignIn() {
-  // ── 【直連強效檢查：確保 100% 繞過 Google 登入】 ──
-  var urlParams = new URLSearchParams(window.location.search);
-  var tokenUrl  = urlParams.get('shell'); // 抓取 shell 參數
-  
-  if (tokenUrl) {
-    try {
-      // 1. 進行解碼（解開網址百分比編碼與 Base64）
-      var decodedString = atob(decodeURIComponent(tokenUrl)); 
-      
-      if (decodedString && decodedString.indexOf('https://script.google.com/') !== -1) {
-        _directShellUrl = decodedString; // 精准將直連網址交給全局變數
-        
-        // 2. 徹底隱藏並移除 Google 登入遮罩，達成 0 秒秒開
-        var overlay = document.getElementById('authOverlay');
-        if (overlay) {
-          overlay.style.display = 'none'; // 強制關閉遮罩
-          overlay.classList.add('hiding');
+    // ── 【直連強效檢查：確保 100% 0秒繞過 Google 登入】 ──
+    var urlParams = new URLSearchParams(window.location.search);
+    var tokenUrl  = urlParams.get('shell');
+    
+    if (tokenUrl) {
+      try {
+        var decodedString = atob(decodeURIComponent(tokenUrl)); 
+        if (decodedString && decodedString.indexOf('https://script.google.com/') !== -1) {
+          _directShellUrl = decodedString; 
+          
+          var overlay = document.getElementById('authOverlay');
+          if (overlay) {
+            overlay.style.display = 'none'; 
+            overlay.classList.add('hiding');
+          }
+          
+          _userEmail = 'direct_token_user'; 
+          initDirectSystem();
+          return; // 成功直連通關，直接結束函式
         }
-        
-        // 3. 設定虛擬身分，直接跳過 Libcode 機制，直奔地方資料庫！
-        _userEmail = 'direct_token_user'; 
-        initDirectSystem();
-        return; // 成功通關，徹底結束函式，不讓傳統登入機制有機會露臉！
+      } catch(e) {
+        console.error('捷徑網址解析失敗，原因：', e);
       }
-    } catch(e) {
-      console.error('捷徑網址解析失敗，原因：', e);
     }
-  }
 
-  // ── 以下維持您原本的傳統登入流程 (當捷徑網址不存在時的後備方案) ──
-  if (TEST_EMAIL) {
-    _userEmail = TEST_EMAIL;
-    hideAuthOverlay();
-    ADVISOR_NAME = TEST_EMAIL.split('@')[0];
-    gasCall('getSystemConfig', {}, function(cfg) {
-      if (cfg && !cfg.error) {
-        if (cfg['顧問姓名']) ADVISOR_NAME = cfg['顧問姓名'];
-        if (cfg['顧問LINE'])  ADVISOR_LINE = cfg['顧問LINE'];
-      }
-      initSystem();
-    }, function() { initSystem(); });
-    return;
-  }
-
-  var cachedEmail = loadLoginCache();
-  if (cachedEmail) {
-    _userEmail = cachedEmail;
-    document.getElementById('autoLoginSpinner').style.display = 'block';
-    document.getElementById('loginPanel').style.display = 'none';
-    document.getElementById('authStatus').textContent = '';
-    gasCall('getSystemConfig', {}, function(cfg) {
-      if (cfg && (cfg.error === 'unauthorized' || cfg.error === 'no_shell_url')) {
-        clearLoginCache();
-        _userEmail = '';
-        document.getElementById('authStatus').textContent = '請重新登入';
-        startGoogleSignIn();
-        return;
-      }
+    // ── 以下維持您原本的傳統登入流程與快取機制 (作為後備方案) ──
+    if (TEST_EMAIL) {
+      _userEmail = TEST_EMAIL;
       hideAuthOverlay();
+      ADVISOR_NAME = TEST_EMAIL.split('@')[0];
+      gasCall('getSystemConfig', {}, function(cfg) {
+        if (cfg && !cfg.error) {
+          if (cfg['顧問姓名']) ADVISOR_NAME = cfg['顧問姓名'];
+          if (cfg['顧問LINE'])  ADVISOR_LINE = cfg['顧問LINE'];
+        }
+        initSystem();
+      }, function() { initSystem(); });
+      return;
+    }
+
+    var cachedEmail = loadLoginCache();
+    if (cachedEmail) {
+      _userEmail = cachedEmail;
+      document.getElementById('autoLoginSpinner').style.display = 'block';
+      document.getElementById('loginPanel').style.display = 'none';
+      document.getElementById('authStatus').textContent = '';
+      gasCall('getSystemConfig', {}, function(cfg) {
+        if (cfg && (cfg.error === 'unauthorized' || cfg.error === 'no_shell_url')) {
+          clearLoginCache();
+          _userEmail = '';
+          document.getElementById('authStatus').textContent = '請重新登入';
+          startGoogleSignIn();
+          return;
+        }
+        hideAuthOverlay();
+        if (cfg && cfg['顧問姓名']) ADVISOR_NAME = cfg['顧問姓名'];
+        if (cfg && cfg['顧問LINE'])  ADVISOR_LINE = cfg['顧問LINE'];
+        initSystem();
+      }, function() {
+        hideAuthOverlay();
+        initSystem();
+      });
+      return;
+    }
+
+    startGoogleSignIn();
+  }
+
+  // ── 【直連模式新增：繞過中央直接向個人薄殼讀取到期資料】 ──
+  function initDirectSystem() {
+    var hint = document.getElementById('expiryLoadingHint');
+    
+    directGasCall('getSystemConfig', {}, function(cfg) {
       if (cfg && cfg['顧問姓名']) ADVISOR_NAME = cfg['顧問姓名'];
       if (cfg && cfg['顧問LINE'])  ADVISOR_LINE = cfg['顧問LINE'];
-      initSystem();
-    }, function() {
-      hideAuthOverlay();
-      initSystem();
+      
+      directGasCall('getExpiringLists', {}, function(result) {
+        if (hint) hint.style.display = 'none';
+        var hasUrgent  = result && result.urgent  && result.urgent.length  > 0;
+        var hasWarning = result && result.warning && result.warning.length > 0;
+        if (!hasUrgent && !hasWarning) {
+          document.getElementById('expiryAlertArea').innerHTML =
+            '<div style="background:#E8F5E9;border:1px solid #A5D6A7;border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:13px;color:#2E7D32;">✅ 目前無即將到期保單</div>';
+          return;
+        }
+        if (hasUrgent)  renderExpiryAlert(result.urgent);
+        if (hasWarning) renderEarlyWarning(result.warning);
+      });
     });
-    return;
   }
 
-  startGoogleSignIn();
-}
-
-  // 新增：繞過中央、直接與地方 Shell 通訊的初始化函式
-function initDirectSystem() {
-  var hint = document.getElementById('expiryLoadingHint');
-  
-  // 改造原來的 gasCall，如果是直連模式，直接呼叫自己的 Shell
-  directGasCall('getSystemConfig', {}, function(cfg) {
-    if (cfg && cfg['顧問姓名']) ADVISOR_NAME = cfg['顧問姓名'];
-    if (cfg && cfg['顧問LINE'])  ADVISOR_LINE = cfg['顧問LINE'];
+  // ── 【直連模式新增：專用 JSONP 輕量化請求】 ──
+  function directGasCall(action, params, successFn) {
+    var cbName = '_dirCb_' + (++_gasCallSeq);
+    window[cbName] = function(data) {
+      var el = document.getElementById(cbName); if (el) el.parentNode.removeChild(el);
+      delete window[cbName];
+      if (successFn) successFn(data);
+    };
     
-    // 載入到期提醒
-    directGasCall('getExpiringLists', {}, function(result) {
-      if (hint) hint.style.display = 'none';
-      if (result && result.urgent)  renderExpiryAlert(result.urgent);
-      if (result && result.warning) renderEarlyWarning(result.warning);
+    var url = _directShellUrl + '?action=' + encodeURIComponent(action) + '&callback=' + cbName;
+    if (params) Object.keys(params).forEach(function(k) {
+      url += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k] !== undefined ? params[k] : '');
     });
-  });
-}
-
-// 新增：直連模式專用的輕量化網路請求
-function directGasCall(action, params, successFn) {
-  var cbName = '_dirCb_' + (++_gasCallSeq);
-  window[cbName] = function(data) {
-    var el = document.getElementById(cbName); if (el) el.parentNode.removeChild(el);
-    delete window[cbName];
-    if (successFn) successFn(data);
-  };
-  
-  // 直接將請求發往業務員自己的 Shell Web App，省去中央轉發的 2~3 秒延遲！
-  var url = _directShellUrl + '?action=' + encodeURIComponent(action) + '&callback=' + cbName;
-  if (params) Object.keys(params).forEach(function(k) {
-    url += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k] !== undefined ? params[k] : '');
-  });
-  
-  var script = document.createElement('script');
-  script.id = cbName; script.src = url;
-  document.head.appendChild(script);
-}
     
-  // ── WebView 偵測：LINE/Facebook 內建瀏覽器不支援 Google 登入 ──
-  function isWebView() {
-    var ua = navigator.userAgent || '';
-    return /FBAN|FBAV|Line|Instagram|MicroMessenger|WebView|wv/.test(ua)
-        || ((/iPhone|iPod|iPad/.test(ua)) && !/Safari/.test(ua));
+    var script = document.createElement('script');
+    script.id = cbName; script.src = url;
+    document.head.appendChild(script);
   }
 
+  // 啟動頁面後初始化登入
+  window.addEventListener('load', initGoogleSignIn);
+  
   function startGoogleSignIn() {
     // ── WebView 檢查：提示用外部瀏覽器開啟 ──
     if (isWebView()) {
