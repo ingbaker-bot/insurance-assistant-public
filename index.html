@@ -1420,7 +1420,17 @@
     }
     document.getElementById('detailModal').style.display = 'flex';
   }
+    // 【雙軌優化】改用 data.main 裡面未遮蔽的真實身分證欄位（實體主表第3欄），確保勾稽完全精準！
+    // 備註：請確認後端有回傳真實 ID。若後端沒回傳，它會自動降級採用原有的對應
+    var realId = main.realId || main.maskedId; 
 
+    if (_directShellUrl) {
+      directGasCall('checkTravelCoverage', { id: realId }, renderTravelStatus);
+    } else {
+      gasCall('checkTravelCoverage', { id: realId }, renderTravelStatus);
+    }
+
+  
   // ── 旅平卡狀態顯示 ──
   function renderTravelStatus(info) {
     var area = document.getElementById('travelStatusArea');
@@ -1641,10 +1651,17 @@
         '</div>';
       member.policies.forEach(function(p) {
         var daysText = p.daysLeft === null ? '—' : p.urgency === 'expired' ? '已退保' : p.daysLeft < 0 ? '已過期' : p.daysLeft + ' 天';
-        membersHtml += '<div class="policy-row">' +
+        
+        // 【 Baker 老師提議新功能】動態判斷：只要保單有號碼，就在險種別後面加上一個精緻的「🔍 查明細」小按鈕！
+        var detailBtnHtml = '';
+        if (p.policyNo && p.policyNo !== '無') {
+          detailBtnHtml = '<button onclick="event.stopPropagation();openDetail(\'' + p.policyNo + '\')" style="margin-left:6px;background:#E3F2FD;color:#1565C0;border:1px solid #BBDEFB;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:bold;cursor:pointer;">🔍 查明細</button>';
+        }
+
+        html += '<div class="policy-row">' +
           '<div class="urgency-dot dot-' + p.urgency + '"></div>' +
-          '<div class="policy-type">' + p.type + '</div>' +
-          '<div class="policy-plate">' + (p.plate !== '無' ? p.plate : '') + '</div>' +
+          '<div class="policy-type">' + p.type + detailBtnHtml + '</div>' + // 嵌入明細按鈕
+          '<div class="policy-plate">' + (p.plate && p.plate !== '無' ? p.plate : '') + '</div>' +
           '<div class="policy-expiry expiry-' + p.urgency + '">' + p.expiry + '</div>' +
           '<div class="days-badge days-' + p.urgency + '">' + daysText + '</div>' +
         '</div>';
