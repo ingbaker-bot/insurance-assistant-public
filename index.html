@@ -1635,21 +1635,20 @@
     if (s.expired > 0) summaryHtml += '<span class="summary-chip chip-expired">⚫ 退保/過期 ' + s.expired + ' 張</span>';
     summaryHtml += '</div>';
 
+    // ★【核心修正】提早在此處定義並初始化 html 變數，確保內部 policies.forEach 累加時絕對不崩潰！
+    var html = ''; 
     var membersHtml = '';
+
     familyData.memberGroups.forEach(function(member) {
       var memberShareData = buildMemberShareText(member, advisor);
-      membersHtml += '<div class="member-card">' +
-        '<div class="member-header">' +
-          '<div style="display:flex;align-items:center;gap:8px;">' +
-            '<span class="member-name">' + member.name + '</span>' +
-            '<span class="member-relation">' + (member.relation || '未設定') + '</span>' +
-          '</div>' +
-          '<button class="member-share-btn" onclick="shareOnePerson(\'' + encodeURIComponent(JSON.stringify(memberShareData)) + '\')">💬 傳提醒</button>' +
-        '</div>';
+      
+      // 先清空單一成員的保單列累加字串
+      html = ''; 
+
       member.policies.forEach(function(p) {
         var daysText = p.daysLeft === null ? '—' : p.urgency === 'expired' ? '已退保' : p.daysLeft < 0 ? '已過期' : p.daysLeft + ' 天';
         
-        // 【 Baker 老師提議新功能】動態判斷：只要保單有號碼，就在險種別後面加上一個精緻的「🔍 查明細」小按鈕！
+        // 【Baker 老師專屬新功能】只要保單有號碼，就在險種別後面加上一個精緻的「🔍 查明細」小按鈕！
         var detailBtnHtml = '';
         if (p.policyNo && p.policyNo !== '無') {
           detailBtnHtml = '<button onclick="event.stopPropagation();openDetail(\'' + p.policyNo + '\')" style="margin-left:6px;background:#E3F2FD;color:#1565C0;border:1px solid #BBDEFB;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:bold;cursor:pointer;">🔍 查明細</button>';
@@ -1657,13 +1656,24 @@
 
         html += '<div class="policy-row">' +
           '<div class="urgency-dot dot-' + p.urgency + '"></div>' +
-          '<div class="policy-type">' + p.type + detailBtnHtml + '</div>' + // 嵌入明細按鈕
+          '<div class="policy-type">' + p.type + detailBtnHtml + '</div>' + 
           '<div class="policy-plate">' + (p.plate && p.plate !== '無' ? p.plate : '') + '</div>' +
           '<div class="policy-expiry expiry-' + p.urgency + '">' + p.expiry + '</div>' +
           '<div class="days-badge days-' + p.urgency + '">' + daysText + '</div>' +
         '</div>';
       });
-      membersHtml += '</div>';
+
+      // 組裝該成員的完整卡片外殼
+      membersHtml += '<div class="member-card">' +
+        '<div class="member-header">' +
+          '<div style="display:flex;align-items:center;gap:8px;">' +
+            '<span class="member-name">' + member.name + '</span>' +
+            '<span class="member-relation">' + (member.relation || '未設定') + '</span>' +
+          '</div>' +
+          '<button class="member-share-btn" onclick="shareOnePerson(\'' + encodeURIComponent(JSON.stringify(memberShareData)) + '\')">💬 傳提醒</button>' +
+        '</div>' +
+        html + // 完美塞入上方 policies.forEach 生成的保單列表
+      '</div>';
     });
 
     var peilinHtml        = '<div class="peilin-note">' + familyData.analysis.replace(/\n/g, '<br>') + '</div>';
