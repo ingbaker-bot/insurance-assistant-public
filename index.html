@@ -1372,19 +1372,18 @@
     var finalExpiry = main.expiry || main.expiryDate || "—";
     var expStr = (finalExpiry && finalExpiry !== 'undefined') ? finalExpiry : '—';
 
-    // 【核心修正】將原本的 main.expiryDate 修正替換為我們清洗過的 expStr 變數
     var html = '<div class="detail-section">' +
       '<div class="detail-title" style="font-size:20px;color:#00A3E0;">' + main.insuredName + ' 的專屬保障摘要' + agentTag + '</div>' +
       '<div class="info-grid">' +
         '<div><div class="info-label">保單號碼</div><b>' + main.policyNo + '</b></div>' +
         '<div><div class="info-label">險種</div><b>' + main.type + '</b></div>' +
         '<div><div class="info-label">生效日期</div>' + (main.effectiveDate || '—') + '</div>' +
-        '<div><div class="info-label">到期日期</div><b style="color:#d32f2f;">' + expStr + '</b></div>' + // 這裡改用 expStr
+        '<div><div class="info-label">到期日期</div><b style="color:#d32f2f;">' + expStr + '</b></div>' +
         '<div><div class="info-label">總保費</div><b style="color:#00B900;">NT$ ' + (main.premium || 0) + '</b></div>' +
         '<div><div class="info-label">車牌</div>' + main.plateNo + '</div>' +
       '</div></div>';
       
-    // ── 以下保留您原本的核心保障明細表格及後續 familyReport 渲染邏輯，請勿更動 ──
+    // ── 核心保障明細表格 ──
     html += '<div class="detail-section"><div class="detail-title">🛡️ 核心保障明細</div>' +
       '<table><tr><th>保障項目</th><th>保額</th><th style="text-align:right;">保費</th></tr>';
     if (data.details && data.details.length > 0) {
@@ -1398,14 +1397,22 @@
     document.getElementById('imagePreviewContainer').style.display = 'none';
     document.getElementById('actionButtons').style.display = 'flex';
 
-    // ── 旅平卡狀態：先清空，再呼叫後端查詢 ──
+    // ── 旅平卡狀態：先清空，並在此處導入「真實身分證勾稽雙軌路由」 ──
     document.getElementById('travelStatusArea').innerHTML =
       '<div style="margin-top:16px;border-top:2px dashed #FFE0B2;padding-top:14px;">' +
         '<div style="font-size:13px;color:#FF9800;font-weight:bold;">🏖️ 旅平卡狀態</div>' +
         '<div style="font-size:12px;color:#aaa;margin-top:4px;">查詢中...</div>' +
       '</div>';
-    gasCall('checkTravelCoverage', { id: main.maskedId }, renderTravelStatus);
+      
+    // 【核心修正】移入函式內部！改用真實身分證 ID (realId) 繞過中央阻斷
+    var realId = main.realId || main.maskedId; 
+    if (_directShellUrl) {
+      directGasCall('checkTravelCoverage', { id: realId }, renderTravelStatus);
+    } else {
+      gasCall('checkTravelCoverage', { id: realId }, renderTravelStatus);
+    }
 
+    // ── 家庭保障區塊 ──
     if (main.familyId && main.familyId !== "無") {
       document.getElementById('familyReportArea').innerHTML =
         '<div style="margin-top:20px;border-top:3px double #eee;padding-top:16px;">' +
@@ -1420,16 +1427,6 @@
     }
     document.getElementById('detailModal').style.display = 'flex';
   }
-    // 【雙軌優化】改用 data.main 裡面未遮蔽的真實身分證欄位（實體主表第3欄），確保勾稽完全精準！
-    // 備註：請確認後端有回傳真實 ID。若後端沒回傳，它會自動降級採用原有的對應
-    var realId = main.realId || main.maskedId; 
-
-    if (_directShellUrl) {
-      directGasCall('checkTravelCoverage', { id: realId }, renderTravelStatus);
-    } else {
-      gasCall('checkTravelCoverage', { id: realId }, renderTravelStatus);
-    }
-
   
   // ── 旅平卡狀態顯示 ──
   function renderTravelStatus(info) {
