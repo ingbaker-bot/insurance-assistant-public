@@ -537,21 +537,41 @@
   }
 
   // ── 【直連模式新增：專用 JSONP 輕量化請求】 ──
-  function directGasCall(action, params, successFn) {
+  function directGasCall(action, params, successFn, failFn) {
     var cbName = '_dirCb_' + (++_gasCallSeq);
+    var done   = false;
+    var timer  = setTimeout(function() {
+      if (done) return; done = true;
+      var el = document.getElementById(cbName); if (el) el.parentNode.removeChild(el);
+      delete window[cbName];
+      console.error('[directGasCall timeout] ' + action);
+      if (failFn) failFn(new Error('timeout'));
+    }, 30000);
+
     window[cbName] = function(data) {
+      if (done) return; done = true;
+      clearTimeout(timer);
       var el = document.getElementById(cbName); if (el) el.parentNode.removeChild(el);
       delete window[cbName];
       if (successFn) successFn(data);
     };
-    
+
     var url = _directShellUrl + '?action=' + encodeURIComponent(action) + '&callback=' + cbName;
     if (params) Object.keys(params).forEach(function(k) {
       url += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k] !== undefined ? params[k] : '');
     });
-    
+
     var script = document.createElement('script');
-    script.id = cbName; script.src = url;
+    script.id  = cbName;
+    script.src = url;
+    script.onerror = function() {
+      if (done) return; done = true;
+      clearTimeout(timer);
+      var el = document.getElementById(cbName); if (el) el.parentNode.removeChild(el);
+      delete window[cbName];
+      console.error('[directGasCall error] ' + action);
+      if (failFn) failFn(new Error('script error'));
+    };
     document.head.appendChild(script);
   }
 
@@ -2545,8 +2565,12 @@
       saveBtn.disabled = false;
     };
 
-    if (_directShellUrl) {
-      directGasCall('recordExternalCompulsory', params, doneFn);
+    // 寫入操作統一用 gasCall（Libcode 中繼），直連模式也走 gasCall 避免 GET 限制
+    if (_directShellUrl && _userEmail) {
+      // 直連模式：改用 gasCall 走 Libcode（寫入更穩定）
+      gasCall('recordExternalCompulsory', params, doneFn, failFn);
+    } else if (_directShellUrl) {
+      directGasCall('recordExternalCompulsory', params, doneFn, failFn);
     } else {
       gasCall('recordExternalCompulsory', params, doneFn, failFn);
     }
