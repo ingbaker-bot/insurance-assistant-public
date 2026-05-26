@@ -1391,6 +1391,12 @@
         '<div><div class="info-label">到期日期</div><b style="color:#d32f2f;">' + expStr + '</b></div>' +
         '<div><div class="info-label">總保費</div><b style="color:#00B900;">NT$ ' + (main.premium || 0) + '</b></div>' +
         '<div><div class="info-label">車牌</div>' + main.plateNo + '</div>' +
+        (main.renewStatus && String(main.renewStatus).startsWith('他家') ?
+          '<div style="grid-column:1/-1;background:#FFF8E1;border:1px solid #FFD54F;border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:8px;">' +
+          '<span style="color:#E65100;font-size:14px;">⚠️ 他家承保</span>' +
+          '<span style="color:#333;font-weight:bold;font-size:14px;">' +
+          (function(){ var p = String(main.renewStatus).split('|'); return (p[1]||'不明') + (p[2] ? '　記錄日期：'+p[2] : ''); })() +
+          '</span></div>' : '') +
       '</div></div>';
       
     // ── 核心保障明細表格 ──
