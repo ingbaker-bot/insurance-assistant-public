@@ -2407,8 +2407,13 @@
         // 車牌 + 業務員代號 + 狀態 badge
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
           '<div style="font-weight:bold;font-size:17px;color:#333;letter-spacing:1px;">🚗 ' + plateDisplay + agentTag + '</div>' +
-          '<div style="background:' + badgeBg + ';color:' + titleColor + ';font-size:11px;font-weight:bold;' +
-            'padding:3px 10px;border-radius:10px;border:1px solid ' + titleColor + ';">' + badgeText + '</div>' +
+          '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">' +
+            '<div style="background:' + badgeBg + ';color:' + titleColor + ';font-size:11px;font-weight:bold;' +
+              'padding:3px 10px;border-radius:10px;border:1px solid ' + titleColor + ';">' + badgeText + '</div>' +
+            (item.trackStatus ? '<div style="font-size:10px;padding:2px 8px;border-radius:8px;font-weight:bold;' +
+              'background:' + _trackStatusStyle(item.trackStatus).bg + ';color:' + _trackStatusStyle(item.trackStatus).clr + ';">' +
+              _trackStatusStyle(item.trackStatus).icon + ' ' + item.trackStatus + '</div>' : '') +
+          '</div>' +
         '</div>' +
         // 客戶資訊
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:10px;font-size:13px;color:#555;">' +
@@ -2428,6 +2433,17 @@
         html += '<button onclick="openDetailFromGap(\'' + safePno + '\')" ' +
           'style="flex:1;min-width:80px;background:#0284c7;color:white;border:none;padding:9px 6px;border-radius:6px;' +
           'font-size:13px;font-weight:bold;cursor:pointer;">🔍 查看明細</button>';
+      }
+      // 追蹤記錄按鈕（提案商機用）
+      if (item.trackStatus !== undefined) {
+        var safePlateT = item.plate.replace(/'/g,'');
+        var safeNameT  = displayName.replace(/'/g,'');
+        var safeIdT    = displayId.replace(/'/g,'');
+        var safeTypeT  = item.insType.replace(/'/g,'');
+        var safeExpT   = (item.expiry||'').replace(/'/g,'');
+        html += '<button onclick="openProposalTrack(\'' + safePlateT + '\',\'' + safeNameT + '\',\'' + safeIdT + '\',\'' + safeTypeT + '\',\'' + safeExpT + '\',\'' + (item.trackStatus||'').replace(/\'/g,\"'\") + '\',\'' + (item.trackNote||'').replace(/\'/g,\"'\") + '\')" ' +
+          'style="flex:1;min-width:80px;background:#6A1B9A;color:white;border:none;padding:9px 6px;border-radius:6px;' +
+          'font-size:13px;font-weight:bold;cursor:pointer;">📋 追蹤</button>';
       }
 
       // CALI 查詢（顯示提示框含資訊）
@@ -2647,8 +2663,31 @@
         msg += '　• 失能給付：每人最高 300 萬元\n';
         msg += '　• 死亡給付：每人最高 300 萬元\n\n';
         msg += '📋 您的任意險到期日：' + expiry + '\n';
-        msg += '建議投保強制險，保障更完整！\n\n';
+        msg += '建議同時投保強制險，保障更完整！\n\n';
         msg += '如需協助投保，歡迎隨時聯繫 ' + ADVISOR_NAME + '！🙌';
+      } else if (insType.includes('強制險')) {
+        // ── P2：有強制險無任意險 → 補強提案話術 ──
+        var isCar2  = insType.includes('汽車');
+        var vType2  = isCar2 ? '汽車' : '機車';
+        msg += '💡【保障補強建議】\n\n';
+        msg += salutation + ' 您好！\n\n';
+        msg += '您的' + vType2 + '【' + plate + '】目前已投保強制責任險，\n';
+        msg += '保障基礎已打好！💪\n\n';
+        msg += '⚠️ 強制險無法賠付的保障缺口：\n';
+        msg += '　• 財產損失（撞壞他人車輛、財物）\n';
+        if (isCar2) {
+          msg += '　• 本車乘客及駕駛人傷亡\n';
+        } else {
+          msg += '　• 騎乘者及後座乘客傷亡\n';
+        }
+        msg += '　• 超額賠償責任（賠償超過強制險上限部分）\n\n';
+        msg += '🛡️ 建議加保任意第三人責任險：\n';
+        msg += '　✅ 第三人財產損失保障\n';
+        msg += '　✅ 駕駛人/乘客傷亡保障\n';
+        msg += '　✅ 超額責任補足強制險不足\n';
+        msg += '　✅ 保費實惠，保障更完整！\n\n';
+        msg += '強制險到期日：' + expiry + '\n';
+        msg += '如需了解詳情或報價，歡迎隨時聯繫 ' + ADVISOR_NAME + '！🙌';
       } else {
         // ── 一般提醒話術 ──
         msg += salutation + ' 您好！\n\n';
@@ -2660,6 +2699,120 @@
       if (ADVISOR_LINE) msg += '\n📲 LINE：https://line.me/ti/p/' + ADVISOR_LINE;
       shareViaLine(msg);
     });
+  }
+
+    // ══════════════════════════════════════════════════════
+  // ★ 提案追蹤（有強制無任意商機）
+  // ══════════════════════════════════════════════════════
+
+  // 追蹤狀態樣式
+  function _trackStatusStyle(status) {
+    var styles = {
+      '待追蹤':   { bg: '#F5F5F5', clr: '#757575', icon: '⏳' },
+      '已通知':   { bg: '#E3F2FD', clr: '#1565C0', icon: '📨' },
+      '報價中':   { bg: '#FFF8E1', clr: '#F57F17', icon: '💰' },
+      '加保成功': { bg: '#E8F5E9', clr: '#2E7D32', icon: '✅' },
+      '不加保':   { bg: '#FFEBEE', clr: '#C62828', icon: '❌' },
+      '考慮中':   { bg: '#EDE7F6', clr: '#6A1B9A', icon: '🤔' },
+    };
+    return styles[status] || { bg: '#E8EAF6', clr: '#3949AB', icon: '📌' };
+  }
+
+  // 追蹤記錄面板
+  function openProposalTrack(plate, name, insuredId, insType, expiry, currentStatus, currentNote) {
+    var overlayId = 'proposalOverlay';
+    var existing  = document.getElementById(overlayId);
+    if (existing) document.body.removeChild(existing);
+
+    var overlay = document.createElement('div');
+    overlay.id  = overlayId;
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:8500;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;';
+
+    var STATUSES = ['待追蹤','已通知','報價中','加保成功','不加保','考慮中'];
+    var statusBtns = STATUSES.map(function(s) {
+      var st  = _trackStatusStyle(s);
+      var isActive = (s === currentStatus);
+      return '<button onclick="selectProposalStatus(this,\'' + s + '\')" data-status="' + s + '" ' +
+        'style="flex:1;padding:7px 4px;border-radius:8px;font-size:12px;font-weight:bold;cursor:pointer;' +
+        'background:' + (isActive ? st.bg : '#F5F5F5') + ';color:' + (isActive ? st.clr : '#888') + ';' +
+        'border:' + (isActive ? '2px solid '+st.clr : '1px solid #DDD') + ';">' +
+        st.icon + ' ' + s + '</button>';
+    }).join('');
+
+    overlay.innerHTML =
+      '<div style="background:white;border-radius:16px;padding:24px;max-width:400px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.2);">' +
+        '<div style="font-size:17px;font-weight:bold;color:#6A1B9A;margin-bottom:4px;">📋 提案追蹤記錄</div>' +
+        '<div style="font-size:13px;color:#888;margin-bottom:16px;">' + name + '　🚗 ' + plate + '</div>' +
+
+        // 狀態選擇
+        '<div style="font-size:12px;color:#555;font-weight:bold;margin-bottom:8px;">追蹤狀態</div>' +
+        '<div id="proposalStatusBtns" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">' +
+          statusBtns +
+        '</div>' +
+
+        // 備註
+        '<div style="font-size:12px;color:#555;font-weight:bold;margin-bottom:6px;">備註</div>' +
+        '<textarea id="proposalNote" rows="3" placeholder="例：已傳訊息、等待回覆；報價 NT$1,500；已拒絕..." ' +
+          'style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #DDD;border-radius:8px;font-size:14px;resize:vertical;margin-bottom:14px;">' + (currentNote||'') + '</textarea>' +
+
+        // 按鈕
+        '<div style="display:flex;gap:8px;">' +
+          '<button id="proposalSaveBtn" onclick="saveProposalTrack(\'' + plate.replace(/'/g,"'") + '\',\'' + name.replace(/'/g,"'") + '\',\'' + insuredId.replace(/'/g,"'") + '\',\'' + insType.replace(/'/g,"'") + '\',\'' + expiry.replace(/'/g,"'") + '\')" ' +
+            'style="flex:2;padding:11px;background:#6A1B9A;color:white;border:none;border-radius:8px;font-size:14px;font-weight:bold;cursor:pointer;">💾 儲存記錄</button>' +
+          '<button onclick="document.body.removeChild(document.getElementById(\'proposalOverlay\'))" ' +
+            'style="flex:1;padding:11px;background:#f5f5f5;color:#666;border:none;border-radius:8px;font-size:14px;cursor:pointer;">關閉</button>' +
+        '</div>' +
+      '</div>';
+
+    // 儲存目前選取狀態
+    overlay._selectedStatus = currentStatus || '待追蹤';
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) document.body.removeChild(overlay);
+    });
+  }
+
+  function selectProposalStatus(btn, status) {
+    var overlay = document.getElementById('proposalOverlay');
+    if (overlay) overlay._selectedStatus = status;
+    var btns = document.querySelectorAll('#proposalStatusBtns button');
+    btns.forEach(function(b) {
+      var s  = b.getAttribute('data-status');
+      var st = _trackStatusStyle(s);
+      var isActive = (s === status);
+      b.style.background = isActive ? st.bg : '#F5F5F5';
+      b.style.color       = isActive ? st.clr : '#888';
+      b.style.border      = isActive ? '2px solid '+st.clr : '1px solid #DDD';
+    });
+  }
+
+  function saveProposalTrack(plate, name, insuredId, insType, expiry) {
+    var overlay = document.getElementById('proposalOverlay');
+    var status  = overlay ? (overlay._selectedStatus || '待追蹤') : '待追蹤';
+    var note    = document.getElementById('proposalNote') ? document.getElementById('proposalNote').value.trim() : '';
+    var saveBtn = document.getElementById('proposalSaveBtn');
+    if (saveBtn) { saveBtn.textContent = '儲存中...'; saveBtn.disabled = true; }
+
+    var params = { plate: plate, name: name, insuredId: insuredId, insType: insType, expiry: expiry, status: status, note: note };
+    var doneFn = function(result) {
+      if (result && result.success) {
+        var ov = document.getElementById('proposalOverlay');
+        if (ov) document.body.removeChild(ov);
+        loadMissingVoluntary(); // 重新載入以更新狀態
+      } else {
+        if (saveBtn) { saveBtn.textContent = '💾 儲存記錄'; saveBtn.disabled = false; }
+        alert('儲存失敗，請稍後再試');
+      }
+    };
+    var failFn = function() {
+      if (saveBtn) { saveBtn.textContent = '💾 儲存記錄'; saveBtn.disabled = false; }
+      alert('連線失敗，請重試');
+    };
+    if (_directShellUrl) {
+      directGasCall('saveProposalRecord', params, doneFn, failFn);
+    } else {
+      gasCall('saveProposalRecord', params, doneFn, failFn);
+    }
   }
 
     // ══════════════════════════════════════════════════════
@@ -2710,9 +2863,9 @@
         '<p style="text-align:center;color:#d32f2f;">讀取失敗，請稍後再試</p>';
     };
     if (_directShellUrl) {
-      directGasCall('getMissingVoluntary', {}, fn);
+      directGasCall('getMissingVoluntaryWithProposal', {}, fn);
     } else {
-      gasCall('getMissingVoluntary', {}, fn, failFn);
+      gasCall('getMissingVoluntaryWithProposal', {}, fn, failFn);
     }
   }
 
