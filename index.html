@@ -2671,13 +2671,13 @@
         msg += salutation + ' 您好！\n\n';
         msg += '我們注意到您的' + vType + '【' + plate + '】\n';
         msg += '目前系統中未查到有效的強制汽車責任險記錄。\n\n';
-        msg += '⚠️ 依法規定，未投保強制險上路將面臨：\n';
+        msg += '⚠️ 監理站定，未投保強制險上路將面臨：\n';
         msg += '　• ' + finePerson + '\n';
         msg += '　• 若發生事故，傷亡賠償須自行負擔\n\n';
         msg += '💡 強制責任險保障重點：\n';
         msg += '　• 傷害醫療費用：每人最高 20 萬元\n';
-        msg += '　• 失能給付：每人最高 300 萬元\n';
-        msg += '　• 死亡給付：每人最高 300 萬元\n\n';
+        msg += '　• 115/7起失能給付：每人最高 300 萬元\n';
+        msg += '　• 115/7起死亡給付：每人最高 300 萬元\n\n';
         msg += '📋 您的任意險到期日：' + expiry + '\n';
         msg += '建議同時投保強制險，保障更完整！\n\n';
         msg += '如需協助投保，歡迎隨時聯繫 ' + ADVISOR_NAME + '！🙌';
@@ -2703,13 +2703,13 @@
         msg += '　✅ 超額責任補足強制險不足\n';
         msg += '　✅ 保費實惠，保障更完整！\n\n';
         msg += '強制險到期日：' + expiry + '\n';
-        msg += '如需了解詳情或報價，歡迎隨時聯繫 ' + ADVISOR_NAME + '！🙌';
+        msg += '如需了解詳情，隨時聯繫我們 ' + ADVISOR_NAME + '！🙌';
       } else {
         // ── 一般提醒話術 ──
         msg += salutation + ' 您好！\n\n';
         msg += '您的車輛【' + plate + '】' + insType + '\n';
         msg += '將於 ' + expiry + ' 到期，請記得安排續保。\n\n';
-        msg += '如有任何問題，歡迎隨時聯繫 ' + ADVISOR_NAME + '！';
+        msg += '如有任何問題，歡迎隨時聯繫我們 ' + ADVISOR_NAME + '！';
       }
 
       if (ADVISOR_LINE) msg += '\n📲 LINE：https://line.me/ti/p/' + ADVISOR_LINE;
@@ -2891,12 +2891,12 @@
     
     // 【雙軌優化】加入直連與傳統中央判定路由
     if (_directShellUrl) {
-      directGasCall('getFireInsuranceGap', {}, showFireGapList, function() {
+      directGasCall('getFireInsuranceGapWithTrack', {}, showFireGapList, function() {
         document.getElementById('loading').style.display = 'none';
         document.getElementById('resultsList').innerHTML = '<p style="text-align:center;color:#d32f2f;">讀取失敗，請稍後再試</p>';
       });
     } else {
-      gasCall('getFireInsuranceGap', {}, showFireGapList, function() {
+      gasCall('getFireInsuranceGapWithTrack', {}, showFireGapList, function() {
         document.getElementById('loading').style.display = 'none';
         document.getElementById('resultsList').innerHTML = '<p style="text-align:center;color:#d32f2f;">讀取失敗，請稍後再試</p>';
       });
@@ -2929,10 +2929,17 @@
       
     result.list.forEach(function(item) {
       var encoded = encodeURIComponent(JSON.stringify({ name: item.name, applicant: item.applicant, address: item.address }));
+      var encoded   = encodeURIComponent(JSON.stringify({ name: item.name, applicant: item.applicant, address: item.address }));
       html += '<div style="background:white;border-radius:10px;padding:14px 16px;margin-bottom:10px;box-shadow:0 2px 6px rgba(0,0,0,0.06);border-left:5px solid #FF9800;">' +
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
-          '<div style="font-weight:bold;font-size:15px;color:#333;">' + item.name + '</div>' +
-          '<button onclick="recommendFire(\'' + encoded + '\')" style="background:#FF9800;color:white;border:none;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:bold;cursor:pointer;">🏠 推薦住火</button>' +
+          '<div>' +
+            '<div style="font-weight:bold;font-size:15px;color:#333;">' + item.name + '</div>' +
+            (item.trackStatus ? '<div style="margin-top:3px;font-size:11px;font-weight:bold;display:inline-block;padding:2px 8px;border-radius:8px;background:' + _trackStatusStyle(item.trackStatus).bg + ';color:' + _trackStatusStyle(item.trackStatus).clr + ';">' + _trackStatusStyle(item.trackStatus).icon + ' ' + item.trackStatus + '</div>' : '') +
+          '</div>' +
+          '<div style="display:flex;gap:6px;align-items:center;">' +
+            '<button class="fireTrackBtn" data-id="' + fireKey + '" data-name="' + fireName + '" data-phone="' + firePhone + '" data-status="' + (item.trackStatus||'') + '" data-note="' + (item.trackNote||'').replace(/"/g,'&quot;') + '" style="background:#6A1B9A;color:white;border:none;padding:5px 10px;border-radius:6px;font-size:12px;font-weight:bold;cursor:pointer;">📋 追蹤</button>' +
+            '<button onclick="recommendFire(\'' + encoded + '\')" style="background:#FF9800;color:white;border:none;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:bold;cursor:pointer;">🏠 推薦住火</button>' +
+          '</div>' +
         '</div>' +
         '<div style="font-size:12px;color:#888;">' + item.insType + ' 到期：' + item.expiry +
           (item.applicant && item.applicant !== item.name ? ' 要保人：' + item.applicant : '') + '</div>' +
@@ -2940,18 +2947,127 @@
       '</div>';
     });
     list.innerHTML = html;
+    list.querySelectorAll('.fireTrackBtn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        openFireTrack(this.dataset.id, this.dataset.name, this.dataset.phone, this.dataset.status, this.dataset.note);
+      });
+    });
   }
 
-  function recommendFire(encodedData) {
+  // ══════════════════════════════════════════════════════
+  // ★ 住宅火險追蹤
+  // ══════════════════════════════════════════════════════
+  function openFireTrack(insuredId, name, phone, currentStatus, currentNote) {
+    var overlayId = 'fireTrackOverlay';
+    var existing  = document.getElementById(overlayId);
+    if (existing) document.body.removeChild(existing);
+
+    var overlay = document.createElement('div');
+    overlay.id  = overlayId;
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:8500;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;';
+
+    var STATUSES = ['待追蹤','已通知','報價中','加保成功','不加保','考慮中'];
+    var statusBtns = STATUSES.map(function(s) {
+      var st = _trackStatusStyle(s);
+      var isActive = (s === currentStatus);
+      return '<button onclick="selectFireStatus(this,\'' + s + '\')" data-status="' + s + '" ' +
+        'style="flex:1;padding:7px 4px;border-radius:8px;font-size:12px;font-weight:bold;cursor:pointer;' +
+        'background:' + (isActive ? st.bg : '#F5F5F5') + ';color:' + (isActive ? st.clr : '#888') + ';' +
+        'border:' + (isActive ? '2px solid '+st.clr : '1px solid #DDD') + ';">' +
+        st.icon + ' ' + s + '</button>';
+    }).join('');
+
+    overlay.innerHTML =
+      '<div style="background:white;border-radius:16px;padding:24px;max-width:400px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.2);">' +
+        '<div style="font-size:17px;font-weight:bold;color:#E65100;margin-bottom:4px;">🏠 住火追蹤記錄</div>' +
+        '<div style="font-size:13px;color:#888;margin-bottom:16px;">' + name + (phone ? '　📞 ' + phone : '') + '</div>' +
+        '<div style="font-size:12px;color:#555;font-weight:bold;margin-bottom:8px;">追蹤狀態</div>' +
+        '<div id="fireStatusBtns" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">' + statusBtns + '</div>' +
+        '<div style="font-size:12px;color:#555;font-weight:bold;margin-bottom:6px;">備註</div>' +
+        '<textarea id="fireTrackNote" rows="3" placeholder="例：已傳訊息、等待回覆；報價 NT$3,000；需要先了解保費..." ' +
+          'style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #DDD;border-radius:8px;font-size:14px;resize:vertical;margin-bottom:14px;">' + (currentNote||'') + '</textarea>' +
+        '<div style="display:flex;gap:8px;">' +
+          '<button id="fireSaveBtn" onclick="saveFireTrack(\'' + insuredId.replace(/'/g,"'") + '\',\'' + name.replace(/'/g,"'") + '\',\'' + (phone||'').replace(/'/g,"'") + '\')" ' +
+            'style="flex:2;padding:11px;background:#E65100;color:white;border:none;border-radius:8px;font-size:14px;font-weight:bold;cursor:pointer;">💾 儲存記錄</button>' +
+          '<button onclick="document.body.removeChild(document.getElementById(\'fireTrackOverlay\'))" ' +
+            'style="flex:1;padding:11px;background:#f5f5f5;color:#666;border:none;border-radius:8px;font-size:14px;cursor:pointer;">關閉</button>' +
+        '</div>' +
+      '</div>';
+
+    overlay._selectedStatus = currentStatus || '待追蹤';
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) document.body.removeChild(overlay);
+    });
+  }
+
+  function selectFireStatus(btn, status) {
+    var overlay = document.getElementById('fireTrackOverlay');
+    if (overlay) overlay._selectedStatus = status;
+    var btns = document.querySelectorAll('#fireStatusBtns button');
+    btns.forEach(function(b) {
+      var s  = b.getAttribute('data-status');
+      var st = _trackStatusStyle(s);
+      var isActive = (s === status);
+      b.style.background = isActive ? st.bg : '#F5F5F5';
+      b.style.color       = isActive ? st.clr : '#888';
+      b.style.border      = isActive ? '2px solid '+st.clr : '1px solid #DDD';
+    });
+  }
+
+  function saveFireTrack(insuredId, name, phone) {
+    var overlay = document.getElementById('fireTrackOverlay');
+    var status  = overlay ? (overlay._selectedStatus || '待追蹤') : '待追蹤';
+    var note    = document.getElementById('fireTrackNote') ? document.getElementById('fireTrackNote').value.trim() : '';
+    var saveBtn = document.getElementById('fireSaveBtn');
+    if (saveBtn) { saveBtn.textContent = '儲存中...'; saveBtn.disabled = true; }
+
+    var params = { insuredId: insuredId, name: name, phone: phone, address: '', status: status, note: note };
+    var doneFn = function(result) {
+      if (result && result.success) {
+        var ov = document.getElementById('fireTrackOverlay');
+        if (ov) document.body.removeChild(ov);
+        loadFireGapList(); // 重新載入更新狀態
+      } else {
+        if (saveBtn) { saveBtn.textContent = '💾 儲存記錄'; saveBtn.disabled = false; }
+        alert('儲存失敗，請稍後再試');
+      }
+    };
+    var failFn = function() {
+      if (saveBtn) { saveBtn.textContent = '💾 儲存記錄'; saveBtn.disabled = false; }
+      alert('連線失敗，請重試');
+    };
+    if (_directShellUrl) {
+      directGasCall('saveFireTrackRecord', params, doneFn, failFn);
+    } else {
+      gasCall('saveFireTrackRecord', params, doneFn, failFn);
+    }
+  }
+
+    function recommendFire(encodedData) {
     var data = JSON.parse(decodeURIComponent(encodedData));
     var targetName = (data.applicant && data.applicant !== data.name) ? data.applicant : data.name;
-    var msg = '🏠【住宅火險推薦】\n\n' + targetName + ' 您好！\n\n';
-    msg += '我們注意到您目前系統中尚未有住宅火險的記錄。\n\n';
-    msg += '住宅火險的保障內容：\n✅ 火災、爆炸、閃電雷擊\n✅ 自然災害（颱風、洪水、地震附加）\n';
-    msg += '✅ 第三人責任保障\n✅ 臨時住所費用\n\n保費實惠，一年幾百元就能守護您的家！🏡\n\n';
-    msg += '有興趣了解詳情，歡迎隨時聯繫 ' + ADVISOR_NAME + '！🙌';
-    if (ADVISOR_LINE) msg += '\n📲 加入 LINE：https://line.me/ti/p/' + ADVISOR_LINE;
-    shareViaLine(msg);
+    _nicknameInsuredId = '';
+    withNickname('', targetName, function(salutation) {
+      var msg = salutation + ' 您好！\n\n';
+      msg += '🏠【住宅火險保障提醒】\n\n';
+      if (data.address) msg += '您居住的地址：' + data.address + '\n';
+      msg += '目前系統中未查到您的住宅火險記錄。\n\n';
+      msg += '⚠️ 住宅可能轉嫁的風險有：\n';
+      msg += '　• 火災、爆炸 → 財物損失難以估計\n';
+      msg += '　• 颱風、洪水 → 台灣每年均有颱風\n';
+      msg += '　• 竊盜 → 室內財物一夕損失\n';
+      msg += '　• 漏水責任 → 影響樓下鄰居\n\n';
+      msg += '💡 住宅火險 vs 車險的差異：\n';
+      msg += '　✅ 保費極低（年繳約 NT$1,000～3,000）\n';
+      msg += '　✅ 建築物＋動產皆可投保\n';
+      msg += '　✅ 天災、意外、竊盜全方位保障\n';
+      msg += '　✅ 租屋族也適合（動產險）\n\n';
+      msg += '🏡 您的家值得完善保護！\n';
+      msg += '如需了解詳情或資料，請聯繫我們 ' + ADVISOR_NAME + '！🙌';
+      if (ADVISOR_LINE) msg += '\n📲 LINE：https://line.me/ti/p/' + ADVISOR_LINE;
+      shareViaLine(msg);
+    });
   }
 
   // ══════════════════════════════════════════════════════
@@ -2961,10 +3077,10 @@
     if (!currentTravelData) return;
     var m = currentTravelData.main;
     var msg = '🏖️【旅平卡推薦】\n\n' + (m.appName || '您好') + ' 您好！\n\n';
-    msg += '富邦產險旅平卡保障內容包含：\n✅ 意外身故／失能保障\n✅ 海內外旅遊醫療費用\n';
-    msg += '✅ 海外突發疾病\n✅ 不便險（班機延誤、行李遺失等）\n\n';
+    msg += '富邦旅平卡保障內容包含：\n✅ 意外身故／失能保障\n✅ 海內外旅遊醫療費用\n';
+    msg += '✅ 海外突發疾病\n✅ (產險)不便險（班機延誤、行李遺失等）\n\n';
     msg += '旅平卡自動續卡、保障全家，一張搞定！🌏\n\n';
-    msg += '有興趣了解詳情，歡迎隨時聯繫 ' + ADVISOR_NAME + '！🙌';
+    msg += '當然有興趣了解詳情，歡迎隨時聯繫 ' + ADVISOR_NAME + '！🙌';
     if (ADVISOR_LINE) msg += '\n📲 加入 LINE：https://line.me/ti/p/' + ADVISOR_LINE;
     shareViaLine(msg);
   }
