@@ -2590,11 +2590,8 @@
       saveBtn.disabled = false;
     };
 
-    // 寫入操作統一用 gasCall（Libcode 中繼），直連模式也走 gasCall 避免 GET 限制
-    if (_directShellUrl && _userEmail) {
-      // 直連模式：改用 gasCall 走 Libcode（寫入更穩定）
-      gasCall('recordExternalCompulsory', params, doneFn, failFn);
-    } else if (_directShellUrl) {
+    // 直連模式用 directGasCall；一般登入模式用 gasCall（Libcode 中繼）
+    if (_directShellUrl) {
       directGasCall('recordExternalCompulsory', params, doneFn, failFn);
     } else {
       gasCall('recordExternalCompulsory', params, doneFn, failFn);
