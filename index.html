@@ -744,6 +744,7 @@
             item.type +
             (item.plateNo && item.plateNo !== '無' ? '　' + item.plateNo : '') +
             '　到期：' + item.expiry +
+            (String(item.renewStatus||'').startsWith('他家') ? ' <span style="background:#FFF3E0;color:#E65100;font-size:11px;font-weight:bold;padding:1px 7px;border-radius:8px;margin-left:4px;">🎯 爭取轉單</span>' : '') +
           '</div>' +
           (isContacted ? '<div class="expiry-status-contacted">📞 已聯繫，等待回覆</div>' : '') +
           '<div class="expiry-btn-row">' +
@@ -957,6 +958,7 @@
             item.type +
             (item.plateNo && item.plateNo !== '無' ? '　' + item.plateNo : '') +
             '　到期：' + item.expiry +
+            (String(item.renewStatus||'').startsWith('他家') ? ' <span style="background:#FFF3E0;color:#E65100;font-size:11px;font-weight:bold;padding:1px 7px;border-radius:8px;margin-left:4px;">🎯 爭取轉單</span>' : '') +
           '</div>' +
           (isContacted ? '<div class="expiry-status-contacted" style="background:#E8F5E9;color:#388E3C;">📞 已聯繫，等待回覆</div>' : '') +
           '<div class="expiry-btn-row">' +
@@ -2425,37 +2427,62 @@
   // ── CALI 查詢提示框（顯示身分證+車牌讓業務員複製）──
   function showCaliHint(idNo, plate, name) {
     var plateF = formatPlate(plate);
-    // 建立提示覆蓋層
     var overlay = document.createElement('div');
-    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:8000;display:flex;align-items:center;justify-content:center;';
+    overlay.id = 'caliHintOverlay';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:8000;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;overflow-y:auto;';
     overlay.innerHTML =
-      '<div style="background:white;border-radius:16px;padding:24px;max-width:340px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.2);">' +
+      '<div style="background:white;border-radius:16px;padding:24px;max-width:380px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.2);">' +
         '<div style="font-size:18px;font-weight:bold;color:#00796B;margin-bottom:16px;text-align:center;">📋 CALI 強制險查詢</div>' +
-        '<div style="background:#E0F2F1;border-radius:8px;padding:12px;margin-bottom:12px;">' +
-          '<div style="font-size:12px;color:#555;margin-bottom:4px;">客戶姓名</div>' +
-          '<div style="font-size:16px;font-weight:bold;color:#333;">' + name + '</div>' +
+
+        // 客戶資訊
+        '<div style="background:#E0F2F1;border-radius:8px;padding:10px 12px;margin-bottom:10px;">' +
+          '<div style="font-size:12px;color:#555;margin-bottom:2px;">客戶：' + name + '　車牌：' + plateF + '</div>' +
         '</div>' +
-        '<div style="background:#E8F5E9;border-radius:8px;padding:12px;margin-bottom:8px;">' +
-          '<div style="font-size:12px;color:#555;margin-bottom:4px;">① 請複製身分證字號</div>' +
+
+        // 複製區
+        '<div style="background:#E8F5E9;border-radius:8px;padding:12px;margin-bottom:6px;">' +
+          '<div style="font-size:12px;color:#555;margin-bottom:4px;">① 複製身分證字號</div>' +
           '<div style="display:flex;align-items:center;gap:8px;">' +
-            '<div id="caliIdField" style="font-size:18px;font-weight:bold;color:#1565C0;letter-spacing:2px;flex:1;">' + idNo + '</div>' +
-            '<button onclick="copyText(\'' + idNo + '\',this)" style="background:#1565C0;color:white;border:none;padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;">複製</button>' +
+            '<div style="font-size:17px;font-weight:bold;color:#1565C0;flex:1;letter-spacing:1px;">' + idNo + '</div>' +
+            '<button onclick="copyText(\'' + idNo + '\',this)" style="background:#1565C0;color:white;border:none;padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;">複製</button>' +
           '</div>' +
         '</div>' +
-        '<div style="background:#E8F5E9;border-radius:8px;padding:12px;margin-bottom:16px;">' +
-          '<div style="font-size:12px;color:#555;margin-bottom:4px;">② 請複製車牌號碼</div>' +
+        '<div style="background:#E8F5E9;border-radius:8px;padding:12px;margin-bottom:12px;">' +
+          '<div style="font-size:12px;color:#555;margin-bottom:4px;">② 複製車牌號碼</div>' +
           '<div style="display:flex;align-items:center;gap:8px;">' +
-            '<div style="font-size:18px;font-weight:bold;color:#1565C0;letter-spacing:2px;flex:1;">' + plateF + '</div>' +
-            '<button onclick="copyText(\'' + plateF + '\',this)" style="background:#1565C0;color:white;border:none;padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;">複製</button>' +
+            '<div style="font-size:17px;font-weight:bold;color:#1565C0;flex:1;letter-spacing:2px;">' + plateF + '</div>' +
+            '<button onclick="copyText(\'' + plateF + '\',this)" style="background:#1565C0;color:white;border:none;padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;">複製</button>' +
           '</div>' +
         '</div>' +
+
+        // 記錄強制險區塊
+        '<div style="border:1px dashed #00796B;border-radius:8px;padding:12px;margin-bottom:12px;background:#F9FBE7;">' +
+          '<div style="font-size:13px;font-weight:bold;color:#00796B;margin-bottom:10px;">📝 記錄強制險資訊（查詢後填入）</div>' +
+          '<div style="display:flex;flex-direction:column;gap:8px;">' +
+            '<div>' +
+              '<div style="font-size:11px;color:#555;margin-bottom:3px;">承保公司</div>' +
+              '<input id="caliCompany" type="text" placeholder="例：富邦、新光、旺旺友聯..." ' +
+                'style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:14px;">' +
+            '</div>' +
+            '<div>' +
+              '<div style="font-size:11px;color:#555;margin-bottom:3px;">強制險到期日</div>' +
+              '<input id="caliExpiry" type="date" ' +
+                'style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:14px;">' +
+            '</div>' +
+            '<button onclick="saveExternalCompulsory(\'' + idNo + '\',\'' + plate + '\',\'' + name + '\')" ' +
+              'style="width:100%;padding:10px;background:#00796B;color:white;border:none;border-radius:8px;font-size:14px;font-weight:bold;cursor:pointer;">' +
+              '✅ 記錄他家強制險（此車從缺口消失）</button>' +
+          '</div>' +
+        '</div>' +
+
+        // 按鈕列
         '<div style="display:flex;gap:8px;">' +
-          '<button onclick="window.open(\'https://ecard.cali.org.tw/PPCP_QRY/\',\'_blank\');document.body.removeChild(this.closest(\'[style*=z-index]\'))" ' +
-            'style="flex:2;background:#00796B;color:white;border:none;padding:12px;border-radius:8px;font-size:14px;font-weight:bold;cursor:pointer;">前往 CALI 查詢 →</button>' +
-          '<button onclick="document.body.removeChild(this.closest(\'[style*=z-index]\')\)" ' +
-            'style="flex:1;background:#f5f5f5;color:#666;border:none;padding:12px;border-radius:8px;font-size:14px;cursor:pointer;">關閉</button>' +
+          '<button onclick="window.open(\'https://ecard.cali.org.tw/PPCP_QRY/\',\'_blank\')" ' +
+            'style="flex:2;background:#00796B;color:white;border:none;padding:11px;border-radius:8px;font-size:14px;font-weight:bold;cursor:pointer;">前往 CALI 查詢 →</button>' +
+          '<button onclick="document.body.removeChild(document.getElementById(\'caliHintOverlay\'))" ' +
+            'style="flex:1;background:#f5f5f5;color:#666;border:none;padding:11px;border-radius:8px;font-size:14px;cursor:pointer;">關閉</button>' +
         '</div>' +
-        '<div style="font-size:11px;color:#aaa;text-align:center;margin-top:8px;">複製後前往 CALI 頁面貼上，再填驗證碼即可</div>' +
+        '<div style="font-size:11px;color:#aaa;text-align:center;margin-top:8px;">複製後前往 CALI 貼上，填驗證碼後查詢結果，再回填上方記錄</div>' +
       '</div>';
     document.body.appendChild(overlay);
     overlay.addEventListener('click', function(e) {
@@ -2463,6 +2490,63 @@
     });
   }
 
+  // ── 儲存他家強制險記錄 ──
+  function saveExternalCompulsory(idNo, plate, name) {
+    var company = document.getElementById('caliCompany').value.trim();
+    var expiry  = document.getElementById('caliExpiry').value;
+    if (!expiry) { alert('請填入強制險到期日'); return; }
+
+    // 轉換日期格式 yyyy-MM-dd → yyyy/MM/dd（民國年）
+    var expiryDisplay = expiry.replace(/-/g, '/');
+    // 轉民國年
+    var parts = expiry.split('-');
+    if (parts.length === 3) {
+      var roc = parseInt(parts[0]) - 1911;
+      expiryDisplay = roc + '/' + parts[1] + '/' + parts[2];
+    }
+
+    var saveBtn = event.target;
+    saveBtn.textContent = '儲存中...'; saveBtn.disabled = true;
+
+    var params = {
+      plate:       plate,
+      insuredId:   idNo,
+      insuredName: name,
+      company:     company || '不明',
+      expiry:      expiryDisplay
+    };
+
+    var doneFn = function(result) {
+      if (result && result.success) {
+        saveBtn.textContent = '✅ 已記錄！';
+        saveBtn.style.background = '#2E7D32';
+        setTimeout(function() {
+          // 關閉提示框，重新載入缺口清單
+          var ov = document.getElementById('caliHintOverlay');
+          if (ov) document.body.removeChild(ov);
+          // 重新查詢讓這台車消失
+          loadMissingCompulsory();
+        }, 1200);
+      } else {
+        saveBtn.textContent = '❌ 儲存失敗，請重試';
+        saveBtn.disabled = false;
+        saveBtn.style.background = '#C62828';
+        console.error('saveExternalCompulsory error:', result);
+      }
+    };
+    var failFn = function() {
+      saveBtn.textContent = '❌ 連線失敗';
+      saveBtn.disabled = false;
+    };
+
+    if (_directShellUrl) {
+      directGasCall('recordExternalCompulsory', params, doneFn);
+    } else {
+      gasCall('recordExternalCompulsory', params, doneFn, failFn);
+    }
+  }
+
+  
   // ── 複製文字到剪貼簿 ──
   function copyText(text, btn) {
     navigator.clipboard.writeText(text).then(function() {
