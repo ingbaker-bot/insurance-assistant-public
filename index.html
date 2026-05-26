@@ -2434,16 +2434,18 @@
           'style="flex:1;min-width:80px;background:#0284c7;color:white;border:none;padding:9px 6px;border-radius:6px;' +
           'font-size:13px;font-weight:bold;cursor:pointer;">🔍 查看明細</button>';
       }
-      // 追蹤記錄按鈕（提案商機用）
+      // 追蹤記錄按鈕（提案商機用）—— 用 data-* 屬性傳資料，避免引號問題
       if (item.trackStatus !== undefined) {
-        var safePlateT = item.plate.replace(/'/g,'');
-        var safeNameT  = displayName.replace(/'/g,'');
-        var safeIdT    = displayId.replace(/'/g,'');
-        var safeTypeT  = item.insType.replace(/'/g,'');
-        var safeExpT   = (item.expiry||'').replace(/'/g,'');
-        html += '<button onclick="openProposalTrack(\'' + safePlateT + '\',\'' + safeNameT + '\',\'' + safeIdT + '\',\'' + safeTypeT + '\',\'' + safeExpT + '\',\'' + (item.trackStatus||'').replace(/\'/g,\"'\") + '\',\'' + (item.trackNote||'').replace(/\'/g,\"'\") + '\')" ' +
-          'style="flex:1;min-width:80px;background:#6A1B9A;color:white;border:none;padding:9px 6px;border-radius:6px;' +
-          'font-size:13px;font-weight:bold;cursor:pointer;">📋 追蹤</button>';
+        var trackIdx = html.length; // 用於產生唯一 ID
+        html += '<button class="proposalTrackBtn" ' +
+          'data-plate="' + item.plate + '" ' +
+          'data-name="' + displayName + '" ' +
+          'data-id="' + displayId + '" ' +
+          'data-type="' + item.insType + '" ' +
+          'data-expiry="' + (item.expiry||"") + '" ' +
+          'data-status="' + (item.trackStatus||"") + '" ' +
+          'data-note="' + (item.trackNote||"").replace(/"/g,"&quot;") + '" ' +
+          'style="flex:1;min-width:80px;background:#6A1B9A;color:white;border:none;padding:9px 6px;border-radius:6px;font-size:13px;font-weight:bold;cursor:pointer;">📋 追蹤</button>';
       }
 
       // CALI 查詢（顯示提示框含資訊）
@@ -2470,6 +2472,20 @@
       html += '</div></div>';
     });
     list.innerHTML = html;
+    // 事件委派：處理 proposalTrackBtn 點擊（data-* 傳參，避免引號問題）
+    list.querySelectorAll('.proposalTrackBtn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        openProposalTrack(
+          this.dataset.plate,
+          this.dataset.name,
+          this.dataset.id,
+          this.dataset.type,
+          this.dataset.expiry,
+          this.dataset.status,
+          this.dataset.note
+        );
+      });
+    });
   }
 
   // ── 從缺口清單查看明細（查完後可返回）──
