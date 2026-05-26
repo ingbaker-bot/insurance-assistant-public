@@ -1154,7 +1154,14 @@
     if (_directShellUrl) {
       directGasCall('searchPolicies', { q: val }, showResults);
     } else {
-      gasCall('searchPolicies', { q: val }, showResults);
+      if (_directShellUrl) {
+        directGasCall('searchPolicies', { q: val }, showResults, function() {
+          document.getElementById('loading').style.display = 'none';
+          document.getElementById('resultsList').innerHTML = '<p style="text-align:center;color:#888;">搜尋失敗，請稍後再試</p>';
+        });
+      } else {
+        gasCall('searchPolicies', { q: val }, showResults);
+      }
     }
   }
 
@@ -1338,7 +1345,14 @@
     if (_directShellUrl) {
       directGasCall('searchTravelCards', { q: val }, showTravelResults);
     } else {
-      gasCall('searchTravelCards', { q: val }, showTravelResults);
+      if (_directShellUrl) {
+        directGasCall('searchTravelCards', { q: val }, showTravelResults, function() {
+          document.getElementById('loading').style.display = 'none';
+          document.getElementById('resultsList').innerHTML = '<p style="text-align:center;color:#888;">搜尋失敗，請稍後再試</p>';
+        });
+      } else {
+        gasCall('searchTravelCards', { q: val }, showTravelResults);
+      }
     }
   }
   function showTravelResults(data) {
@@ -1516,7 +1530,15 @@
   // ── 旅平卡 Modal ──
   function openTravelDetail(certNo) {
     document.getElementById('loading').style.display = 'block';
-    gasCall('getTravelCardDetails', { no: certNo }, renderTravelModal);
+    var failFn = function() {
+      document.getElementById('loading').style.display = 'none';
+      alert('讀取旅平卡資料失敗，請稍後再試。');
+    };
+    if (_directShellUrl) {
+      directGasCall('getTravelCardDetails', { no: certNo }, renderTravelModal, failFn);
+    } else {
+      gasCall('getTravelCardDetails', { no: certNo }, renderTravelModal, failFn);
+    }
   }
 
   function renderTravelModal(data) {
