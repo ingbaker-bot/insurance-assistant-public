@@ -2619,12 +2619,45 @@
 
   // ── 傳提醒（帶稱呼 withNickname）──
   function shareVehicleReminder(insuredId, name, insType, expiry, plate) {
+    // 設定身分證以便儲存稱呼
+    _nicknameInsuredId = insuredId;
+
     withNickname(insuredId, name, function(salutation) {
-      var msg = salutation + ' 您好！\n\n';
-      msg += '您的車輛【' + plate + '】' + insType + '\n';
-      msg += '將於 ' + expiry + ' 到期，請記得安排續保。\n\n';
-      msg += '如有任何問題，歡迎隨時聯繫 ' + ADVISOR_NAME + '！\n';
-      if (ADVISOR_LINE) msg += '📲 LINE：https://line.me/ti/p/' + ADVISOR_LINE;
+      var isMissingCompulsory = (insType.includes('任意險'));
+
+      var msg = '';
+      if (isMissingCompulsory) {
+        // ── P1 缺口：催投保強制險話術 ──
+        var isCar  = insType.includes('汽車');
+        var isMoto = insType.includes('機車');
+        var vType  = isCar ? '汽車' : isMoto ? '機車' : '車輛';
+        var finePerson = isCar
+          ? '汽車：罰鍰 3,000 至 15,000 元，並扣留車牌'
+          : '機車：罰鍰 1,500 至 3,000 元';
+
+        msg += '🚨【強制險投保提醒】\n\n';
+        msg += salutation + ' 您好！\n\n';
+        msg += '我們注意到您的' + vType + '【' + plate + '】\n';
+        msg += '目前系統中未查到有效的強制汽車責任險記錄。\n\n';
+        msg += '⚠️ 依法規定，未投保強制險上路將面臨：\n';
+        msg += '　• ' + finePerson + '\n';
+        msg += '　• 若發生事故，傷亡賠償須自行負擔\n\n';
+        msg += '💡 強制責任險保障重點：\n';
+        msg += '　• 傷害醫療費用：每人最高 20 萬元\n';
+        msg += '　• 失能給付：每人最高 300 萬元\n';
+        msg += '　• 死亡給付：每人最高 300 萬元\n\n';
+        msg += '📋 您的任意險到期日：' + expiry + '\n';
+        msg += '建議同時投保強制險，保障更完整！\n\n';
+        msg += '如需協助投保，歡迎隨時聯繫 ' + ADVISOR_NAME + '！🙌';
+      } else {
+        // ── 一般提醒話術 ──
+        msg += salutation + ' 您好！\n\n';
+        msg += '您的車輛【' + plate + '】' + insType + '\n';
+        msg += '將於 ' + expiry + ' 到期，請記得安排續保。\n\n';
+        msg += '如有任何問題，歡迎隨時聯繫 ' + ADVISOR_NAME + '！';
+      }
+
+      if (ADVISOR_LINE) msg += '\n📲 LINE：https://line.me/ti/p/' + ADVISOR_LINE;
       shareViaLine(msg);
     });
   }
