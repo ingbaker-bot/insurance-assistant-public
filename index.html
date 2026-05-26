@@ -275,6 +275,16 @@
       style="width:100%;padding:11px;margin-top:8px;background:#FF9800;color:white;border:none;border-radius:8px;font-weight:bold;font-size:14px;cursor:pointer;">
       🏠 查看無住宅火險名單
     </button>
+    <!-- 有任意險但無強制險 -->
+    <button onclick="loadMissingCompulsory()"
+      style="width:100%;padding:11px;margin-top:8px;background:#C62828;color:white;border:none;border-radius:8px;font-weight:bold;font-size:14px;cursor:pointer;">
+      ⚠️ 有任意險但無強制險（法規缺口）
+    </button>
+    <!-- 有強制險但無任意險 -->
+    <button onclick="loadMissingVoluntary()"
+      style="width:100%;padding:11px;margin-top:8px;background:#1565C0;color:white;border:none;border-radius:8px;font-weight:bold;font-size:14px;cursor:pointer;">
+      💡 有強制險但無任意險（提案商機）
+    </button>
   </div>
 
   <div id="loading">讀取中...</div>
@@ -2266,7 +2276,146 @@
   // ══════════════════════════════════════════════════════
   // ★ 無住宅火險名單
   // ══════════════════════════════════════════════════════
-  function loadFireGapList() {
+
+  // ══════════════════════════════════════════════════════
+  // ★ CALI 查詢輔助：開新分頁並自動填入身分證 + 車牌
+  // ══════════════════════════════════════════════════════
+  function openCaliQuery(idNo, plate) {
+    var win = window.open('https://ecard.cali.org.tw/PPCP_QRY/', '_blank');
+    if (!win) { alert('請允許彈出視窗'); return; }
+    // 注入自動填入腳本（需等頁面載入完成）
+    var checkInterval = setInterval(function() {
+      try {
+        var doc = win.document;
+        if (!doc || !doc.readyState || doc.readyState !== 'complete') return;
+        clearInterval(checkInterval);
+        // 填入身分證字號
+        var idField = doc.querySelector('input[name="idNo"], input[id*="id"], input[type="text"]');
+        if (idField) idField.value = idNo;
+        // 填入車牌（選「車牌號碼」radio）
+        var plateRadio = doc.querySelector('input[value*="plate"], input[name*="qryType"]');
+        if (plateRadio) plateRadio.click();
+        var plateField = doc.querySelectorAll('input[type="text"]')[1];
+        if (plateField) plateField.value = plate.replace(/([A-Z0-9]+)([A-Z0-9]+)/, '$1-$2');
+      } catch(e) {
+        clearInterval(checkInterval);
+      }
+    }, 500);
+    setTimeout(function() { clearInterval(checkInterval); }, 10000);
+  }
+
+  // ── 顯示 CALI 查詢卡片（通用）──
+  function renderVehicleGapList(result, title, titleColor, badgeText, badgeBg, badgeClr, promptText) {
+    document.getElementById('loading').style.display = 'none';
+    var list = document.getElementById('resultsList');
+    if (!result || result.total === 0) {
+      list.innerHTML = '<div style="background:#E8F5E9;border:1px solid #A5D6A7;border-radius:10px;padding:14px 16px;font-weight:bold;color:#2E7D32;text-align:center;">🎉 ' + promptText + '</div>';
+      return;
+    }
+    var html = '<div style="background:' + badgeBg + ';border:1px solid ' + badgeClr + ';border-radius:10px;padding:14px 16px;margin-bottom:16px;">' +
+      '<div style="color:' + titleColor + ';font-weight:bold;font-size:15px;">' + title + '：共 ' + result.total + ' 台</div>' +
+      '<div style="font-size:12px;color:#888;margin-top:4px;">比對方式：以車牌號碼為基準，僅計算有效保單</div>' +
+      '</div>';
+
+    result.list.forEach(function(item) {
+      var displayId   = item.insuredId || item.appId || '';
+      var displayName = item.insuredNm || item.appName || '';
+      var displayPhone= item.appPhone || '';
+      // 格式化車牌顯示（加橫槓）
+      var plateDisplay = item.plate;
+
+      html += '<div style="background:white;border-radius:10px;padding:14px 16px;margin-bottom:10px;' +
+        'box-shadow:0 2px 6px rgba(0,0,0,0.06);border-left:5px solid ' + titleColor + ';">' +
+        // 車牌 + 到期日
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
+          '<div style="font-weight:bold;font-size:17px;color:#333;letter-spacing:1px;">🚗 ' + plateDisplay + '</div>' +
+          '<div style="background:' + badgeBg + ';color:' + titleColor + ';font-size:11px;font-weight:bold;' +
+            'padding:3px 10px;border-radius:10px;">' + badgeText + '</div>' +
+        '</div>' +
+        // 客戶資訊
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;font-size:13px;color:#555;">' +
+          '<div>👤 ' + displayName + '</div>' +
+          '<div>📞 ' + (displayPhone || '—') + '</div>' +
+          '<div>🆔 ' + (displayId || '—') + '</div>' +
+          '<div>📋 ' + item.insType + '</div>' +
+          '<div>📅 到期：' + item.expiry + '</div>' +
+          '<div></div>' +
+        '</div>' +
+        // 操作按鈕
+        '<div style="display:flex;gap:8px;">';
+
+      // CALI 查詢按鈕（有任意險無強制險才顯示）
+      if (displayId) {
+        var safeId    = displayId.replace(/'/g, '');
+        var safePlate = item.plate.replace(/'/g, '');
+        html += '<button onclick="openCaliQuery(\'' + safeId + '\',\'' + safePlate + '\')" ' +
+          'style="flex:1;background:#00796B;color:white;border:none;padding:9px;border-radius:6px;' +
+          'font-size:13px;font-weight:bold;cursor:pointer;">🔍 CALI查詢</button>';
+      }
+
+      // LINE 分享按鈕
+      var shareMsg = '您好！我們注意到您的車輛【' + plateDisplay + '】' + item.insType + '將於 ' + item.expiry + ' 到期。';
+      html += '<button onclick="shareViaLine(\'' + encodeURIComponent(shareMsg).replace(/'/g, "\\'") + '\')" ' +
+        'style="flex:1;background:#00B900;color:white;border:none;padding:9px;border-radius:6px;' +
+        'font-size:13px;font-weight:bold;cursor:pointer;">💬 傳提醒</button>' +
+        '</div></div>';
+    });
+    list.innerHTML = html;
+  }
+
+  // ══════════════════════════════════════════════════════
+  // ★ P1：有任意險但無強制險
+  // ══════════════════════════════════════════════════════
+  function loadMissingCompulsory() {
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('resultsList').innerHTML = '';
+    var fn = function(result) {
+      renderVehicleGapList(result,
+        '⚠️ 有任意險但無強制險（法規缺口）',
+        '#C62828', '#FFEBEE', '#FFCDD2', '#C62828',
+        '缺強制險',
+        '所有車輛均已投保強制險 ✅'
+      );
+    };
+    var failFn = function() {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('resultsList').innerHTML =
+        '<p style="text-align:center;color:#d32f2f;">讀取失敗，請稍後再試</p>';
+    };
+    if (_directShellUrl) {
+      directGasCall('getMissingCompulsory', {}, fn);
+    } else {
+      gasCall('getMissingCompulsory', {}, fn, failFn);
+    }
+  }
+
+  // ══════════════════════════════════════════════════════
+  // ★ P2：有強制險但無任意險（提案商機）
+  // ══════════════════════════════════════════════════════
+  function loadMissingVoluntary() {
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('resultsList').innerHTML = '';
+    var fn = function(result) {
+      renderVehicleGapList(result,
+        '💡 有強制險但無任意險（提案商機）',
+        '#1565C0', '#E3F2FD', '#BBDEFB', '#1565C0',
+        '提案商機',
+        '所有車輛均已投保任意險，保障完整 ✅'
+      );
+    };
+    var failFn = function() {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('resultsList').innerHTML =
+        '<p style="text-align:center;color:#d32f2f;">讀取失敗，請稍後再試</p>';
+    };
+    if (_directShellUrl) {
+      directGasCall('getMissingVoluntary', {}, fn);
+    } else {
+      gasCall('getMissingVoluntary', {}, fn, failFn);
+    }
+  }
+
+    function loadFireGapList() {
     document.getElementById('loading').style.display = 'block';
     document.getElementById('resultsList').innerHTML = '';
     
