@@ -252,6 +252,19 @@
         <span>李 11507</span><span>機車 115</span><span>ABC-1234</span><span>0912345678</span><span>FAM-A11660</span>
       </div>
     </div>
+    <!-- 產險缺口分析按鈕 -->
+    <button onclick="loadMissingCompulsory()"
+      style="width:100%;padding:11px;margin-top:8px;background:#C62828;color:white;border:none;border-radius:8px;font-weight:bold;font-size:14px;cursor:pointer;">
+      ⚠️ 有任意險但無強制險（法規缺口）
+    </button>
+    <button onclick="loadMissingVoluntary()"
+      style="width:100%;padding:11px;margin-top:8px;background:#1565C0;color:white;border:none;border-radius:8px;font-weight:bold;font-size:14px;cursor:pointer;">
+      💡 有強制險但無任意險（提案商機）
+    </button>
+    <button onclick="loadFireGapList()"
+      style="width:100%;padding:11px;margin-top:8px;background:#FF9800;color:white;border:none;border-radius:8px;font-weight:bold;font-size:14px;cursor:pointer;">
+      🏠 查看無住宅火險名單
+    </button>
   </div>
 
   <!-- 旅平卡搜尋區 -->
@@ -265,25 +278,10 @@
         💡 可搜尋：<span>要保人姓名</span><span>被保人姓名</span><span>身分證號</span><span>電話</span><span>憑證號碼</span>
       </div>
     </div>
-    <!-- 未申辦名單按鈕 -->
+    <!-- 未申辦旅平卡（旅平卡專屬按鈕）-->
     <button onclick="loadUncoveredList()"
       style="width:100%;padding:11px;margin-top:4px;background:#E65100;color:white;border:none;border-radius:8px;font-weight:bold;font-size:14px;cursor:pointer;">
       ❌ 查看未申辦旅平卡名單
-    </button>
-    <!-- 無住宅火險名單 -->
-    <button onclick="loadFireGapList()"
-      style="width:100%;padding:11px;margin-top:8px;background:#FF9800;color:white;border:none;border-radius:8px;font-weight:bold;font-size:14px;cursor:pointer;">
-      🏠 查看無住宅火險名單
-    </button>
-    <!-- 有任意險但無強制險 -->
-    <button onclick="loadMissingCompulsory()"
-      style="width:100%;padding:11px;margin-top:8px;background:#C62828;color:white;border:none;border-radius:8px;font-weight:bold;font-size:14px;cursor:pointer;">
-      ⚠️ 有任意險但無強制險（法規缺口）
-    </button>
-    <!-- 有強制險但無任意險 -->
-    <button onclick="loadMissingVoluntary()"
-      style="width:100%;padding:11px;margin-top:8px;background:#1565C0;color:white;border:none;border-radius:8px;font-weight:bold;font-size:14px;cursor:pointer;">
-      💡 有強制險但無任意險（提案商機）
     </button>
   </div>
 
@@ -322,7 +320,7 @@
       <button class="btn-action bg-img"   onclick="generateImageCard()">🖼️ 產生精美圖卡</button>
       <button class="btn-action bg-ai"    onclick="copyWarmPitch()">💬 智能話術</button>
       <button class="btn-action bg-line"  onclick="shareToLine()">📄 純文字分享</button>
-      <button class="btn-action bg-close" onclick="closeModal()">關閉返回</button>
+      <button class="btn-action bg-close" onclick="closeModalOrBack()">關閉返回</button>
       <button class="btn-action" style="background:#1565C0;color:white;" onclick="markVehicleStatus('已過戶')">🔄 標記已過戶</button>
       <button class="btn-action" style="background:#4E342E;color:white;" onclick="markVehicleStatus('已報廢')">🗑️ 標記已報廢</button>
     </div>
@@ -1953,6 +1951,17 @@
     currentPolicyData = null;
   }
 
+  // 從缺口清單查看明細後，關閉時返回清單
+  function closeModalOrBack() {
+    document.getElementById('detailModal').style.display = 'none';
+    document.getElementById('travelStatusArea').innerHTML = '';
+    currentPolicyData = null;
+    if (_gapListBackup) {
+      document.getElementById('resultsList').innerHTML = _gapListBackup;
+      _gapListBackup = '';
+    }
+  }
+
   function generateImageCard() {
     document.getElementById('loading').style.display = 'block';
     html2canvas(document.getElementById('modalBody'), { scale: 2, backgroundColor: "#ffffff" }).then(function(canvas) {
@@ -2305,6 +2314,22 @@
   }
 
   // ── 顯示 CALI 查詢卡片（通用）──
+  // 車牌格式化（加橫槓）：NLN5937→NLN-5937, BBF2205→BBF-2205, ABC1234→ABC-1234
+  function formatPlate(plate) {
+    if (!plate) return plate;
+    // 已有橫槓不處理
+    if (plate.indexOf('-') !== -1) return plate;
+    // 台灣一般車牌：3英文+4數字 或 2英文+4數字 或 3英文+2數字+1英 等
+    // 通用規則：找英文與數字的分界點加橫槓
+    var m = plate.match(/^([A-Z]{2,3})([0-9]{4})$/)    // ABC1234, NLN5937
+           || plate.match(/^([A-Z]{2,3})([0-9A-Z]{3,4})$/); // 機車 BGX6789
+    if (m) return m[1] + '-' + m[2];
+    // 數字+英文型（舊式）：1234AB → 1234-AB
+    var m2 = plate.match(/^([0-9]{4})([A-Z]{2})$/);
+    if (m2) return m2[1] + '-' + m2[2];
+    return plate;
+  }
+
   function renderVehicleGapList(result, title, titleColor, badgeText, badgeBg, badgeClr, promptText) {
     document.getElementById('loading').style.display = 'none';
     var list = document.getElementById('resultsList');
@@ -2312,6 +2337,7 @@
       list.innerHTML = '<div style="background:#E8F5E9;border:1px solid #A5D6A7;border-radius:10px;padding:14px 16px;font-weight:bold;color:#2E7D32;text-align:center;">🎉 ' + promptText + '</div>';
       return;
     }
+
     var html = '<div style="background:' + badgeBg + ';border:1px solid ' + badgeClr + ';border-radius:10px;padding:14px 16px;margin-bottom:16px;">' +
       '<div style="color:' + titleColor + ';font-weight:bold;font-size:15px;">' + title + '：共 ' + result.total + ' 台</div>' +
       '<div style="font-size:12px;color:#888;margin-top:4px;">比對方式：以車牌號碼為基準，僅計算有效保單</div>' +
@@ -2320,50 +2346,154 @@
     result.list.forEach(function(item) {
       var displayId   = item.insuredId || item.appId || '';
       var displayName = item.insuredNm || item.appName || '';
-      var displayPhone= item.appPhone || '';
-      // 格式化車牌顯示（加橫槓）
-      var plateDisplay = item.plate;
+      var displayPhone= item.appPhone  || '';
+      var plateDisplay= formatPlate(item.plate); // 加橫槓
 
       html += '<div style="background:white;border-radius:10px;padding:14px 16px;margin-bottom:10px;' +
         'box-shadow:0 2px 6px rgba(0,0,0,0.06);border-left:5px solid ' + titleColor + ';">' +
-        // 車牌 + 到期日
+        // 車牌 + 狀態 badge（文字，不顯示色碼）
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
           '<div style="font-weight:bold;font-size:17px;color:#333;letter-spacing:1px;">🚗 ' + plateDisplay + '</div>' +
           '<div style="background:' + badgeBg + ';color:' + titleColor + ';font-size:11px;font-weight:bold;' +
-            'padding:3px 10px;border-radius:10px;">' + badgeText + '</div>' +
+            'padding:3px 10px;border-radius:10px;border:1px solid ' + titleColor + ';">' + badgeText + '</div>' +
         '</div>' +
         // 客戶資訊
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;font-size:13px;color:#555;">' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:10px;font-size:13px;color:#555;">' +
           '<div>👤 ' + displayName + '</div>' +
           '<div>📞 ' + (displayPhone || '—') + '</div>' +
-          '<div>🆔 ' + (displayId || '—') + '</div>' +
-          '<div>📋 ' + item.insType + '</div>' +
+          '<div>🆔 ' + (displayId    || '—') + '</div>' +
+          '<div>📋 ' + item.insType  + '</div>' +
           '<div>📅 到期：' + item.expiry + '</div>' +
           '<div></div>' +
         '</div>' +
-        // 操作按鈕
-        '<div style="display:flex;gap:8px;">';
+        // 按鈕列
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;">';
 
-      // CALI 查詢按鈕（有任意險無強制險才顯示）
+      // 查看明細（用保單號查詢）
+      if (item.policyNo) {
+        var safePno = item.policyNo.replace(/'/g, '');
+        html += '<button onclick="openDetailFromGap(\'' + safePno + '\')" ' +
+          'style="flex:1;min-width:80px;background:#0284c7;color:white;border:none;padding:9px 6px;border-radius:6px;' +
+          'font-size:13px;font-weight:bold;cursor:pointer;">🔍 查看明細</button>';
+      }
+
+      // CALI 查詢（顯示提示框含資訊）
       if (displayId) {
         var safeId    = displayId.replace(/'/g, '');
         var safePlate = item.plate.replace(/'/g, '');
-        html += '<button onclick="openCaliQuery(\'' + safeId + '\',\'' + safePlate + '\')" ' +
-          'style="flex:1;background:#00796B;color:white;border:none;padding:9px;border-radius:6px;' +
-          'font-size:13px;font-weight:bold;cursor:pointer;">🔍 CALI查詢</button>';
+        var safeName  = displayName.replace(/'/g, '');
+        html += '<button onclick="showCaliHint(\'' + safeId + '\',\'' + safePlate + '\',\'' + safeName + '\')" ' +
+          'style="flex:1;min-width:80px;background:#00796B;color:white;border:none;padding:9px 6px;border-radius:6px;' +
+          'font-size:13px;font-weight:bold;cursor:pointer;">📋 CALI查詢</button>';
       }
 
-      // LINE 分享按鈕
-      var shareMsg = '您好！我們注意到您的車輛【' + plateDisplay + '】' + item.insType + '將於 ' + item.expiry + ' 到期。';
-      html += '<button onclick="shareViaLine(\'' + encodeURIComponent(shareMsg).replace(/'/g, "\\'") + '\')" ' +
-        'style="flex:1;background:#00B900;color:white;border:none;padding:9px;border-radius:6px;' +
-        'font-size:13px;font-weight:bold;cursor:pointer;">💬 傳提醒</button>' +
-        '</div></div>';
+      // 傳提醒（帶稱呼）
+      var pno       = (item.policyNo || '').replace(/'/g, '');
+      var safeIdS   = displayId.replace(/'/g, '');
+      var safeNameS = displayName.replace(/'/g, '');
+      var safeTypeS = item.insType.replace(/'/g, '');
+      var safeExpS  = (item.expiry  || '').replace(/'/g, '');
+      var safePlS   = plateDisplay.replace(/'/g, '');
+      html += '<button onclick="shareVehicleReminder(\'' + safeIdS + '\',\'' + safeNameS + '\',\'' + safeTypeS + '\',\'' + safeExpS + '\',\'' + safePlS + '\')" ' +
+        'style="flex:1;min-width:80px;background:#00B900;color:white;border:none;padding:9px 6px;border-radius:6px;' +
+        'font-size:13px;font-weight:bold;cursor:pointer;">💬 傳提醒</button>';
+
+      html += '</div></div>';
     });
     list.innerHTML = html;
   }
 
-  // ══════════════════════════════════════════════════════
+  // ── 從缺口清單查看明細（查完後可返回）──
+  function openDetailFromGap(policyNo) {
+    // 儲存目前結果列表，查完後可返回
+    _gapListBackup = document.getElementById('resultsList').innerHTML;
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('resultsList').innerHTML = '';
+    var fetchFn = function(data) { renderModal(data, true); }; // true = 顯示返回按鈕
+    if (_directShellUrl) {
+      directGasCall('getPolicyDetails', { no: policyNo }, fetchFn);
+    } else {
+      gasCall('getPolicyDetails', { no: policyNo }, fetchFn, function() {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('resultsList').innerHTML = _gapListBackup || '';
+        alert('讀取保單詳情失敗');
+      });
+    }
+  }
+  var _gapListBackup = '';
+
+  // ── CALI 查詢提示框（顯示身分證+車牌讓業務員複製）──
+  function showCaliHint(idNo, plate, name) {
+    var plateF = formatPlate(plate);
+    // 建立提示覆蓋層
+    var overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:8000;display:flex;align-items:center;justify-content:center;';
+    overlay.innerHTML =
+      '<div style="background:white;border-radius:16px;padding:24px;max-width:340px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.2);">' +
+        '<div style="font-size:18px;font-weight:bold;color:#00796B;margin-bottom:16px;text-align:center;">📋 CALI 強制險查詢</div>' +
+        '<div style="background:#E0F2F1;border-radius:8px;padding:12px;margin-bottom:12px;">' +
+          '<div style="font-size:12px;color:#555;margin-bottom:4px;">客戶姓名</div>' +
+          '<div style="font-size:16px;font-weight:bold;color:#333;">' + name + '</div>' +
+        '</div>' +
+        '<div style="background:#E8F5E9;border-radius:8px;padding:12px;margin-bottom:8px;">' +
+          '<div style="font-size:12px;color:#555;margin-bottom:4px;">① 請複製身分證字號</div>' +
+          '<div style="display:flex;align-items:center;gap:8px;">' +
+            '<div id="caliIdField" style="font-size:18px;font-weight:bold;color:#1565C0;letter-spacing:2px;flex:1;">' + idNo + '</div>' +
+            '<button onclick="copyText(\'' + idNo + '\',this)" style="background:#1565C0;color:white;border:none;padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;">複製</button>' +
+          '</div>' +
+        '</div>' +
+        '<div style="background:#E8F5E9;border-radius:8px;padding:12px;margin-bottom:16px;">' +
+          '<div style="font-size:12px;color:#555;margin-bottom:4px;">② 請複製車牌號碼</div>' +
+          '<div style="display:flex;align-items:center;gap:8px;">' +
+            '<div style="font-size:18px;font-weight:bold;color:#1565C0;letter-spacing:2px;flex:1;">' + plateF + '</div>' +
+            '<button onclick="copyText(\'' + plateF + '\',this)" style="background:#1565C0;color:white;border:none;padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;">複製</button>' +
+          '</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:8px;">' +
+          '<button onclick="window.open(\'https://ecard.cali.org.tw/PPCP_QRY/\',\'_blank\');document.body.removeChild(this.closest(\'[style*=z-index]\'))" ' +
+            'style="flex:2;background:#00796B;color:white;border:none;padding:12px;border-radius:8px;font-size:14px;font-weight:bold;cursor:pointer;">前往 CALI 查詢 →</button>' +
+          '<button onclick="document.body.removeChild(this.closest(\'[style*=z-index]\')\)" ' +
+            'style="flex:1;background:#f5f5f5;color:#666;border:none;padding:12px;border-radius:8px;font-size:14px;cursor:pointer;">關閉</button>' +
+        '</div>' +
+        '<div style="font-size:11px;color:#aaa;text-align:center;margin-top:8px;">複製後前往 CALI 頁面貼上，再填驗證碼即可</div>' +
+      '</div>';
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) document.body.removeChild(overlay);
+    });
+  }
+
+  // ── 複製文字到剪貼簿 ──
+  function copyText(text, btn) {
+    navigator.clipboard.writeText(text).then(function() {
+      var orig = btn.textContent;
+      btn.textContent = '已複製 ✓';
+      btn.style.background = '#2E7D32';
+      setTimeout(function() { btn.textContent = orig; btn.style.background = '#1565C0'; }, 1500);
+    }).catch(function() {
+      // 降級方案
+      var el = document.createElement('textarea');
+      el.value = text; el.style.position = 'fixed'; el.style.opacity = '0';
+      document.body.appendChild(el); el.select();
+      document.execCommand('copy'); document.body.removeChild(el);
+      var orig = btn.textContent; btn.textContent = '已複製 ✓'; btn.style.background = '#2E7D32';
+      setTimeout(function() { btn.textContent = orig; btn.style.background = '#1565C0'; }, 1500);
+    });
+  }
+
+  // ── 傳提醒（帶稱呼 withNickname）──
+  function shareVehicleReminder(insuredId, name, insType, expiry, plate) {
+    withNickname(insuredId, name, function(salutation) {
+      var msg = salutation + ' 您好！\n\n';
+      msg += '您的車輛【' + plate + '】' + insType + '\n';
+      msg += '將於 ' + expiry + ' 到期，請記得安排續保。\n\n';
+      msg += '如有任何問題，歡迎隨時聯繫 ' + ADVISOR_NAME + '！\n';
+      if (ADVISOR_LINE) msg += '📲 LINE：https://line.me/ti/p/' + ADVISOR_LINE;
+      shareViaLine(msg);
+    });
+  }
+
+    // ══════════════════════════════════════════════════════
   // ★ P1：有任意險但無強制險
   // ══════════════════════════════════════════════════════
   function loadMissingCompulsory() {
