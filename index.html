@@ -3058,13 +3058,26 @@
     var doneFn = function(r) {
       if (r && r.success) {
         var o = document.getElementById('renewTrackOverlay'); if (o) document.body.removeChild(o);
-        // 重新載入目前的清單
-        var s = document.getElementById('trackStartDate');
-        var e = document.getElementById('trackEndDate');
-        if (s && s.value && e && e.value) loadExpiryRange();
+        // 顯示成功提示
+        var toast = document.createElement('div');
+        toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#2E7D32;color:white;padding:10px 24px;border-radius:20px;font-size:14px;font-weight:bold;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,0.3);';
+        toast.textContent = '✅ 已儲存！清單更新中...';
+        document.body.appendChild(toast);
+        setTimeout(function() { document.body.removeChild(toast); }, 2000);
+        // 自動刷新：判斷目前顯示的是哪個清單
+        setTimeout(function() {
+          var titleEl = document.querySelector('#resultsList .list-header, #resultsList div[style*="font-weight:bold"]');
+          var titleText = document.getElementById('resultsList').querySelector('div') ?
+            document.getElementById('resultsList').querySelector('div').textContent : '';
+          if (titleText.indexOf('近30天') !== -1) {
+            loadUnrenewed(); // 刷新近30天未續保名冊
+          } else {
+            loadExpiryRange(); // 刷新自訂區間
+          }
+        }, 300);
       } else {
         if (btn) { btn.textContent='💾 儲存'; btn.disabled=false; }
-        alert('儲存失敗：' + (r?r.msg:'未知'));
+        alert('儲存失敗：' + (r ? (r.msg||'未知錯誤') : '無回應，請確認已部署最新版 Libcode'));
       }
     };
     var failFn = function() { if (btn){btn.textContent='💾 儲存';btn.disabled=false;} alert('連線失敗'); };
