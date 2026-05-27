@@ -265,6 +265,26 @@
       style="width:100%;padding:11px;margin-top:8px;background:#FF9800;color:white;border:none;border-radius:8px;font-weight:bold;font-size:14px;cursor:pointer;">
       🏠 查看無住宅火險名單
     </button>
+
+    <!-- 到期追蹤區塊 -->
+    <div style="margin-top:12px;background:#F3E5F5;border-radius:10px;padding:12px;">
+      <div style="font-weight:bold;color:#6A1B9A;font-size:14px;margin-bottom:10px;">📅 到期保單追蹤</div>
+      <div style="display:flex;gap:6px;margin-bottom:6px;">
+        <div style="flex:1;">
+          <div style="font-size:11px;color:#888;margin-bottom:3px;">開始日期</div>
+          <input type="date" id="trackStartDate" style="width:100%;box-sizing:border-box;padding:7px;border:1px solid #CE93D8;border-radius:6px;font-size:13px;">
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:11px;color:#888;margin-bottom:3px;">結束日期</div>
+          <input type="date" id="trackEndDate" style="width:100%;box-sizing:border-box;padding:7px;border:1px solid #CE93D8;border-radius:6px;font-size:13px;">
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button onclick="loadExpiryRange()" style="flex:2;padding:9px;background:#6A1B9A;color:white;border:none;border-radius:6px;font-size:13px;font-weight:bold;cursor:pointer;">🔍 查詢到期保單</button>
+        <button onclick="loadUnrenewed()" style="flex:3;padding:9px;background:#C62828;color:white;border:none;border-radius:6px;font-size:13px;font-weight:bold;cursor:pointer;">⚠️ 近30天未續保名冊</button>
+      </div>
+      <div style="font-size:11px;color:#888;margin-top:6px;">💡 查詢後可直接點選每張保單更新續保狀態</div>
+    </div>
   </div>
 
   <!-- 旅平卡搜尋區 -->
@@ -651,6 +671,7 @@
 
   // ── 系統初始化（授權通過後才執行）──
   function initSystem() {
+    initTrackDates(); // 初始化到期追蹤日期選擇器
     // 載入到期提醒
     gasCall('getExpiringLists', {}, function(result) {
       var hint = document.getElementById('expiryLoadingHint');
@@ -2832,6 +2853,239 @@
     } else {
       gasCall('saveProposalRecord', params, doneFn, failFn);
     }
+  }
+
+    // ══════════════════════════════════════════════════════
+  // ★ 到期保單追蹤功能
+  // ══════════════════════════════════════════════════════
+
+  // 續保狀態樣式
+  function _renewStatusStyle(status) {
+    if (!status || status === '') return { bg:'#F5F5F5', clr:'#999', icon:'⬜', label:'未標記' };
+    if (status === '已續保')          return { bg:'#E8F5E9', clr:'#2E7D32', icon:'✅', label:'已續保' };
+    if (status === '不續保')          return { bg:'#FFEBEE', clr:'#C62828', icon:'❌', label:'不續保' };
+    if (status === '已聯繫')          return { bg:'#E3F2FD', clr:'#1565C0', icon:'📨', label:'已聯繫' };
+    if (status.startsWith('他家'))    return { bg:'#FFF3E0', clr:'#E65100', icon:'🏢', label:'他家承保' };
+    return { bg:'#EDE7F6', clr:'#6A1B9A', icon:'📌', label: status };
+  }
+
+  // 初始化日期選擇器（預設本月1日到今天+7天）
+  function initTrackDates() {
+    var today = new Date();
+    var start = new Date(today.getFullYear(), today.getMonth(), 1); // 本月1日
+    var end   = new Date(today); end.setDate(end.getDate() + 7);    // 今天+7天
+
+    var fmt = function(d) {
+      var m = String(d.getMonth()+1).padStart(2,'0');
+      var day = String(d.getDate()).padStart(2,'0');
+      return d.getFullYear() + '-' + m + '-' + day;
+    };
+
+    var s = document.getElementById('trackStartDate');
+    var e = document.getElementById('trackEndDate');
+    if (s && !s.value) s.value = fmt(start);
+    if (e && !e.value) e.value = fmt(end);
+  }
+
+  // 查詢自訂區間到期保單
+  function loadExpiryRange() {
+    var startEl = document.getElementById('trackStartDate');
+    var endEl   = document.getElementById('trackEndDate');
+    if (!startEl.value || !endEl.value) { alert('請選擇開始和結束日期'); return; }
+
+    // 轉民國年
+    var toRoc = function(isoDate) {
+      var p = isoDate.split('-');
+      return (parseInt(p[0])-1911) + '/' + p[1] + '/' + p[2];
+    };
+
+    var startDate = toRoc(startEl.value);
+    var endDate   = toRoc(endEl.value);
+
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('resultsList').innerHTML = '';
+
+    var fn = function(result) {
+      renderExpiryTrackList(result, startDate + ' ～ ' + endDate, false);
+    };
+    var failFn = function() {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('resultsList').innerHTML = '<p style="text-align:center;color:#d32f2f;">讀取失敗，請稍後再試</p>';
+    };
+    if (_directShellUrl) {
+      directGasCall('getExpiringByDateRange', { startDate: startDate, endDate: endDate }, fn, failFn);
+    } else {
+      gasCall('getExpiringByDateRange', { startDate: startDate, endDate: endDate }, fn, failFn);
+    }
+  }
+
+  // 近30天未續保名冊
+  function loadUnrenewed() {
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('resultsList').innerHTML = '';
+    var fn = function(result) {
+      renderExpiryTrackList(result, '近30天未續保', true);
+    };
+    var failFn = function() {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('resultsList').innerHTML = '<p style="text-align:center;color:#d32f2f;">讀取失敗，請稍後再試</p>';
+    };
+    if (_directShellUrl) {
+      directGasCall('getUnrenewedLastMonth', {}, fn, failFn);
+    } else {
+      gasCall('getUnrenewedLastMonth', {}, fn, failFn);
+    }
+  }
+
+  // 渲染到期追蹤清單
+  function renderExpiryTrackList(result, title, isUnrenewed) {
+    document.getElementById('loading').style.display = 'none';
+    var list = document.getElementById('resultsList');
+
+    if (!result || result.error) {
+      list.innerHTML = '<p style="text-align:center;color:#d32f2f;">⚠️ ' + (result ? result.error : '讀取失敗') + '</p>';
+      return;
+    }
+    if (!result.list || result.list.length === 0) {
+      list.innerHTML = '<div style="background:#E8F5E9;border-radius:10px;padding:16px;text-align:center;color:#2E7D32;font-weight:bold;">🎉 ' +
+        (isUnrenewed ? '近30天內到期的保單都已續保，無未追蹤記錄！' : '此區間無到期保單') + '</div>';
+      return;
+    }
+
+    var titleBg  = isUnrenewed ? '#FFEBEE' : '#EDE7F6';
+    var titleClr = isUnrenewed ? '#C62828' : '#6A1B9A';
+    var html = '<div style="background:' + titleBg + ';border-radius:10px;padding:14px 16px;margin-bottom:16px;">' +
+      '<div style="color:' + titleClr + ';font-weight:bold;font-size:15px;">' +
+      (isUnrenewed ? '⚠️' : '📅') + ' ' + title + '：共 ' + result.total + ' 張</div>' +
+      (isUnrenewed ? '<div style="font-size:12px;color:#888;margin-top:4px;">已排除「已續保」和「他家承保」</div>' :
+                     '<div style="font-size:12px;color:#888;margin-top:4px;">點擊保單可更新續保狀態</div>') +
+      '</div>';
+
+    result.list.forEach(function(item) {
+      var rs   = _renewStatusStyle(item.renewStatus);
+      var name = item.name || item.applicantName || '—';
+      var phone= item.applicantPhone || item.insuredPhone || '';
+      var safePno = (item.policyNo||'').replace(/'/g,'');
+
+      html += '<div style="background:white;border-radius:10px;padding:12px 14px;margin-bottom:8px;' +
+        'box-shadow:0 2px 6px rgba(0,0,0,0.06);border-left:5px solid ' + rs.clr + ';">' +
+
+        // 頂部：名字 + 續保狀態
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' +
+          '<div style="font-weight:bold;font-size:15px;color:#333;">' + name +
+            (item.agentCode && item.agentCode !== '無' ? ' <span style="color:#FF9800;font-size:13px;">[' + item.agentCode + ']</span>' : '') +
+          '</div>' +
+          '<div style="background:' + rs.bg + ';color:' + rs.clr + ';font-size:11px;font-weight:bold;' +
+            'padding:3px 10px;border-radius:10px;border:1px solid ' + rs.clr + ';">' + rs.icon + ' ' + rs.label + '</div>' +
+        '</div>' +
+
+        // 保單資訊
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:12px;color:#666;margin-bottom:8px;">' +
+          '<div>📋 ' + item.type + '</div>' +
+          '<div>📅 到期：<b style="color:#d32f2f;">' + item.expiry + '</b></div>' +
+          (phone ? '<div>📞 ' + phone + '</div>' : '<div></div>') +
+          '<div>🔖 ' + (item.policyNo || '—') + '</div>' +
+          (item.plateNo && item.plateNo !== '無' ? '<div>🚗 ' + item.plateNo + '</div>' : '') +
+        '</div>' +
+
+        // 操作按鈕
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;">' +
+          '<button onclick="openRenewTrack(\'' + safePno + '\',\'' + name.replace(/'/g,"'") + '\',\'' + (item.renewStatus||'') + '\')" ' +
+            'style="flex:1;min-width:80px;padding:8px;background:#6A1B9A;color:white;border:none;border-radius:6px;font-size:12px;font-weight:bold;cursor:pointer;">✏️ 更新狀態</button>' +
+          (item.maskedId ? '<button onclick="quickShareFromTrack(\'' + name.replace(/'/g,"'") + '\',\'' + item.type.replace(/'/g,"'") + '\',\'' + safePno + '\',\'' + item.expiry + '\')" ' +
+            'style="flex:1;min-width:80px;padding:8px;background:#00B900;color:white;border:none;border-radius:6px;font-size:12px;font-weight:bold;cursor:pointer;">💬 傳提醒</button>' : '') +
+          (safePno ? '<button onclick="openDetailFromGap(\'' + safePno + '\')" ' +
+            'style="flex:1;min-width:80px;padding:8px;background:#0284c7;color:white;border:none;border-radius:6px;font-size:12px;font-weight:bold;cursor:pointer;">🔍 明細</button>' : '') +
+        '</div>' +
+      '</div>';
+    });
+    list.innerHTML = html;
+  }
+
+  // 更新續保狀態面板
+  function openRenewTrack(policyNo, name, currentStatus) {
+    var ovId = 'renewTrackOverlay';
+    var ex   = document.getElementById(ovId); if (ex) document.body.removeChild(ex);
+    var ov   = document.createElement('div');
+    ov.id    = ovId;
+    ov.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:8500;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;';
+
+    var STATUSES = ['已續保','已聯繫','不續保'];
+    var btns = STATUSES.map(function(s) {
+      var st = _renewStatusStyle(s);
+      var isA= (s === currentStatus);
+      return '<button onclick="selectRenewStatus(this,\'' + s + '\')" data-status="' + s + '" ' +
+        'style="flex:1;padding:10px 4px;border-radius:8px;font-size:13px;font-weight:bold;cursor:pointer;' +
+        'background:' + (isA?st.bg:'#F5F5F5') + ';color:' + (isA?st.clr:'#888') + ';border:' + (isA?'2px solid '+st.clr:'1px solid #DDD') + ';">' +
+        st.icon + ' ' + s + '</button>';
+    }).join('');
+
+    ov.innerHTML =
+      '<div style="background:white;border-radius:16px;padding:24px;max-width:360px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.2);">' +
+        '<div style="font-size:17px;font-weight:bold;color:#6A1B9A;margin-bottom:4px;">✏️ 更新續保狀態</div>' +
+        '<div style="font-size:13px;color:#888;margin-bottom:16px;">' + name + '</div>' +
+        '<div id="renewStatusBtns" style="display:flex;gap:8px;margin-bottom:16px;">' + btns + '</div>' +
+        '<div style="display:flex;gap:8px;">' +
+          '<button id="renewSaveBtn" onclick="saveRenewStatus(\'' + policyNo + '\')" ' +
+            'style="flex:2;padding:12px;background:#6A1B9A;color:white;border:none;border-radius:8px;font-size:14px;font-weight:bold;cursor:pointer;">💾 儲存</button>' +
+          '<button onclick="document.body.removeChild(document.getElementById(\'renewTrackOverlay\'))" ' +
+            'style="flex:1;padding:12px;background:#f5f5f5;color:#666;border:none;border-radius:8px;font-size:14px;cursor:pointer;">關閉</button>' +
+        '</div>' +
+      '</div>';
+
+    ov._selectedStatus = currentStatus || '';
+    document.body.appendChild(ov);
+    ov.addEventListener('click', function(e) { if (e.target===ov) document.body.removeChild(ov); });
+  }
+
+  function selectRenewStatus(btn, status) {
+    var ov = document.getElementById('renewTrackOverlay');
+    if (ov) ov._selectedStatus = status;
+    document.querySelectorAll('#renewStatusBtns button').forEach(function(b) {
+      var s = b.getAttribute('data-status'); var st = _renewStatusStyle(s); var isA = (s===status);
+      b.style.background = isA?st.bg:'#F5F5F5'; b.style.color=isA?st.clr:'#888';
+      b.style.border     = isA?'2px solid '+st.clr:'1px solid #DDD';
+    });
+  }
+
+  function saveRenewStatus(policyNo) {
+    var ov  = document.getElementById('renewTrackOverlay');
+    var status = ov ? (ov._selectedStatus||'') : '';
+    if (!status) { alert('請選擇狀態'); return; }
+    var btn = document.getElementById('renewSaveBtn');
+    if (btn) { btn.textContent='儲存中...'; btn.disabled=true; }
+
+    var doneFn = function(r) {
+      if (r && r.success) {
+        var o = document.getElementById('renewTrackOverlay'); if (o) document.body.removeChild(o);
+        // 重新載入目前的清單
+        var s = document.getElementById('trackStartDate');
+        var e = document.getElementById('trackEndDate');
+        if (s && s.value && e && e.value) loadExpiryRange();
+      } else {
+        if (btn) { btn.textContent='💾 儲存'; btn.disabled=false; }
+        alert('儲存失敗：' + (r?r.msg:'未知'));
+      }
+    };
+    var failFn = function() { if (btn){btn.textContent='💾 儲存';btn.disabled=false;} alert('連線失敗'); };
+
+    if (_directShellUrl) {
+      directGasCall('updateRenewalStatus', { policyNo: policyNo, status: status }, doneFn, failFn);
+    } else {
+      gasCall('updateRenewalStatus', { policyNo: policyNo, status: status }, doneFn, failFn);
+    }
+  }
+
+  function quickShareFromTrack(name, type, policyNo, expiry) {
+    _nicknameInsuredId = '';
+    withNickname('', name, function(salutation) {
+      var msg = salutation + ' 您好！\n\n';
+      msg += '您的【' + type + '】保單\n';
+      msg += '已於 ' + expiry + ' 到期。\n\n';
+      msg += '如需續保或有任何疑問，\n歡迎隨時聯繫 ' + ADVISOR_NAME + '！';
+      if (ADVISOR_LINE) msg += '\n📲 LINE：https://line.me/ti/p/' + ADVISOR_LINE;
+      shareViaLine(msg);
+    });
   }
 
     // ══════════════════════════════════════════════════════
