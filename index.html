@@ -671,7 +671,7 @@
 
   // ── 系統初始化（授權通過後才執行）──
   function initSystem() {
-    initTrackDates(); // 初始化到期追蹤日期選擇器
+    setTimeout(initTrackDates, 100); // 初始化到期追蹤日期選擇器
     // 載入到期提醒
     gasCall('getExpiringLists', {}, function(result) {
       var hint = document.getElementById('expiryLoadingHint');
@@ -2989,14 +2989,24 @@
         '</div>' +
 
         // 操作按鈕
-        '<div style="display:flex;gap:6px;flex-wrap:wrap;">' +
-          '<button onclick="openRenewTrack(\'' + safePno + '\',\'' + name.replace(/'/g,"'") + '\',\'' + (item.renewStatus||'') + '\')" ' +
-            'style="flex:1;min-width:80px;padding:8px;background:#6A1B9A;color:white;border:none;border-radius:6px;font-size:12px;font-weight:bold;cursor:pointer;">✏️ 更新狀態</button>' +
-          (item.maskedId ? '<button onclick="quickShareFromTrack(\'' + name.replace(/'/g,"'") + '\',\'' + item.type.replace(/'/g,"'") + '\',\'' + safePno + '\',\'' + item.expiry + '\')" ' +
-            'style="flex:1;min-width:80px;padding:8px;background:#00B900;color:white;border:none;border-radius:6px;font-size:12px;font-weight:bold;cursor:pointer;">💬 傳提醒</button>' : '') +
-          (safePno ? '<button onclick="openDetailFromGap(\'' + safePno + '\')" ' +
-            'style="flex:1;min-width:80px;padding:8px;background:#0284c7;color:white;border:none;border-radius:6px;font-size:12px;font-weight:bold;cursor:pointer;">🔍 明細</button>' : '') +
-        '</div>' +
+        // 判斷是否為車險（顯示 CALI 查詢）
+        (function() {
+          var isCar = item.type && (item.type.includes('汽車') || item.type.includes('機車'));
+          var safeId   = (item.maskedId || '').replace(/'/g,'');
+          var safePlate= (item.plateNo  || '').replace(/[-\s]/g,'').replace(/'/g,'');
+          var safeName = name.replace(/'/g,"'");
+          var safeType = item.type.replace(/'/g,"'");
+          return '<div style="display:flex;gap:6px;flex-wrap:wrap;">' +
+            '<button onclick="openRenewTrack(\'' + safePno + '\',\'' + safeName + '\',\'' + (item.renewStatus||'') + '\')" ' +
+              'style="flex:1;min-width:70px;padding:8px;background:#6A1B9A;color:white;border:none;border-radius:6px;font-size:12px;font-weight:bold;cursor:pointer;">✏️ 更新狀態</button>' +
+            (isCar && safeId ? '<button onclick="showCaliHint(\'' + safeId + '\',\'' + safePlate + '\',\'' + safeName + '\')" ' +
+              'style="flex:1;min-width:70px;padding:8px;background:#00796B;color:white;border:none;border-radius:6px;font-size:12px;font-weight:bold;cursor:pointer;">📋 CALI</button>' : '') +
+            (item.maskedId ? '<button onclick="quickShareFromTrack(\'' + safeName + '\',\'' + safeType + '\',\'' + safePno + '\',\'' + item.expiry + '\')" ' +
+              'style="flex:1;min-width:70px;padding:8px;background:#00B900;color:white;border:none;border-radius:6px;font-size:12px;font-weight:bold;cursor:pointer;">💬 提醒</button>' : '') +
+            (safePno ? '<button onclick="openDetailFromGap(\'' + safePno + '\')" ' +
+              'style="flex:1;min-width:70px;padding:8px;background:#0284c7;color:white;border:none;border-radius:6px;font-size:12px;font-weight:bold;cursor:pointer;">🔍 明細</button>' : '') +
+          '</div>';
+        })() +
       '</div>';
     });
     list.innerHTML = html;
