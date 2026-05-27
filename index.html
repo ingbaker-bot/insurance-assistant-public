@@ -1210,6 +1210,7 @@
             '<div style="color:#00A3E0;font-size:12px;font-weight:bold;margin-bottom:4px;">👤 被保人</div>' +
             '<div class="card-info" style="word-break:break-all;">🆔 ' + item.maskedId + '</div>' +
             '<div class="card-info">🎂 ' + item.birthday + '</div>' +
+            (item.insuredPhone && item.insuredPhone !== '無' ? '<div class="card-info">📱 ' + item.insuredPhone + '</div>' : '') +
             '<div class="card-info">🚗 ' + item.plateNo + '</div>' +
             '<div class="card-info">📅 ' + item.expiry + '</div>' +
           '</div>' +
@@ -1425,6 +1426,8 @@
         '<div><div class="info-label">到期日期</div><b style="color:#d32f2f;">' + expStr + '</b></div>' +
         '<div><div class="info-label">總保費</div><b style="color:#00B900;">NT$ ' + (main.premium || 0) + '</b></div>' +
         '<div><div class="info-label">車牌</div>' + main.plateNo + '</div>' +
+        (main.insuredPhone && main.insuredPhone !== '無' && main.insuredPhone !== '' ?
+          '<div><div class="info-label">被保人電話</div>📱 ' + main.insuredPhone + '</div>' : '') +
         (main.renewStatus && String(main.renewStatus).startsWith('他家') ?
           '<div style="grid-column:1/-1;background:#FFF8E1;border:1px solid #FFD54F;border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:8px;">' +
           '<span style="color:#E65100;font-size:14px;">⚠️ 他家承保</span>' +
@@ -2123,44 +2126,14 @@
     }
   }
 
-  // 是否顯示已完成的舊任務（預設隱藏）
-  var _showDoneTasks = false;
-
   function renderTasks() {
     var body = document.getElementById('taskListBody');
     if (!_tasks || _tasks.length === 0) {
       body.innerHTML = '<div style="color:#999;font-size:13px;text-align:center;padding:10px;">目前沒有代辦事項</div>';
       return;
     }
-
-    // ── 過濾邏輯：已完成且日期已過 → 預設隱藏 ──
-    var todayStr = new Date().toLocaleDateString('zh-TW', { year:'numeric', month:'2-digit', day:'2-digit' }).replace(/\//g,'/');
-    var today    = new Date(); today.setHours(0,0,0,0);
-
-    var visibleTasks = _tasks.filter(function(t) {
-      var isDone = (t.status === '已完成');
-      if (!isDone) return true; // 未完成：永遠顯示
-      if (_showDoneTasks) return true; // 手動展開：全部顯示
-      // 已完成：只顯示今天的（今天完成的還要看得到）
-      return t.isToday === true;
-    });
-
-    // 計算隱藏了幾筆
-    var hiddenCount = _tasks.filter(function(t) {
-      return t.status === '已完成' && !t.isToday;
-    }).length;
-
     var html = '';
-    // 顯示「已隱藏 N 筆」的展開按鈕
-    if (!_showDoneTasks && hiddenCount > 0) {
-      html += '<div onclick="_showDoneTasks=true;renderTasks()" style="cursor:pointer;text-align:center;color:#aaa;font-size:12px;padding:6px;background:#f9f9f9;border-radius:8px;margin-bottom:6px;">'  
-             + '📂 已完成並隱藏 ' + hiddenCount + ' 筆舊記錄　▼ 點擊展開' + '</div>';
-    } else if (_showDoneTasks && hiddenCount > 0) {
-      html += '<div onclick="_showDoneTasks=false;renderTasks()" style="cursor:pointer;text-align:center;color:#aaa;font-size:12px;padding:6px;background:#f9f9f9;border-radius:8px;margin-bottom:6px;">'  
-             + '📂 收起已完成記錄　▲' + '</div>';
-    }
-
-    visibleTasks.forEach(function(t) {
+    _tasks.forEach(function(t) {
       var isDone  = t.status === '已完成';
       var isWip   = t.status === '處理中';
       var badgeBg  = t.isToday ? '#FFF3E0' : (t.isPast && !isDone) ? '#FFEBEE' : '#E8F5E9';
