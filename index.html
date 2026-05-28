@@ -251,6 +251,12 @@
         💡 可混合輸入：
         <span>李 11507</span><span>機車 115</span><span>ABC-1234</span><span>0912345678</span><span>FAM-A11660</span>
       </div>
+      <div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#888;">
+          <input type="checkbox" id="showAllToggle" onchange="handleSearch()" style="width:14px;height:14px;cursor:pointer;">
+          顯示已報廢／過戶保單
+        </label>
+      </div>
     </div>
     <!-- 產險缺口分析按鈕 -->
     <button onclick="loadMissingCompulsory()"
@@ -1171,18 +1177,17 @@
     document.getElementById('loading').style.display = 'block';
     document.getElementById('resultsList').innerHTML = '';
     
-    // 【雙軌優化】如果直連網址存在，走直連搜尋；否則走傳統中央轉發
+    var showAllChk = document.getElementById('showAllToggle');
+    var showAll    = showAllChk ? showAllChk.checked : false;
+    var params     = { q: val, showAll: showAll };
+    var failFn2    = function() {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('resultsList').innerHTML = '<p style="text-align:center;color:#888;">搜尋失敗，請稍後再試</p>';
+    };
     if (_directShellUrl) {
-      directGasCall('searchPolicies', { q: val }, showResults);
+      directGasCall('searchPolicies', params, showResults, failFn2);
     } else {
-      if (_directShellUrl) {
-        directGasCall('searchPolicies', { q: val }, showResults, function() {
-          document.getElementById('loading').style.display = 'none';
-          document.getElementById('resultsList').innerHTML = '<p style="text-align:center;color:#888;">搜尋失敗，請稍後再試</p>';
-        });
-      } else {
-        gasCall('searchPolicies', { q: val }, showResults);
-      }
+      gasCall('searchPolicies', params, showResults, failFn2);
     }
   }
 
@@ -1194,7 +1199,9 @@
     var html = '';
     
     data.forEach(function(item) {
-      var agentTag = item.agentCode && item.agentCode !== '無' ? ' <span style="color:#FF9800;font-weight:bold;">[' + item.agentCode + ']</span>' : '';
+      var agentTag  = item.agentCode && item.agentCode !== '無' ? ' <span style="color:#FF9800;font-weight:bold;">[' + item.agentCode + ']</span>' : '';
+      var renewTag  = item.renewStatus === '已報廢' ? ' <span style="background:#BDBDBD;color:#fff;font-size:10px;padding:1px 7px;border-radius:8px;">🗑️ 已報廢</span>' :
+                      item.renewStatus === '已過戶' ? ' <span style="background:#78909C;color:#fff;font-size:10px;padding:1px 7px;border-radius:8px;">🔄 已過戶</span>' : '';
 
       // 計算剩餘天數
       var daysHtml = '';
@@ -1218,7 +1225,7 @@
       html += '<div class="card" onclick="openDetail(\'' + item.policyNo + '\')">' +
         '<div style="margin-bottom:10px;">' +
           '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;margin-bottom:6px;">' +
-            '<div class="card-title" style="margin-bottom:0;font-size:16px;flex:1;min-width:0;word-break:break-word;">' + item.name + agentTag + '</div>' +
+            '<div class="card-title" style="margin-bottom:0;font-size:16px;flex:1;min-width:0;word-break:break-word;">' + item.name + agentTag + renewTag + '</div>' +
             '<div style="display:flex;gap:4px;align-items:center;flex-shrink:0;">' +
               daysHtml +
               '<div class="status-badge">' + item.status + '</div>' +
