@@ -3009,6 +3009,8 @@
   var _bdCurrentKey      = '';
   var _bdCurrentPhone    = '';
   var _bdCurrentGenCount = 0;
+  var _bdLastSummaryId   = '';  // 記住最後查詢的身分證
+  var _bdLastSummaryName = '';  // 記住最後查詢的姓名
 
   var _bdMsgTemplates = {
     warm: [
@@ -3234,6 +3236,8 @@
 
   // ── 客戶保障摘要（從生日名單開啟，用身分證查所有保單）──
   function openBdPolicySummary(insuredId, name) {
+    _bdLastSummaryId   = insuredId || '';
+    _bdLastSummaryName = name || '';
     document.getElementById('loading').style.display = 'block';
 
     // 優先用身分證查，若無結果改用姓名查
@@ -3341,15 +3345,42 @@
     ov.addEventListener('click', function(e) { if (e.target===ov) document.body.removeChild(ov); });
   }
 
-  // 從摘要面板查看單張明細（查完可返回摘要）
+  // 從摘要面板查看單張明細
   function openDetailFromSummary(policyNo) {
+    // 先關閉摘要面板，避免被蓋住
+    var summaryOv = document.getElementById('bdSummaryOverlay');
+    if (summaryOv) document.body.removeChild(summaryOv);
+
     document.getElementById('loading').style.display = 'block';
     var failFn = function() {
       document.getElementById('loading').style.display = 'none';
       alert('讀取保單詳情失敗');
     };
-    if (_directShellUrl) directGasCall('getPolicyDetails', { no: policyNo }, function(data){ renderModal(data); }, failFn);
-    else gasCall('getPolicyDetails', { no: policyNo }, renderModal, failFn);
+    var successFn = function(data) {
+      renderModal(data);
+      // 在明細右上角加「返回保障摘要」按鈕
+      setTimeout(function() {
+        var modal = document.getElementById('policyModal');
+        if (!modal) return;
+        // 避免重複插入
+        if (modal.querySelector('#backToSummaryBtn')) return;
+        var backBtn = document.createElement('button');
+        backBtn.id = 'backToSummaryBtn';
+        backBtn.textContent = '← 返回保障摘要';
+        backBtn.style.cssText = 'position:sticky;top:0;width:100%;padding:10px;background:#E3F2FD;color:#0284c7;border:none;font-size:13px;font-weight:700;cursor:pointer;z-index:10;margin-bottom:8px;';
+        backBtn.onclick = function() {
+          // 關閉明細 overlay，重新顯示保障摘要
+          var detailOv = document.getElementById('policyModalOverlay') || modal.parentElement;
+          if (detailOv) document.body.removeChild(detailOv);
+          if (_bdLastSummaryName && _bdLastSummaryId) {
+            openBdPolicySummary(_bdLastSummaryId, _bdLastSummaryName);
+          }
+        };
+        modal.insertBefore(backBtn, modal.firstChild);
+      }, 100);
+    };
+    if (_directShellUrl) directGasCall('getPolicyDetails', { no: policyNo }, successFn, failFn);
+    else gasCall('getPolicyDetails', { no: policyNo }, successFn, failFn);
   }
 
   // 計算到期日（支援民國年）
