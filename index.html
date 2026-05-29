@@ -2979,12 +2979,14 @@
             (p.relation && p.relation!=='本人' ? '<span>👤 '+p.relation+'</span>' : '') +
           '</div>' +
           '<div style="display:flex;gap:6px;">' +
+          '<div style="display:flex;gap:6px;flex-wrap:wrap;">' +
             '<button onclick="openBirthdayGreeting(\''+safeName+'\',\''+safeId+'\',\''+safePhone+'\',\''+safeType+'\',\''+safeKey+'\')" ' +
-              'style="flex:2;padding:9px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">' +
+              'style="flex:2;min-width:100px;padding:9px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">' +
               (sent ? '🔄 重新發送' : '✨ 生成祝福語') + '</button>' +
-            (sent ? '' :
-              '<button onclick="markBirthdaySent(\''+safeKey+'\')" ' +
-              'style="flex:1;padding:9px;background:#F5F5F5;color:#888;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">✓ 已發</button>') +
+            '<button onclick="openBdPolicySummary(\''+safeId+'\',\''+safeName+'\')" ' +
+              'style="flex:1;min-width:55px;padding:9px;background:#0284c7;color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">📋 保單</button>' +
+            (sent ? '' : '<button onclick="markBirthdaySent(\''+safeKey+'\')" ' +
+              'style="flex:1;min-width:50px;padding:9px;background:#F5F5F5;color:#888;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">✓ 已發</button>') +
           '</div>' +
         '</div>';
     });
@@ -3230,7 +3232,125 @@
     }, 800);
   }
 
-  function closeBdOverlay() {
+  // ── 客戶保障摘要（從生日名單開啟，用身分證查所有保單）──
+  function openBdPolicySummary(insuredId, name) {
+    if (!insuredId || insuredId === '無') {
+      alert('此客戶無身分證號碼，無法查詢保單'); return;
+    }
+    document.getElementById('loading').style.display = 'block';
+
+    var fn = function(results) {
+      document.getElementById('loading').style.display = 'none';
+      if (!results || results.length === 0) {
+        alert('查無 ' + name + ' 的保單資料'); return;
+      }
+      _showBdPolicySummaryOverlay(name, results);
+    };
+    var failFn = function() {
+      document.getElementById('loading').style.display = 'none';
+      alert('查詢失敗，請稍後再試');
+    };
+    // 用身分證搜尋（showAll=true 顯示所有保單含報廢過戶）
+    var params = { q: insuredId, showAll: true };
+    if (_directShellUrl) directGasCall('searchPolicies', params, fn, failFn);
+    else gasCall('searchPolicies', params, fn, failFn);
+  }
+
+  function _showBdPolicySummaryOverlay(name, policies) {
+    var ovId = 'bdSummaryOverlay';
+    var ex   = document.getElementById(ovId); if (ex) document.body.removeChild(ex);
+    var ov   = document.createElement('div');
+    ov.id    = ovId;
+    ov.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:9100;overflow-y:auto;padding:16px;box-sizing:border-box;';
+
+    // 依險種分類
+    var car     = policies.filter(function(p){ return p.type && (p.type.includes('汽車')||p.type.includes('機車')); });
+    var health  = policies.filter(function(p){ return p.type && (p.type.includes('健康')||p.type.includes('傷害')); });
+    var fire    = policies.filter(function(p){ return p.type && (p.type.includes('火險')||p.type.includes('住宅')); });
+    var travel  = policies.filter(function(p){ return p.type && (p.type.includes('旅平')||p.type.includes('新種')); });
+    var other   = policies.filter(function(p){
+      return !car.includes(p)&&!health.includes(p)&&!fire.includes(p)&&!travel.includes(p);
+    });
+
+    function renderGroup(title, emoji, color, group) {
+      if (!group.length) return '';
+      var h = '<div style="margin-bottom:12px;">' +
+        '<div style="font-size:12px;font-weight:700;color:'+color+';margin-bottom:6px;">'+emoji+' '+title+'（'+group.length+'張）</div>';
+      group.forEach(function(p) {
+        var safePno = (p.policyNo||'').replace(/'/g,"'");
+        var today   = new Date(); today.setHours(0,0,0,0);
+        var expDate = p.expiry ? robustExpiry(p.expiry) : null;
+        var daysLeft= expDate ? Math.ceil((expDate-today)/86400000) : null;
+        var expColor= daysLeft===null?'#999':daysLeft<0?'#d32f2f':daysLeft<=30?'#F57F17':'#2E7D32';
+        var statusTag = (p.renewStatus==='已報廢'||p.renewStatus==='已過戶') ?
+          ' <span style="background:#BDBDBD;color:#fff;font-size:10px;padding:1px 6px;border-radius:8px;">'+p.renewStatus+'</span>' : '';
+
+        h += '<div style="background:white;border-radius:8px;padding:10px 12px;margin-bottom:6px;' +
+          'border:1px solid #E8E8E8;box-shadow:0 1px 4px rgba(0,0,0,0.05);">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">' +
+            '<div style="font-size:13px;font-weight:700;color:#333;">'+p.type+statusTag+'</div>' +
+            '<div style="font-size:12px;font-weight:700;color:'+expColor+';">' +
+              (daysLeft===null?'—':daysLeft<0?'已到期 '+Math.abs(daysLeft)+'天':daysLeft===0?'今日到期':'剩 '+daysLeft+' 天') +
+            '</div>' +
+          '</div>' +
+          '<div style="font-size:11px;color:#888;margin-bottom:6px;">'+
+            '到期：'+(p.expiry||'—')+'　保單：'+p.policyNo +
+            (p.plateNo&&p.plateNo!=='無'?'　🚗 '+p.plateNo:'') +
+          '</div>' +
+          '<button onclick="openDetailFromSummary(\''+safePno+'\')" ' +
+            'style="width:100%;padding:7px;background:#E8F4FD;color:#0284c7;border:1px solid #BAE6FD;' +
+            'border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">🔍 查看保單明細</button>' +
+        '</div>';
+      });
+      return h + '</div>';
+    }
+
+    var html =
+      '<div style="background:white;border-radius:16px;max-width:420px;margin:0 auto;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,0.2);">' +
+        '<div style="background:linear-gradient(135deg,#0284c7,#0369a1);padding:16px;color:white;">' +
+          '<div style="font-size:16px;font-weight:700;">📋 ' + name + ' 的保障摘要</div>' +
+          '<div style="font-size:12px;opacity:0.85;margin-top:3px;">共 '+policies.length+' 張保單　點擊各保單可查看明細</div>' +
+        '</div>' +
+        '<div style="padding:16px;">' +
+          renderGroup('車險', '🚗', '#E65100', car) +
+          renderGroup('健康傷害險', '🏥', '#1565C0', health) +
+          renderGroup('住宅火險', '🏠', '#E65100', fire) +
+          renderGroup('旅平險/新種險', '✈️', '#6A1B9A', travel) +
+          renderGroup('其他', '📋', '#555', other) +
+          '<button onclick="document.body.removeChild(document.getElementById(\'bdSummaryOverlay\'))" ' +
+            'style="width:100%;padding:12px;background:#F5F5F5;color:#666;border:none;border-radius:10px;font-size:14px;cursor:pointer;margin-top:4px;">關閉</button>' +
+        '</div>' +
+      '</div>';
+
+    ov.innerHTML = html;
+    document.body.appendChild(ov);
+    ov.addEventListener('click', function(e) { if (e.target===ov) document.body.removeChild(ov); });
+  }
+
+  // 從摘要面板查看單張明細（查完可返回摘要）
+  function openDetailFromSummary(policyNo) {
+    document.getElementById('loading').style.display = 'block';
+    var failFn = function() {
+      document.getElementById('loading').style.display = 'none';
+      alert('讀取保單詳情失敗');
+    };
+    if (_directShellUrl) directGasCall('getPolicyDetails', { no: policyNo }, function(data){ renderModal(data); }, failFn);
+    else gasCall('getPolicyDetails', { no: policyNo }, renderModal, failFn);
+  }
+
+  // 計算到期日（支援民國年）
+  function robustExpiry(str) {
+    if (!str||str==='無'||str==='—') return null;
+    var s = String(str).trim();
+    var m = s.match(/^(\d{2,3})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+    if (m) {
+      var y=parseInt(m[1]); if(y<200) y+=1911;
+      return new Date(y, parseInt(m[2])-1, parseInt(m[3]));
+    }
+    var d = new Date(s); return isNaN(d.getTime()) ? null : d;
+  }
+
+    function closeBdOverlay() {
     var ov = document.getElementById('bdGreetingOverlay');
     if (ov) document.body.removeChild(ov);
   }
@@ -3313,8 +3433,12 @@
             '<div style="font-size:12px;color:#777;margin-bottom:8px;">' +
               (p.phone?'📞 '+p.phone+'　':'') + '📋 '+p.insType +
             '</div>' +
-            '<button onclick="openBirthdayGreeting(\''+safeName+'\',\''+safeId+'\',\''+safePhone+'\',\''+safeType+'\',\''+safeKey+'\')" ' +
-              'style="width:100%;padding:9px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">✨ 生日祝福</button>' +
+            '<div style="display:flex;gap:6px;">' +
+              '<button onclick="openBirthdayGreeting(\''+safeName+'\',\''+safeId+'\',\''+safePhone+'\',\''+safeType+'\',\''+safeKey+'\')" ' +
+                'style="flex:2;padding:9px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">✨ 生日祝福</button>' +
+              '<button onclick="openBdPolicySummary(\''+safeId+'\',\''+safeName+'\')" ' +
+                'style="flex:1;padding:9px;background:#0284c7;color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">📋 保單</button>' +
+            '</div>' +
           '</div>';
       });
       html += '<button onclick="loadBirthdayMonthSummary()" style="width:100%;padding:10px;background:#F5F5F5;color:#666;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-top:4px;">← 返回月份總覽</button>';
