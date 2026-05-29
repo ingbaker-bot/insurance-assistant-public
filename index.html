@@ -3234,14 +3234,29 @@
 
   // ── 客戶保障摘要（從生日名單開啟，用身分證查所有保單）──
   function openBdPolicySummary(insuredId, name) {
-    if (!insuredId || insuredId === '無') {
-      alert('此客戶無身分證號碼，無法查詢保單'); return;
-    }
     document.getElementById('loading').style.display = 'block';
+
+    // 優先用身分證查，若無結果改用姓名查
+    var searchKey = (insuredId && insuredId !== '無' && insuredId.length > 3) ? insuredId : name;
 
     var fn = function(results) {
       document.getElementById('loading').style.display = 'none';
       if (!results || results.length === 0) {
+        // 身分證找不到 → 改用姓名再找一次
+        if (searchKey !== name) {
+          document.getElementById('loading').style.display = 'block';
+          var params2 = { q: name, showAll: true };
+          var fn2 = function(r2) {
+            document.getElementById('loading').style.display = 'none';
+            if (!r2 || r2.length === 0) {
+              alert('查無 ' + name + ' 的保單資料'); return;
+            }
+            _showBdPolicySummaryOverlay(name, r2);
+          };
+          if (_directShellUrl) directGasCall('searchPolicies', params2, fn2, function(){ document.getElementById('loading').style.display='none'; alert('查詢失敗'); });
+          else gasCall('searchPolicies', params2, fn2, function(){ document.getElementById('loading').style.display='none'; alert('查詢失敗'); });
+          return;
+        }
         alert('查無 ' + name + ' 的保單資料'); return;
       }
       _showBdPolicySummaryOverlay(name, results);
@@ -3250,8 +3265,7 @@
       document.getElementById('loading').style.display = 'none';
       alert('查詢失敗，請稍後再試');
     };
-    // 用身分證搜尋（showAll=true 顯示所有保單含報廢過戶）
-    var params = { q: insuredId, showAll: true };
+    var params = { q: searchKey, showAll: true };
     if (_directShellUrl) directGasCall('searchPolicies', params, fn, failFn);
     else gasCall('searchPolicies', params, fn, failFn);
   }
