@@ -243,56 +243,53 @@
     <button class="tab-btn" id="tabTravel" onclick="switchTab('travel')">🏖️ 旅平卡</button>
   </div>
 
-  <!-- 車輛查詢工具列 -->
-  <div id="caliQuickArea" style="padding:8px 12px 0;">
-    <!-- 第一列：CALI 查詢（含搜尋）+ 二行程排放 -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
-      <button onclick="toggleCaliQuick()" style="padding:12px 6px;background:linear-gradient(135deg,#00796B,#004D40);color:white;border:none;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;">
+  <!-- ══════ 產險保單功能區 ══════ -->
+  <div id="insuranceSearch">
+
+    <!-- 四個工具按鈕 2×2 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px 0 4px;">
+      <!-- 第一列 -->
+      <button id="btnCali" onclick="toggleToolPanel('cali')" style="padding:12px 6px;background:linear-gradient(135deg,#00796B,#004D40);color:white;border:none;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;">
         📋 CALI<br><span style="font-size:10px;font-weight:400;opacity:0.9">強制險查詢</span>
       </button>
       <button onclick="openExternalTool('2stroke')" style="padding:12px 6px;background:linear-gradient(135deg,#1565C0,#0D47A1);color:white;border:none;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;">
         🔍 二行程<br><span style="font-size:10px;font-weight:400;opacity:0.9">排放檢測查詢</span>
       </button>
-    </div>
-    <!-- 第二列：定檢日查詢 + 備用（未來可擴充）-->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+      <!-- 第二列 -->
+      <button id="btnSearch" onclick="toggleToolPanel('search')" style="padding:12px 6px;background:linear-gradient(135deg,#0284c7,#01579B);color:white;border:none;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;">
+        🔍 搜尋保單<br><span style="font-size:10px;font-weight:400;opacity:0.9">姓名／車牌／電話</span>
+      </button>
       <button onclick="openExternalTool('inspection')" style="padding:12px 6px;background:linear-gradient(135deg,#6A1B9A,#4A148C);color:white;border:none;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;">
         🗓️ 定檢日<br><span style="font-size:10px;font-weight:400;opacity:0.9">車輛定檢查詢</span>
       </button>
-      <button onclick="openExternalTool('plate')" style="padding:12px 6px;background:linear-gradient(135deg,#E65100,#BF360C);color:white;border:none;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;">
-        🚗 搜尋車牌<br><span style="font-size:10px;font-weight:400;opacity:0.9">複製後前往查詢</span>
-      </button>
     </div>
+
     <!-- CALI 搜尋展開面板 -->
-    <div id="caliQuickPanel" style="display:none;background:white;border-radius:10px;padding:14px;margin-bottom:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-      <div style="font-size:12px;color:#555;font-weight:700;margin-bottom:8px;">搜尋車牌或姓名 → 複製身分證/車牌 → 前往 CALI</div>
+    <div id="caliQuickPanel" style="display:none;background:white;border-radius:10px;padding:14px;margin-top:4px;box-shadow:0 2px 8px rgba(0,0,0,0.08);border:1.5px solid #00796B;">
+      <div style="font-size:12px;color:#00796B;font-weight:700;margin-bottom:8px;">📋 CALI 強制險查詢 — 搜尋後複製身分證/車牌前往 CALI</div>
       <div style="display:flex;gap:6px;margin-bottom:10px;">
         <input type="text" id="caliSearchInput" placeholder="輸入車牌或姓名..." style="flex:1;padding:9px 12px;border:1.5px solid #00796B;border-radius:8px;font-size:14px;outline:none;" oninput="caliQuickSearch(this.value)">
-        <button onclick="clearCaliSearch()" style="padding:9px 12px;background:#F5F5F5;color:#666;border:none;border-radius:8px;font-size:13px;cursor:pointer;">✕</button>
+        <button onclick="toggleToolPanel('cali')" style="padding:9px 12px;background:#F5F5F5;color:#666;border:none;border-radius:8px;font-size:13px;cursor:pointer;">✕ 關閉</button>
       </div>
       <div id="caliSearchResults" style="max-height:260px;overflow-y:auto;"></div>
     </div>
-  </div>
 
-  <!-- 產險搜尋區 -->
-  <div id="insuranceSearch">
-    <div class="search-box">
-      <div class="search-row">
-        <input type="text" id="smartSearch" placeholder="搜尋姓名、車牌、到期月份、電話、險種..." onkeypress="handleEnterInsurance(event)">
-        <button class="btn-search btn-insurance" onclick="handleSearch()">🔍 搜尋</button>
+    <!-- 搜尋保單展開面板 -->
+    <div id="searchPanel" style="display:none;background:white;border-radius:10px;padding:14px;margin-top:4px;box-shadow:0 2px 8px rgba(0,0,0,0.08);border:1.5px solid #0284c7;">
+      <div style="font-size:12px;color:#0284c7;font-weight:700;margin-bottom:8px;">🔍 保單搜尋</div>
+      <div style="display:flex;gap:6px;margin-bottom:6px;">
+        <input type="text" id="smartSearch" placeholder="搜尋姓名、車牌、到期月份、電話、險種..." onkeypress="handleEnterInsurance(event)" style="flex:1;padding:9px 12px;border:1.5px solid #0284c7;border-radius:8px;font-size:13px;outline:none;">
+        <button onclick="handleSearch()" style="padding:9px 14px;background:#0284c7;color:white;border:none;border-radius:8px;font-size:13px;font-weight:bold;cursor:pointer;">搜尋</button>
+        <button onclick="toggleToolPanel('search')" style="padding:9px 10px;background:#F5F5F5;color:#666;border:none;border-radius:8px;font-size:13px;cursor:pointer;">✕</button>
       </div>
-      <div class="search-hint">
-        💡 可混合輸入：
-        <span>李 11507</span><span>機車 115</span><span>ABC-1234</span><span>0912345678</span><span>FAM-A11660</span>
-      </div>
-      <div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
-        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#888;">
-          <input type="checkbox" id="showAllToggle" onchange="handleSearch()" style="width:14px;height:14px;cursor:pointer;">
-          顯示已報廢／過戶保單
-        </label>
-      </div>
+      <div style="font-size:11px;color:#888;margin-bottom:8px;">💡 可混合輸入：李 11507　機車 115　ABC-1234　0912345678</div>
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#888;">
+        <input type="checkbox" id="showAllToggle" onchange="handleSearch()" style="width:14px;height:14px;cursor:pointer;">
+        顯示已報廢／過戶保單
+      </label>
     </div>
-    <!-- 產險缺口分析按鈕 -->
+
+    <!-- 產險功能按鈕群 -->
     <button onclick="loadMissingCompulsory()"
       style="width:100%;padding:11px;margin-top:8px;background:#C62828;color:white;border:none;border-radius:8px;font-weight:bold;font-size:14px;cursor:pointer;">
       ⚠️ 有任意險但無強制險（法規缺口）
@@ -331,7 +328,7 @@
     </div>
   </div>
 
-  <!-- 旅平卡搜尋區 -->
+  <!-- ══════ 旅平卡功能區 ══════ -->
   <div id="travelSearch" style="display:none;">
     <div class="search-box">
       <div class="search-row">
@@ -342,7 +339,6 @@
         💡 可搜尋：<span>要保人姓名</span><span>被保人姓名</span><span>身分證號</span><span>電話</span><span>憑證號碼</span>
       </div>
     </div>
-    <!-- 未申辦旅平卡（旅平卡專屬按鈕）-->
     <button onclick="loadUncoveredList()"
       style="width:100%;padding:11px;margin-top:4px;background:#E65100;color:white;border:none;border-radius:8px;font-weight:bold;font-size:14px;cursor:pointer;">
       ❌ 查看未申辦旅平卡名單
@@ -1206,6 +1202,14 @@
     document.getElementById('tabTravel').className    = 'tab-btn' + (tab === 'travel'    ? ' active-travel'    : '');
     document.getElementById('insuranceSearch').style.display = tab === 'insurance' ? 'block' : 'none';
     document.getElementById('travelSearch').style.display    = tab === 'travel'    ? 'block' : 'none';
+    // 切換 Tab 時關閉所有展開面板
+    ['caliQuickPanel','searchPanel'].forEach(function(id) {
+      var el = document.getElementById(id); if (el) el.style.display = 'none';
+    });
+    ['btnCali','btnSearch'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) { el.style.opacity='1'; el.style.outline='none'; }
+    });
   }
 
   // ── 產險搜尋 ──
@@ -2944,17 +2948,44 @@
     if (url) window.open(url, '_blank');
   }
 
-  function toggleCaliQuick() {
-    _caliPanelOpen = !_caliPanelOpen;
-    var panel = document.getElementById('caliQuickPanel');
-    if (panel) panel.style.display = _caliPanelOpen ? 'block' : 'none';
-    if (_caliPanelOpen) {
-      setTimeout(function() {
-        var inp = document.getElementById('caliSearchInput');
-        if (inp) inp.focus();
-      }, 100);
-    }
+  // 目前展開的工具面板
+  var _openToolPanel = null;
+
+  function toggleToolPanel(type) {
+    var panels = { cali: 'caliQuickPanel', search: 'searchPanel' };
+    var btns   = { cali: 'btnCali', search: 'btnSearch' };
+
+    Object.keys(panels).forEach(function(key) {
+      var panel = document.getElementById(panels[key]);
+      var btn   = document.getElementById(btns[key]);
+      if (key === type) {
+        // 切換目標面板
+        var isOpen = panel && panel.style.display !== 'none';
+        if (panel) panel.style.display = isOpen ? 'none' : 'block';
+        if (btn) btn.style.opacity = isOpen ? '1' : '0.85';
+        if (btn) btn.style.outline = isOpen ? 'none' : '2px solid rgba(255,255,255,0.6)';
+        if (!isOpen && key === 'cali') {
+          setTimeout(function() {
+            var inp = document.getElementById('caliSearchInput');
+            if (inp) inp.focus();
+          }, 100);
+        }
+        if (!isOpen && key === 'search') {
+          setTimeout(function() {
+            var inp = document.getElementById('smartSearch');
+            if (inp) inp.focus();
+          }, 100);
+        }
+      } else {
+        // 關閉其他面板
+        if (panel) panel.style.display = 'none';
+        if (btn) btn.style.opacity = '1';
+        if (btn) btn.style.outline = 'none';
+      }
+    });
   }
+
+  function toggleCaliQuick() { toggleToolPanel('cali'); }
 
   function clearCaliSearch() {
     var inp = document.getElementById('caliSearchInput');
