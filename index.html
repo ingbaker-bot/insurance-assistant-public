@@ -216,7 +216,6 @@
     <div id="taskPanel" style="display:none;background:white;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 10px 10px;padding:16px;box-shadow:0 4px 8px rgba(0,0,0,0.05);">
       <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
         <input type="date" id="taskDate" style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;flex:0 0 140px;">
-        <input type="date" id="taskDate" style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;flex:0 0 140px;">
         <input type="text" id="taskContent" placeholder="代辦內容..." style="flex:1;min-width:100px;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;">
         <input type="text" id="taskAgentCode" placeholder="業務員" maxlength="5" style="width:64px;padding:8px 6px;border:1px solid #ddd;border-radius:8px;font-size:12px;text-align:center;">
       </div>
@@ -244,15 +243,31 @@
     <button class="tab-btn" id="tabTravel" onclick="switchTab('travel')">🏖️ 旅平卡</button>
   </div>
 
-  <!-- CALI 快速查詢 -->
+  <!-- 車輛查詢工具列 -->
   <div id="caliQuickArea" style="padding:8px 12px 0;">
-    <button onclick="toggleCaliQuick()" style="width:100%;padding:11px;background:linear-gradient(135deg,#00796B,#004D40);color:white;border:none;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;">
-      📋 CALI 強制險查詢
-    </button>
-    <div id="caliQuickPanel" style="display:none;background:white;border-radius:10px;padding:14px;margin-top:6px;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+    <!-- 第一列：CALI 查詢（含搜尋）+ 二行程排放 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+      <button onclick="toggleCaliQuick()" style="padding:12px 6px;background:linear-gradient(135deg,#00796B,#004D40);color:white;border:none;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;">
+        📋 CALI<br><span style="font-size:10px;font-weight:400;opacity:0.9">強制險查詢</span>
+      </button>
+      <button onclick="openExternalTool('2stroke')" style="padding:12px 6px;background:linear-gradient(135deg,#1565C0,#0D47A1);color:white;border:none;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;">
+        🔍 二行程<br><span style="font-size:10px;font-weight:400;opacity:0.9">排放檢測查詢</span>
+      </button>
+    </div>
+    <!-- 第二列：定檢日查詢 + 備用（未來可擴充）-->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+      <button onclick="openExternalTool('inspection')" style="padding:12px 6px;background:linear-gradient(135deg,#6A1B9A,#4A148C);color:white;border:none;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;">
+        🗓️ 定檢日<br><span style="font-size:10px;font-weight:400;opacity:0.9">車輛定檢查詢</span>
+      </button>
+      <button onclick="openExternalTool('plate')" style="padding:12px 6px;background:linear-gradient(135deg,#E65100,#BF360C);color:white;border:none;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;">
+        🚗 搜尋車牌<br><span style="font-size:10px;font-weight:400;opacity:0.9">複製後前往查詢</span>
+      </button>
+    </div>
+    <!-- CALI 搜尋展開面板 -->
+    <div id="caliQuickPanel" style="display:none;background:white;border-radius:10px;padding:14px;margin-bottom:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
       <div style="font-size:12px;color:#555;font-weight:700;margin-bottom:8px;">搜尋車牌或姓名 → 複製身分證/車牌 → 前往 CALI</div>
       <div style="display:flex;gap:6px;margin-bottom:10px;">
-        <input type="text" id="caliSearchInput" placeholder="輸入車牌或姓名..." style="flex:1;padding:9px 12px;border:1.5px solid #DDD;border-radius:8px;font-size:14px;outline:none;" oninput="caliQuickSearch(this.value)">
+        <input type="text" id="caliSearchInput" placeholder="輸入車牌或姓名..." style="flex:1;padding:9px 12px;border:1.5px solid #00796B;border-radius:8px;font-size:14px;outline:none;" oninput="caliQuickSearch(this.value)">
         <button onclick="clearCaliSearch()" style="padding:9px 12px;background:#F5F5F5;color:#666;border:none;border-radius:8px;font-size:13px;cursor:pointer;">✕</button>
       </div>
       <div id="caliSearchResults" style="max-height:260px;overflow-y:auto;"></div>
@@ -2178,14 +2193,31 @@
     }
   }
 
+  var _showDoneTasks = false;
+
   function renderTasks() {
     var body = document.getElementById('taskListBody');
     if (!_tasks || _tasks.length === 0) {
       body.innerHTML = '<div style="color:#999;font-size:13px;text-align:center;padding:10px;">目前沒有代辦事項</div>';
       return;
     }
+
+    // 已完成的全部預設隱藏
+    var hiddenDone = _tasks.filter(function(t){ return t.status === '已完成'; });
+    var visible    = _tasks.filter(function(t){ return t.status !== '已完成' || _showDoneTasks; });
+
     var html = '';
-    _tasks.forEach(function(t) {
+    if (!_showDoneTasks && hiddenDone.length > 0) {
+      html += '<div onclick="_showDoneTasks=true;renderTasks()" ' +
+        'style="cursor:pointer;text-align:center;color:#aaa;font-size:12px;padding:7px;background:#f9f9f9;border-radius:8px;margin-bottom:6px;">' +
+        '📂 已完成並隱藏 ' + hiddenDone.length + ' 筆　▼ 點擊展開</div>';
+    } else if (_showDoneTasks && hiddenDone.length > 0) {
+      html += '<div onclick="_showDoneTasks=false;renderTasks()" ' +
+        'style="cursor:pointer;text-align:center;color:#aaa;font-size:12px;padding:7px;background:#f9f9f9;border-radius:8px;margin-bottom:6px;">' +
+        '📂 收起已完成記錄　▲</div>';
+    }
+
+    visible.forEach(function(t) {
       var isDone  = t.status === '已完成';
       var isWip   = t.status === '處理中';
       var badgeBg  = t.isToday ? '#FFF3E0' : (t.isPast && !isDone) ? '#FFEBEE' : '#E8F5E9';
@@ -2894,6 +2926,24 @@
   var _caliPanelOpen = false;
   var _caliSearchTimer = null;
 
+  var _EXTERNAL_TOOLS = {
+    cali:       'https://ecard.cali.org.tw/PPCP_QRY/',
+    '2stroke':  'https://mobile.moenv.gov.tw/Motor/query/Query_2Cycle_Check.aspx',
+    inspection: 'https://www.mvdis.gov.tw/m3-emv-car/car/checkQuery#anchor&gsc.tab=0',
+    plate:      null  // 開啟搜尋面板，不直接跳網址
+  };
+
+  function openExternalTool(type) {
+    if (type === 'plate') {
+      // 開啟 CALI 搜尋面板（複製車牌後用）
+      _caliPanelOpen = false;
+      toggleCaliQuick();
+      return;
+    }
+    var url = _EXTERNAL_TOOLS[type];
+    if (url) window.open(url, '_blank');
+  }
+
   function toggleCaliQuick() {
     _caliPanelOpen = !_caliPanelOpen;
     var panel = document.getElementById('caliQuickPanel');
@@ -2998,8 +3048,8 @@
         document.execCommand('copy'); document.body.removeChild(t);
       } catch(e) {}
     }
-    var caliUrl = 'https://www.cali.com.tw/';
-    window.open(caliUrl, '_blank');
+    var caliUrl = 'https://ecard.cali.org.tw/PPCP_QRY/';
+    window.open(caliUrl, '_blank'); 
     showBdToast('📋 已複製身分證，CALI 已在新分頁開啟');
   }
 
