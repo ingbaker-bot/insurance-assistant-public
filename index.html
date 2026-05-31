@@ -252,14 +252,14 @@
       <button id="btnCali" onclick="toggleToolPanel('cali')" style="padding:12px 6px;background:linear-gradient(135deg,#00796B,#004D40);color:white;border:none;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;">
         📋 CALI<br><span style="font-size:10px;font-weight:400;opacity:0.9">強制險查詢</span>
       </button>
-      <button onclick="openExternalTool('2stroke')" style="padding:12px 6px;background:linear-gradient(135deg,#1565C0,#0D47A1);color:white;border:none;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;">
+      <button id="btn2stroke" onclick="toggleToolPanel('2stroke')" style="padding:12px 6px;background:linear-gradient(135deg,#1565C0,#0D47A1);color:white;border:none;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;">
         🔍 二行程<br><span style="font-size:10px;font-weight:400;opacity:0.9">排放檢測查詢</span>
       </button>
       <!-- 第二列 -->
       <button id="btnSearch" onclick="toggleToolPanel('search')" style="padding:12px 6px;background:linear-gradient(135deg,#0284c7,#01579B);color:white;border:none;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;">
         🔍 搜尋保單<br><span style="font-size:10px;font-weight:400;opacity:0.9">姓名／車牌／電話</span>
       </button>
-      <button onclick="openExternalTool('inspection')" style="padding:12px 6px;background:linear-gradient(135deg,#6A1B9A,#4A148C);color:white;border:none;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;">
+      <button id="btnInspection" onclick="toggleToolPanel('inspection')" style="padding:12px 6px;background:linear-gradient(135deg,#6A1B9A,#4A148C);color:white;border:none;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;">
         🗓️ 定檢日<br><span style="font-size:10px;font-weight:400;opacity:0.9">車輛定檢查詢</span>
       </button>
     </div>
@@ -272,6 +272,26 @@
         <button onclick="toggleToolPanel('cali')" style="padding:9px 12px;background:#F5F5F5;color:#666;border:none;border-radius:8px;font-size:13px;cursor:pointer;">✕ 關閉</button>
       </div>
       <div id="caliSearchResults" style="max-height:260px;overflow-y:auto;"></div>
+    </div>
+
+    <!-- 二行程排放查詢展開面板 -->
+    <div id="strokePanel" style="display:none;background:white;border-radius:10px;padding:14px;margin-top:4px;box-shadow:0 2px 8px rgba(0,0,0,0.08);border:1.5px solid #1565C0;">
+      <div style="font-size:12px;color:#1565C0;font-weight:700;margin-bottom:8px;">🔍 二行程排放檢測查詢 — 需要車牌號碼</div>
+      <div style="display:flex;gap:6px;margin-bottom:10px;">
+        <input type="text" id="strokeSearchInput" placeholder="輸入車牌或姓名..." style="flex:1;padding:9px 12px;border:1.5px solid #1565C0;border-radius:8px;font-size:14px;outline:none;" oninput="toolQuickSearch(this.value,'stroke')">
+        <button onclick="toggleToolPanel('2stroke')" style="padding:9px 12px;background:#F5F5F5;color:#666;border:none;border-radius:8px;font-size:13px;cursor:pointer;">✕ 關閉</button>
+      </div>
+      <div id="strokeSearchResults" style="max-height:260px;overflow-y:auto;"></div>
+    </div>
+
+    <!-- 定檢日查詢展開面板 -->
+    <div id="inspectionPanel" style="display:none;background:white;border-radius:10px;padding:14px;margin-top:4px;box-shadow:0 2px 8px rgba(0,0,0,0.08);border:1.5px solid #6A1B9A;">
+      <div style="font-size:12px;color:#6A1B9A;font-weight:700;margin-bottom:8px;">🗓️ 定檢日查詢 — 個人：身分證+生日　法人：統編+車牌</div>
+      <div style="display:flex;gap:6px;margin-bottom:10px;">
+        <input type="text" id="inspectionSearchInput" placeholder="輸入姓名或車牌..." style="flex:1;padding:9px 12px;border:1.5px solid #6A1B9A;border-radius:8px;font-size:14px;outline:none;" oninput="toolQuickSearch(this.value,'inspection')">
+        <button onclick="toggleToolPanel('inspection')" style="padding:9px 12px;background:#F5F5F5;color:#666;border:none;border-radius:8px;font-size:13px;cursor:pointer;">✕ 關閉</button>
+      </div>
+      <div id="inspectionSearchResults" style="max-height:260px;overflow-y:auto;"></div>
     </div>
 
     <!-- 搜尋保單展開面板 -->
@@ -1203,10 +1223,10 @@
     document.getElementById('insuranceSearch').style.display = tab === 'insurance' ? 'block' : 'none';
     document.getElementById('travelSearch').style.display    = tab === 'travel'    ? 'block' : 'none';
     // 切換 Tab 時關閉所有展開面板
-    ['caliQuickPanel','searchPanel'].forEach(function(id) {
+    ['caliQuickPanel','strokePanel','inspectionPanel','searchPanel'].forEach(function(id) {
       var el = document.getElementById(id); if (el) el.style.display = 'none';
     });
-    ['btnCali','btnSearch'].forEach(function(id) {
+    ['btnCali','btn2stroke','btnInspection','btnSearch'].forEach(function(id) {
       var el = document.getElementById(id);
       if (el) { el.style.opacity='1'; el.style.outline='none'; }
     });
@@ -2951,36 +2971,29 @@
   // 目前展開的工具面板
   var _openToolPanel = null;
 
-  function toggleToolPanel(type) {
-    var panels = { cali: 'caliQuickPanel', search: 'searchPanel' };
-    var btns   = { cali: 'btnCali', search: 'btnSearch' };
+  var _TOOL_PANELS = {
+    cali:       { panel: 'caliQuickPanel',       btn: 'btnCali',       input: 'caliSearchInput' },
+    '2stroke':  { panel: 'strokePanel',          btn: 'btn2stroke',    input: 'strokeSearchInput' },
+    inspection: { panel: 'inspectionPanel',      btn: 'btnInspection', input: 'inspectionSearchInput' },
+    search:     { panel: 'searchPanel',          btn: 'btnSearch',     input: 'smartSearch' }
+  };
 
-    Object.keys(panels).forEach(function(key) {
-      var panel = document.getElementById(panels[key]);
-      var btn   = document.getElementById(btns[key]);
+  function toggleToolPanel(type) {
+    Object.keys(_TOOL_PANELS).forEach(function(key) {
+      var cfg   = _TOOL_PANELS[key];
+      var panel = document.getElementById(cfg.panel);
+      var btn   = document.getElementById(cfg.btn);
       if (key === type) {
-        // 切換目標面板
         var isOpen = panel && panel.style.display !== 'none';
         if (panel) panel.style.display = isOpen ? 'none' : 'block';
-        if (btn) btn.style.opacity = isOpen ? '1' : '0.85';
-        if (btn) btn.style.outline = isOpen ? 'none' : '2px solid rgba(255,255,255,0.6)';
-        if (!isOpen && key === 'cali') {
-          setTimeout(function() {
-            var inp = document.getElementById('caliSearchInput');
-            if (inp) inp.focus();
-          }, 100);
-        }
-        if (!isOpen && key === 'search') {
-          setTimeout(function() {
-            var inp = document.getElementById('smartSearch');
-            if (inp) inp.focus();
-          }, 100);
-        }
+        if (btn) { btn.style.opacity = isOpen ? '1' : '0.85'; btn.style.outline = isOpen ? 'none' : '2px solid rgba(255,255,255,0.6)'; }
+        if (!isOpen) setTimeout(function() {
+          var inp = document.getElementById(cfg.input);
+          if (inp) inp.focus();
+        }, 100);
       } else {
-        // 關閉其他面板
         if (panel) panel.style.display = 'none';
-        if (btn) btn.style.opacity = '1';
-        if (btn) btn.style.outline = 'none';
+        if (btn) { btn.style.opacity = '1'; btn.style.outline = 'none'; }
       }
     });
   }
@@ -3003,6 +3016,98 @@
     _caliSearchTimer = setTimeout(function() {
       _doCaliSearch(val.trim());
     }, 400);
+  }
+
+  // 二行程 / 定檢日 共用搜尋
+  var _toolSearchTimers = {};
+  function toolQuickSearch(val, toolType) {
+    clearTimeout(_toolSearchTimers[toolType]);
+    var resId = toolType === 'stroke' ? 'strokeSearchResults' : 'inspectionSearchResults';
+    if (!val || val.trim().length < 2) {
+      document.getElementById(resId).innerHTML = '';
+      return;
+    }
+    _toolSearchTimers[toolType] = setTimeout(function() {
+      _doToolSearch(val.trim(), toolType, resId);
+    }, 400);
+  }
+
+  function _doToolSearch(q, toolType, resId) {
+    var res = document.getElementById(resId);
+    res.innerHTML = '<div style="text-align:center;color:#AAA;padding:10px;font-size:13px;">搜尋中...</div>';
+    var fn = function(results) {
+      if (!results || results.length === 0) {
+        res.innerHTML = '<div style="text-align:center;color:#AAA;padding:10px;font-size:13px;">查無結果</div>';
+        return;
+      }
+      // 二行程：只顯示有車牌的機車
+      // 定檢日：顯示有車牌的汽車（含法人）
+      var filtered = results.filter(function(r) {
+        return r.plateNo && r.plateNo !== '無';
+      });
+      if (filtered.length === 0) {
+        res.innerHTML = '<div style="text-align:center;color:#AAA;padding:10px;font-size:13px;">查無車輛資料</div>';
+        return;
+      }
+      var html = '';
+      filtered.slice(0, 10).forEach(function(item) {
+        var idNo    = (item.maskedId || '').replace(/"/g, '');
+        var plate   = (item.plateNo  || '').replace(/"/g, '');
+        var name    = (item.name || item.applicantName || '').replace(/"/g, '');
+        var bday    = (item.birthday || '').replace(/"/g, '');
+        // 判斷個人 vs 法人：身分證10碼英數 vs 統編8碼純數字
+        var isCompany = idNo && /^\d{8}$/.test(idNo.replace(/[-\s]/g, ''));
+
+        html += '<div style="border:1px solid #E0E0E0;border-radius:8px;padding:10px 12px;margin-bottom:8px;background:#FAFAFA;">';
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">';
+        html += '<div style="font-size:14px;font-weight:700;color:#333;">' + name + '</div>';
+        html += '<div style="font-size:11px;color:#666;">' + item.type + '</div>';
+        html += '</div>';
+
+        if (toolType === 'stroke') {
+          // 二行程：只需要車牌
+          html += '<div style="display:flex;gap:6px;">';
+          html += '<button onclick="toolCopyItem(\''+ plate +'\',\'plate\')" ' +
+            'style="flex:1;padding:8px 6px;background:#E3F2FD;color:#1565C0;border:1px solid #90CAF9;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">' +
+            '🚗 複製車牌<br><span style="font-size:11px;font-weight:400;">' + plate + '</span></button>';
+          html += '<button onclick="openExternalTool(\'2stroke\')" ' +
+            'style="flex:1;padding:8px 6px;background:#1565C0;color:white;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">' +
+            '🔍 前往<br><span style="font-size:11px;font-weight:400;opacity:0.9">二行程查詢</span></button>';
+          html += '</div>';
+        } else {
+          // 定檢日
+          html += '<div style="font-size:11px;color:#888;margin-bottom:6px;">' + (isCompany ? '🏢 法人　統編：' + idNo : '👤 個人　身分證：' + idNo + (bday ? '　生日：' + bday : '')) + '</div>';
+          html += '<div style="display:flex;gap:5px;flex-wrap:wrap;">';
+          if (isCompany) {
+            // 法人：複製統編 + 複製車牌 + 前往
+            html += '<button onclick="toolCopyItem(\''+ idNo +'\',\'id'+ '\')" style="flex:1;min-width:80px;padding:7px 4px;background:#F3E5F5;color:#6A1B9A;border:1px solid #CE93D8;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">🆔 複製統編<br><span style="font-size:10px;font-weight:400;">' + idNo + '</span></button>';
+            html += '<button onclick="toolCopyItem(\''+ plate +'\',\'plate\')" style="flex:1;min-width:80px;padding:7px 4px;background:#E8F5E9;color:#1B5E20;border:1px solid #A5D6A7;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">🚗 複製車牌<br><span style="font-size:10px;font-weight:400;">' + plate + '</span></button>';
+          } else {
+            // 個人：複製身分證 + 複製生日 + 前往
+            html += '<button onclick="toolCopyItem(\''+ idNo +'\',\'id'+ '\')" style="flex:1;min-width:80px;padding:7px 4px;background:#E3F2FD;color:#1565C0;border:1px solid #90CAF9;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">🆔 複製身分證<br><span style="font-size:10px;font-weight:400;">' + idNo + '</span></button>';
+            if (bday) html += '<button onclick="toolCopyItem(\''+ bday +'\',\'bday\')" style="flex:1;min-width:80px;padding:7px 4px;background:#FFF3E0;color:#E65100;border:1px solid #FFCC80;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">🎂 複製生日<br><span style="font-size:10px;font-weight:400;">' + bday + '</span></button>';
+          }
+          html += '<button onclick="openExternalTool(\'inspection\')" ' +
+            'style="flex:1;min-width:80px;padding:7px 4px;background:#6A1B9A;color:white;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">' +
+            '🗓️ 前往<br><span style="font-size:10px;opacity:0.9">定檢查詢</span></button>';
+          html += '</div>';
+        }
+        html += '</div>';
+      });
+      if (filtered.length > 10) html += '<div style="text-align:center;color:#AAA;font-size:11px;padding:4px;">顯示前 10 筆</div>';
+      res.innerHTML = html;
+    };
+    var failFn = function() { res.innerHTML = '<div style="text-align:center;color:#d32f2f;padding:10px;font-size:13px;">搜尋失敗</div>'; };
+    if (_directShellUrl) directGasCall('searchPolicies', { q: q, showAll: false }, fn, failFn);
+    else gasCall('searchPolicies', { q: q, showAll: false }, fn, failFn);
+  }
+
+  function toolCopyItem(text, type) {
+    if (!text) return;
+    if (navigator.clipboard) navigator.clipboard.writeText(text);
+    try { var t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t); } catch(e){}
+    var labels = { plate:'車牌', id:'身分證/統編', bday:'生日' };
+    showBdToast('📋 已複製' + (labels[type]||'資料') + '：' + text);
   }
 
   function _doCaliSearch(q) {
