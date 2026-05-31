@@ -21,32 +21,32 @@
     body { font-family: Arial, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 16px 14px; -webkit-overflow-scrolling: touch; }
     .container { max-width: 600px; margin: 0 auto; }
 
-    /* ── 主控 Tab 切換（v5.2 重設計）── */
-    .tab-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 4px; }
+    /* ── 主控 Tab 切換（v5.3 透明粗框）── */
+    .tab-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 4px; }
     .tab-btn {
-      flex: 1; padding: 14px 8px 10px; font-size: 14px; font-weight: bold;
-      border: 2px solid transparent; border-radius: 12px; cursor: pointer;
-      background: #EEF1F6; color: #888; transition: all 0.2s;
-      display: flex; flex-direction: column; align-items: center; gap: 3px; line-height: 1.3;
+      flex: 1; padding: 16px 8px 12px; font-size: 16px; font-weight: bold;
+      border: 3px solid #CDD3DC; border-radius: 14px; cursor: pointer;
+      background: transparent; color: #999; transition: all 0.2s;
+      display: flex; flex-direction: column; align-items: center; gap: 4px; line-height: 1.3;
     }
-    .tab-btn .tab-icon { font-size: 22px; line-height: 1; }
-    .tab-btn .tab-bar-indicator { height: 3px; width: 32px; border-radius: 2px; background: transparent; margin-top: 4px; }
+    .tab-btn .tab-icon { font-size: 26px; line-height: 1; }
+    .tab-btn .tab-bar-indicator { height: 3px; width: 36px; border-radius: 2px; background: transparent; margin-top: 5px; }
     .tab-btn.active-insurance {
-      background: var(--primary-color); color: white;
-      border-color: var(--primary-color);
-      box-shadow: 0 4px 12px rgba(0,163,224,0.30);
+      background: transparent; color: var(--primary-color);
+      border: 3px solid var(--primary-color);
+      box-shadow: 0 0 0 4px rgba(0,163,224,0.12);
     }
-    .tab-btn.active-insurance .tab-bar-indicator { background: rgba(255,255,255,0.5); }
+    .tab-btn.active-insurance .tab-bar-indicator { background: var(--primary-color); }
     .tab-btn.active-travel {
-      background: var(--travel-color); color: white;
-      border-color: var(--travel-color);
-      box-shadow: 0 4px 12px rgba(255,112,67,0.30);
+      background: transparent; color: var(--travel-color);
+      border: 3px solid var(--travel-color);
+      box-shadow: 0 0 0 4px rgba(255,112,67,0.12);
     }
-    .tab-btn.active-travel .tab-bar-indicator { background: rgba(255,255,255,0.5); }
+    .tab-btn.active-travel .tab-bar-indicator { background: var(--travel-color); }
 
     /* ── 功能按鈕分組標籤 ── */
     .fn-group-label {
-      font-size: 10px; color: #999; letter-spacing: 1.5px; text-transform: uppercase;
+      font-size: 11px; color: #999; letter-spacing: 1.5px; text-transform: uppercase;
       font-weight: bold; margin: 10px 0 6px; padding-left: 2px;
     }
     /* ── 2×2 功能格子 ── */
@@ -282,18 +282,18 @@
     <!-- 四個工具按鈕 2×2 -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px 0 4px;">
       <!-- 第一列 -->
-      <button id="btnCali" onclick="toggleToolPanel('cali')" style="padding:12px 6px;background:linear-gradient(135deg,#00796B,#004D40);color:white;border:none;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;">
-        📋 CALI<br><span style="font-size:10px;font-weight:400;opacity:0.9">強制險查詢</span>
+      <button id="btnCali" onclick="toggleToolPanel('cali')" style="padding:12px 6px;background:linear-gradient(135deg,#00796B,#004D40);color:white;border:none;border-radius:10px;font-size:15px;font-weight:bold;cursor:pointer;line-height:1.4;">
+        📋 CALI<br><span style="font-size:12px;font-weight:400;opacity:0.9">強制險查詢</span>
       </button>
-      <button id="btn2stroke" onclick="toggleToolPanel('2stroke')" style="padding:12px 6px;background:linear-gradient(135deg,#1565C0,#0D47A1);color:white;border:none;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;width:100%;">
-        🏍️ 機車定檢<br><span style="font-size:10px;font-weight:400;opacity:0.9">排氣定期檢驗查詢</span>
+      <button id="btn2stroke" onclick="toggleToolPanel('2stroke')" style="padding:12px 6px;background:linear-gradient(135deg,#1565C0,#0D47A1);color:white;border:none;border-radius:10px;font-size:15px;font-weight:bold;cursor:pointer;line-height:1.4;width:100%;">
+        🏍️ 機車定檢<br><span style="font-size:12px;font-weight:400;opacity:0.9">排氣定期檢驗查詢</span>
       </button>
       <!-- 第二列 -->
-      <button id="btnSearch" onclick="toggleToolPanel('search')" style="padding:12px 6px;background:linear-gradient(135deg,#0284c7,#01579B);color:white;border:none;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;">
-        🔍 搜尋保單<br><span style="font-size:10px;font-weight:400;opacity:0.9">姓名／車牌／電話</span>
+      <button id="btnSearch" onclick="toggleToolPanel('search')" style="padding:12px 6px;background:linear-gradient(135deg,#0284c7,#01579B);color:white;border:none;border-radius:10px;font-size:15px;font-weight:bold;cursor:pointer;line-height:1.4;">
+        🔍 搜尋保單<br><span style="font-size:12px;font-weight:400;opacity:0.9">姓名／車牌／電話</span>
       </button>
-      <button id="btnInspection" onclick="toggleToolPanel('inspection')" style="padding:12px 6px;background:linear-gradient(135deg,#6A1B9A,#4A148C);color:white;border:none;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;width:100%;">
-        🗓️ 定檢日<br><span style="font-size:10px;font-weight:400;opacity:0.9">車輛定檢查詢</span>
+      <button id="btnInspection" onclick="toggleToolPanel('inspection')" style="padding:12px 6px;background:linear-gradient(135deg,#6A1B9A,#4A148C);color:white;border:none;border-radius:10px;font-size:15px;font-weight:bold;cursor:pointer;line-height:1.4;width:100%;">
+        🗓️ 定檢日<br><span style="font-size:12px;font-weight:400;opacity:0.9">車輛定檢查詢</span>
       </button>
     </div>
 
@@ -346,20 +346,20 @@
     <div class="fn-group-label">商機分析</div>
     <div class="fn-grid-2">
       <button onclick="loadMissingCompulsory()"
-        style="padding:12px 6px;background:#FCEBEB;color:#791F1F;border:1.5px solid #F09595;border-radius:10px;font-size:12px;font-weight:bold;cursor:pointer;line-height:1.4;text-align:center;">
-        ⚠️ 法規缺口<br><span style="font-size:10px;font-weight:400;color:#A32D2D">有任意險無強制險</span>
+        style="padding:12px 6px;background:#FCEBEB;color:#791F1F;border:1.5px solid #F09595;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;line-height:1.4;text-align:center;">
+        ⚠️ 法規缺口<br><span style="font-size:12px;font-weight:400;color:#A32D2D">有任意險無強制險</span>
       </button>
       <button onclick="loadMissingVoluntary()"
-        style="padding:12px 6px;background:#E6F1FB;color:#0C447C;border:1.5px solid #85B7EB;border-radius:10px;font-size:12px;font-weight:bold;cursor:pointer;line-height:1.4;text-align:center;">
-        💡 提案商機<br><span style="font-size:10px;font-weight:400;color:#185FA5">有強制險無任意險</span>
+        style="padding:12px 6px;background:#E6F1FB;color:#0C447C;border:1.5px solid #85B7EB;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;line-height:1.4;text-align:center;">
+        💡 提案商機<br><span style="font-size:12px;font-weight:400;color:#185FA5">有強制險無任意險</span>
       </button>
       <button onclick="loadFireGapList()"
-        style="padding:12px 6px;background:#FAEEDA;color:#633806;border:1.5px solid #EF9F27;border-radius:10px;font-size:12px;font-weight:bold;cursor:pointer;line-height:1.4;text-align:center;">
-        🏠 住宅火險<br><span style="font-size:10px;font-weight:400;color:#854F0B">查看缺口名單</span>
+        style="padding:12px 6px;background:#FAEEDA;color:#633806;border:1.5px solid #EF9F27;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;line-height:1.4;text-align:center;">
+        🏠 住宅火險<br><span style="font-size:12px;font-weight:400;color:#854F0B">查看缺口名單</span>
       </button>
       <button onclick="loadBirthdayMonthSummary()"
-        style="padding:12px 6px;background:#FBEAF0;color:#4B1528;border:1.5px solid #ED93B1;border-radius:10px;font-size:12px;font-weight:bold;cursor:pointer;line-height:1.4;text-align:center;">
-        🎂 生日名單<br><span style="font-size:10px;font-weight:400;color:#72243E">各月份查詢</span>
+        style="padding:12px 6px;background:#FBEAF0;color:#4B1528;border:1.5px solid #ED93B1;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;line-height:1.4;text-align:center;">
+        🎂 生日名單<br><span style="font-size:12px;font-weight:400;color:#72243E">各月份查詢</span>
       </button>
     </div>
 
@@ -367,12 +367,12 @@
     <div class="fn-group-label" style="margin-top:8px;">追蹤管理</div>
     <div class="fn-grid-2">
       <button onclick="openCarMapFromModal()"
-        style="padding:12px 6px;background:#E6F1FB;color:#0C447C;border:1.5px solid #85B7EB;border-radius:10px;font-size:12px;font-weight:bold;cursor:pointer;line-height:1.4;text-align:center;">
-        🛡️ 車險保障圖卡<br><span style="font-size:10px;font-weight:400;color:#185FA5">保障缺口分析</span>
+        style="padding:12px 6px;background:#E6F1FB;color:#0C447C;border:1.5px solid #85B7EB;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;line-height:1.4;text-align:center;">
+        🛡️ 車險保障圖卡<br><span style="font-size:12px;font-weight:400;color:#185FA5">保障缺口分析</span>
       </button>
       <button id="btnExpiryTrack" onclick="toggleExpiryPanel()"
-        style="padding:12px 6px;background:#EEEDFE;color:#3C3489;border:1.5px solid #AFA9EC;border-radius:10px;font-size:12px;font-weight:bold;cursor:pointer;line-height:1.4;text-align:center;">
-        📅 到期保單追蹤<br><span style="font-size:10px;font-weight:400;color:#534AB7">點選選擇日期</span>
+        style="padding:12px 6px;background:#EEEDFE;color:#3C3489;border:1.5px solid #AFA9EC;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;line-height:1.4;text-align:center;">
+        📅 到期保單追蹤<br><span style="font-size:12px;font-weight:400;color:#534AB7">點選選擇日期</span>
       </button>
     </div>
 
