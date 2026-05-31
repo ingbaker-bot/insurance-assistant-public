@@ -252,16 +252,19 @@
       <button id="btnCali" onclick="toggleToolPanel('cali')" style="padding:12px 6px;background:linear-gradient(135deg,#00796B,#004D40);color:white;border:none;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;">
         📋 CALI<br><span style="font-size:10px;font-weight:400;opacity:0.9">強制險查詢</span>
       </button>
-      <button id="btn2stroke" onclick="toggleToolPanel('2stroke')" style="padding:12px 6px;background:linear-gradient(135deg,#1565C0,#0D47A1);color:white;border:none;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;">
+      <a href="https://mobile.moenv.gov.tw/Motor/query/Query_Check.aspx" target="_blank" rel="noopener noreferrer"
+        style="display:block;padding:12px 6px;background:linear-gradient(135deg,#1565C0,#0D47A1);color:white;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;text-decoration:none;text-align:center;">
         🏍️ 機車定檢<br><span style="font-size:10px;font-weight:400;opacity:0.9">排氣定期檢驗查詢</span>
-      </button>
+      </a>
       <!-- 第二列 -->
       <button id="btnSearch" onclick="toggleToolPanel('search')" style="padding:12px 6px;background:linear-gradient(135deg,#0284c7,#01579B);color:white;border:none;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;">
         🔍 搜尋保單<br><span style="font-size:10px;font-weight:400;opacity:0.9">姓名／車牌／電話</span>
       </button>
-      <button id="btnInspection" onclick="toggleToolPanel('inspection')" style="padding:12px 6px;background:linear-gradient(135deg,#6A1B9A,#4A148C);color:white;border:none;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;">
+      <a id="btnInspection" onclick="toggleToolPanel('inspection'); return false;"
+        href="https://www.mvdis.gov.tw/m3-emv-car/car/checkQuery#anchor&gsc.tab=0" target="_blank" rel="noopener noreferrer"
+        style="display:block;padding:12px 6px;background:linear-gradient(135deg,#6A1B9A,#4A148C);color:white;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;text-decoration:none;text-align:center;">
         🗓️ 定檢日<br><span style="font-size:10px;font-weight:400;opacity:0.9">車輛定檢查詢</span>
-      </button>
+      </a>
     </div>
 
     <!-- CALI 搜尋展開面板 -->
@@ -839,7 +842,9 @@
       html +=
         '<div class="expiry-row" id="expiry-row-' + item.policyNo + '">' +
           '<div class="expiry-row-top">' +
-            '<span class="expiry-name">' + item.name + '</span>' +
+            '<span class="expiry-name">' + item.name +
+              (item.agentCode && item.agentCode !== '無' ? ' <span style="color:#FF9800;font-size:11px;font-weight:700;">[' + item.agentCode + ']</span>' : '') +
+            '</span>' +
             '<span class="expiry-days-badge ' + dayClass + '">' + dayText + '</span>' +
           '</div>' +
           '<div class="expiry-info">' +
@@ -1053,7 +1058,9 @@
       html +=
         '<div class="expiry-row" id="early-row-' + item.policyNo + '" style="border-top-color:#F1F8E9;">' +
           '<div class="expiry-row-top">' +
-            '<span class="expiry-name">' + item.name + '</span>' +
+            '<span class="expiry-name">' + item.name +
+              (item.agentCode && item.agentCode !== '無' ? ' <span style="color:#FF9800;font-size:11px;font-weight:700;">[' + item.agentCode + ']</span>' : '') +
+            '</span>' +
             '<span class="expiry-days-badge" style="background:#E8F5E9;color:#2E7D32;">剩 ' + item.daysLeft + ' 天</span>' +
           '</div>' +
           '<div class="expiry-info">' +
@@ -3111,9 +3118,9 @@
           html += '<button onclick="toolCopyItem(\''+ plate +'\',\'plate\')" ' +
             'style="flex:1;padding:8px 6px;background:#E3F2FD;color:#1565C0;border:1px solid #90CAF9;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">' +
             '🚗 複製車牌<br><span style="font-size:11px;font-weight:400;">' + plate + '</span></button>';
-          // 複製車牌後顯示中繼框
-          html += '<button onclick="toolCopyAndGo(\'' + plate + '\',\'2stroke\')" ' +
-            'style="flex:1;padding:8px 6px;background:#1565C0;color:white;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">' +
+          html += '<a href="https://mobile.moenv.gov.tw/Motor/query/Query_Check.aspx" target="_blank" rel="noopener noreferrer" ' +
+            'style="flex:1;display:block;padding:8px 6px;background:#1565C0;color:white;border-radius:6px;font-size:12px;font-weight:700;text-decoration:none;text-align:center;">' +
+            '🏍️ 前往<br><span style="font-size:11px;font-weight:400;opacity:0.9">機車定檢查詢</span></a>';
             '🏍️ 前往<br><span style="font-size:11px;font-weight:400;opacity:0.9">機車定檢查詢</span></button>';
           html += '</div>';
         } else {
@@ -3129,9 +3136,9 @@
             html += '<button onclick="toolCopyItem(\''+ idNo +'\',\'id'+ '\')" style="flex:1;min-width:80px;padding:7px 4px;background:#E3F2FD;color:#1565C0;border:1px solid #90CAF9;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">🆔 複製身分證<br><span style="font-size:10px;font-weight:400;">' + idNo + '</span></button>';
             if (bday) html += '<button onclick="toolCopyItem(\''+ bday +'\',\'bday\')" style="flex:1;min-width:80px;padding:7px 4px;background:#FFF3E0;color:#E65100;border:1px solid #FFCC80;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">🎂 複製生日<br><span style="font-size:10px;font-weight:400;">' + bday + '</span></button>';
           }
-          html += '<button onclick="openExternalTool(\'inspection\')" ' +
-            'style="flex:1;min-width:80px;padding:7px 4px;background:#6A1B9A;color:white;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">' +
-            '🗓️ 前往<br><span style="font-size:10px;opacity:0.9">定檢查詢</span></button>';
+          html += '<a href="https://www.mvdis.gov.tw/m3-emv-car/car/checkQuery#anchor&gsc.tab=0" target="_blank" rel="noopener noreferrer" ' +
+            'style="flex:1;min-width:80px;display:block;padding:7px 4px;background:#6A1B9A;color:white;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;text-decoration:none;text-align:center;">' +
+            '🗓️ 前往<br><span style="font-size:10px;opacity:0.9">定檢查詢</span></a>';
           html += '</div>';
         }
         html += '</div>';
@@ -3187,14 +3194,16 @@
               (safeId ?
                 '<button onclick="caliCopyAndGo(\''+safeId+'\',\'id\')" ' +
                   'style="flex:1;padding:8px 6px;background:#E3F2FD;color:#1565C0;border:1px solid #90CAF9;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">' +
-                  '🆔 複製身分證<br><span style="font-size:11px;font-weight:400">'+safeId+'</span></button>' : '') +
+                  '🆔 複製身分證<br><span style="font-size:11px;font-weight:400">'+safeId+'</span></button>'
+              : '') +
               (safePlate ?
                 '<button onclick="caliCopyAndGo(\''+safePlate+'\',\'plate\')" ' +
                   'style="flex:1;padding:8px 6px;background:#E8F5E9;color:#1B5E20;border:1px solid #A5D6A7;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">' +
-                  '🚗 複製車牌<br><span style="font-size:11px;font-weight:400">'+safePlate+'</span></button>' : '') +
-              '<button onclick="openCaliDirect(\''+safeId+'\',\''+safePlate+'\')" ' +
-                'style="flex:1;padding:8px 6px;background:#00796B;color:white;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">' +
-                '🔗 前往 CALI</button>' +
+                  '🚗 複製車牌<br><span style="font-size:11px;font-weight:400">'+safePlate+'</span></button>'
+              : '') +
+              '<a href="https://ecard.cali.org.tw/PPCP_QRY/" target="_blank" rel="noopener noreferrer" ' +
+                'style="flex:1;display:block;padding:8px 6px;background:#00796B;color:white;border-radius:6px;font-size:12px;font-weight:700;text-decoration:none;text-align:center;">' +
+                '🔗 前往 CALI</a>' +
             '</div>' +
           '</div>';
       });
