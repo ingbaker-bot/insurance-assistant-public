@@ -252,19 +252,16 @@
       <button id="btnCali" onclick="toggleToolPanel('cali')" style="padding:12px 6px;background:linear-gradient(135deg,#00796B,#004D40);color:white;border:none;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;">
         📋 CALI<br><span style="font-size:10px;font-weight:400;opacity:0.9">強制險查詢</span>
       </button>
-      <a href="https://mobile.moenv.gov.tw/Motor/query/Query_Check.aspx" target="_blank" rel="noopener noreferrer"
-        style="display:block;padding:12px 6px;background:linear-gradient(135deg,#1565C0,#0D47A1);color:white;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;text-decoration:none;text-align:center;">
+      <button id="btn2stroke" onclick="toggleToolPanel('2stroke')" style="padding:12px 6px;background:linear-gradient(135deg,#1565C0,#0D47A1);color:white;border:none;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;width:100%;">
         🏍️ 機車定檢<br><span style="font-size:10px;font-weight:400;opacity:0.9">排氣定期檢驗查詢</span>
-      </a>
+      </button>
       <!-- 第二列 -->
       <button id="btnSearch" onclick="toggleToolPanel('search')" style="padding:12px 6px;background:linear-gradient(135deg,#0284c7,#01579B);color:white;border:none;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;">
         🔍 搜尋保單<br><span style="font-size:10px;font-weight:400;opacity:0.9">姓名／車牌／電話</span>
       </button>
-      <a id="btnInspection" onclick="toggleToolPanel('inspection'); return false;"
-        href="https://www.mvdis.gov.tw/m3-emv-car/car/checkQuery#anchor&gsc.tab=0" target="_blank" rel="noopener noreferrer"
-        style="display:block;padding:12px 6px;background:linear-gradient(135deg,#6A1B9A,#4A148C);color:white;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;text-decoration:none;text-align:center;">
+      <button id="btnInspection" onclick="toggleToolPanel('inspection')" style="padding:12px 6px;background:linear-gradient(135deg,#6A1B9A,#4A148C);color:white;border:none;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;width:100%;">
         🗓️ 定檢日<br><span style="font-size:10px;font-weight:400;opacity:0.9">車輛定檢查詢</span>
-      </a>
+      </button>
     </div>
 
     <!-- CALI 搜尋展開面板 -->
@@ -3165,7 +3162,6 @@
           html += '<a href="https://mobile.moenv.gov.tw/Motor/query/Query_Check.aspx" target="_blank" rel="noopener noreferrer" ' +
             'style="flex:1;display:block;padding:8px 6px;background:#1565C0;color:white;border-radius:6px;font-size:12px;font-weight:700;text-decoration:none;text-align:center;">' +
             '🏍️ 前往<br><span style="font-size:11px;font-weight:400;opacity:0.9">機車定檢查詢</span></a>';
-            '🏍️ 前往<br><span style="font-size:11px;font-weight:400;opacity:0.9">機車定檢查詢</span></button>';
           html += '</div>';
         } else {
           // 定檢日
@@ -3181,8 +3177,8 @@
             if (bday) html += '<button onclick="toolCopyItem(\''+ bday +'\',\'bday\')" style="flex:1;min-width:80px;padding:7px 4px;background:#FFF3E0;color:#E65100;border:1px solid #FFCC80;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">🎂 複製生日<br><span style="font-size:10px;font-weight:400;">' + bday + '</span></button>';
           }
           html += '<a href="https://www.mvdis.gov.tw/m3-emv-car/car/checkQuery#anchor&gsc.tab=0" target="_blank" rel="noopener noreferrer" ' +
-            'style="flex:1;min-width:80px;display:block;padding:7px 4px;background:#6A1B9A;color:white;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;text-decoration:none;text-align:center;">' +
-            '🗓️ 前往<br><span style="font-size:10px;opacity:0.9">定檢查詢</span></a>';
+            'style="flex:1;min-width:80px;display:block;padding:7px 4px;background:#6A1B9A;color:white;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;text-align:center;">' +
+            '🗓️ 前往定檢查詢</a>';
           html += '</div>';
         }
         html += '</div>';
