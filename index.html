@@ -2951,21 +2951,43 @@
   var _caliSearchTimer = null;
 
   var _EXTERNAL_TOOLS = {
-    cali:       'https://ecard.cali.org.tw/PPCP_QRY/',
-    '2stroke':  'https://mobile.moenv.gov.tw/Motor/query/Query_2Cycle_Check.aspx',
-    inspection: 'https://www.mvdis.gov.tw/m3-emv-car/car/checkQuery#anchor&gsc.tab=0',
-    plate:      null  // 開啟搜尋面板，不直接跳網址
+    cali:       { url: 'https://ecard.cali.org.tw/PPCP_QRY/',                                      label: 'CALI 強制險查詢',   hint: '在網站輸入身分證字號及車牌號碼' },
+    '2stroke':  { url: 'https://mobile.moenv.gov.tw/Motor/query/Query_2Cycle_Check.aspx',          label: '二行程排放檢測查詢', hint: '在網站輸入已複製的車牌號碼' },
+    inspection: { url: 'https://www.mvdis.gov.tw/m3-emv-car/car/checkQuery#anchor&gsc.tab=0',      label: '車輛定檢日查詢',    hint: '個人：輸入身分證+出生年月日　法人：輸入統編+車牌' }
   };
 
   function openExternalTool(type) {
-    if (type === 'plate') {
-      // 開啟 CALI 搜尋面板（複製車牌後用）
-      _caliPanelOpen = false;
-      toggleCaliQuick();
-      return;
-    }
-    var url = _EXTERNAL_TOOLS[type];
-    if (url) window.open(url, '_blank');
+    var tool = _EXTERNAL_TOOLS[type];
+    if (!tool) return;
+    _showExternalLinkModal(tool.url, tool.label, tool.hint);
+  }
+
+  // ★ iOS Safari：用 <a target="_blank"> 保證新開分頁
+  function _showExternalLinkModal(url, label, hint) {
+    var ovId = 'extLinkOverlay';
+    var ex = document.getElementById(ovId); if (ex) document.body.removeChild(ex);
+    var ov = document.createElement('div');
+    ov.id  = ovId;
+    ov.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:9200;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;';
+
+    // 用 innerHTML 的 <a> 標籤讓使用者直接點擊，iOS Safari 才能新開分頁
+    var safeUrl   = url.replace(/'/g, '%27');
+    var safeLabel = label.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    var safeHint  = hint.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+    ov.innerHTML =
+      '<div style="background:white;border-radius:16px;padding:24px;max-width:360px;width:100%;box-shadow:0 8px 30px rgba(0,0,0,0.25);">' +
+        '<div style="font-size:17px;font-weight:700;color:#333;margin-bottom:4px;">🔗 ' + safeLabel + '</div>' +
+        '<div style="font-size:12px;color:#888;margin-bottom:16px;line-height:1.6;">' + safeHint + '</div>' +
+        '<a href="' + safeUrl + '" target="_blank" rel="noopener" onclick="document.body.removeChild(document.getElementById(\'extLinkOverlay\'))" ' +
+          'style="display:block;text-align:center;padding:14px;background:linear-gradient(135deg,#1565C0,#0D47A1);color:white;border-radius:10px;font-size:15px;font-weight:700;text-decoration:none;margin-bottom:10px;">' +
+          '🚀 前往查詢（新分頁開啟）</a>' +
+        '<button onclick="document.body.removeChild(document.getElementById(\'extLinkOverlay\'))" ' +
+          'style="width:100%;padding:11px;background:#F5F5F5;color:#666;border:none;border-radius:10px;font-size:14px;cursor:pointer;">關閉</button>' +
+      '</div>';
+
+    document.body.appendChild(ov);
+    ov.addEventListener('click', function(e){ if(e.target===ov) document.body.removeChild(ov); });
   }
 
   // 目前展開的工具面板
@@ -3070,7 +3092,8 @@
           html += '<button onclick="toolCopyItem(\''+ plate +'\',\'plate\')" ' +
             'style="flex:1;padding:8px 6px;background:#E3F2FD;color:#1565C0;border:1px solid #90CAF9;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">' +
             '🚗 複製車牌<br><span style="font-size:11px;font-weight:400;">' + plate + '</span></button>';
-          html += '<button onclick="openExternalTool(\'2stroke\')" ' +
+          // 複製車牌後顯示中繼框
+          html += '<button onclick="toolCopyAndGo(\'' + plate + '\',\'2stroke\')" ' +
             'style="flex:1;padding:8px 6px;background:#1565C0;color:white;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">' +
             '🔍 前往<br><span style="font-size:11px;font-weight:400;opacity:0.9">二行程查詢</span></button>';
           html += '</div>';
@@ -3108,6 +3131,12 @@
     try { var t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t); } catch(e){}
     var labels = { plate:'車牌', id:'身分證/統編', bday:'生日' };
     showBdToast('📋 已複製' + (labels[type]||'資料') + '：' + text);
+  }
+
+  // 複製車牌後立即顯示外部連結提示
+  function toolCopyAndGo(plate, toolType) {
+    toolCopyItem(plate, 'plate');
+    setTimeout(function() { openExternalTool(toolType); }, 300);
   }
 
   function _doCaliSearch(q) {
@@ -3175,18 +3204,16 @@
   }
 
   function openCaliDirect(idNo, plate) {
-    // 複製身分證，然後開啟 CALI
+    // 先複製身分證到剪貼簿，再顯示中繼提示框
     if (idNo && idNo !== '無') {
       if (navigator.clipboard) navigator.clipboard.writeText(idNo);
-      try {
-        var t = document.createElement('textarea');
-        t.value = idNo; document.body.appendChild(t); t.select();
-        document.execCommand('copy'); document.body.removeChild(t);
-      } catch(e) {}
+      try { var t=document.createElement('textarea');t.value=idNo;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t); } catch(e){}
     }
-    var caliUrl = 'https://ecard.cali.org.tw/PPCP_QRY/';
-    window.open(caliUrl, '_blank'); 
-    showBdToast('📋 已複製身分證，CALI 已在新分頁開啟');
+    _showExternalLinkModal(
+      'https://ecard.cali.org.tw/PPCP_QRY/',
+      'CALI 強制險查詢',
+      '身分證已複製到剪貼簿，進入網站後直接貼上！' + (plate ? '\n車牌：' + plate : '')
+    );
   }
 
     // ══════════════════════════════════════════════════════
