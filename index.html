@@ -253,7 +253,7 @@
         📋 CALI<br><span style="font-size:10px;font-weight:400;opacity:0.9">強制險查詢</span>
       </button>
       <button id="btn2stroke" onclick="toggleToolPanel('2stroke')" style="padding:12px 6px;background:linear-gradient(135deg,#1565C0,#0D47A1);color:white;border:none;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;">
-        🔍 二行程<br><span style="font-size:10px;font-weight:400;opacity:0.9">排放檢測查詢</span>
+        🏍️ 機車定檢<br><span style="font-size:10px;font-weight:400;opacity:0.9">排氣定期檢驗查詢</span>
       </button>
       <!-- 第二列 -->
       <button id="btnSearch" onclick="toggleToolPanel('search')" style="padding:12px 6px;background:linear-gradient(135deg,#0284c7,#01579B);color:white;border:none;border-radius:10px;font-size:13px;font-weight:bold;cursor:pointer;line-height:1.4;">
@@ -276,7 +276,7 @@
 
     <!-- 二行程排放查詢展開面板 -->
     <div id="strokePanel" style="display:none;background:white;border-radius:10px;padding:14px;margin-top:4px;box-shadow:0 2px 8px rgba(0,0,0,0.08);border:1.5px solid #1565C0;">
-      <div style="font-size:12px;color:#1565C0;font-weight:700;margin-bottom:8px;">🔍 二行程排放檢測查詢 — 需要車牌號碼</div>
+      <div style="font-size:12px;color:#1565C0;font-weight:700;margin-bottom:8px;">🏍️ 機車定檢查詢 — 輸入車牌號碼</div>
       <div style="display:flex;gap:6px;margin-bottom:10px;">
         <input type="text" id="strokeSearchInput" placeholder="輸入車牌或姓名..." style="flex:1;padding:9px 12px;border:1.5px solid #1565C0;border-radius:8px;font-size:14px;outline:none;" oninput="toolQuickSearch(this.value,'stroke')">
         <button onclick="toggleToolPanel('2stroke')" style="padding:9px 12px;background:#F5F5F5;color:#666;border:none;border-radius:8px;font-size:13px;cursor:pointer;">✕ 關閉</button>
@@ -2952,7 +2952,7 @@
 
   var _EXTERNAL_TOOLS = {
     cali:       { url: 'https://ecard.cali.org.tw/PPCP_QRY/',                                      label: 'CALI 強制險查詢',   hint: '在網站輸入身分證字號及車牌號碼' },
-    '2stroke':  { url: 'https://mobile.moenv.gov.tw/Motor/query/Query_2Cycle_Check.aspx',          label: '二行程排放檢測查詢', hint: '在網站輸入已複製的車牌號碼' },
+    '2stroke':  { url: 'https://mobile.moenv.gov.tw/Motor/query/Query_Check.aspx',                  label: '機車定檢查詢', hint: '輸入車牌號碼查詢機車定期排氣檢驗記錄' },
     inspection: { url: 'https://www.mvdis.gov.tw/m3-emv-car/car/checkQuery#anchor&gsc.tab=0',      label: '車輛定檢日查詢',    hint: '個人：輸入身分證+出生年月日　法人：輸入統編+車牌' }
   };
 
@@ -2971,21 +2971,40 @@
     ov.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:9200;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;';
 
     // 用 innerHTML 的 <a> 標籤讓使用者直接點擊，iOS Safari 才能新開分頁
-    var safeUrl   = url.replace(/'/g, '%27');
-    var safeLabel = label.replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    var safeHint  = hint.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    // ★ 用 DOM API 建構 <a> 確保 iOS Safari 識別為可點擊連結
+    var box = document.createElement('div');
+    box.style.cssText = 'background:white;border-radius:16px;padding:24px;max-width:360px;width:100%;box-shadow:0 8px 30px rgba(0,0,0,0.25);';
 
-    ov.innerHTML =
-      '<div style="background:white;border-radius:16px;padding:24px;max-width:360px;width:100%;box-shadow:0 8px 30px rgba(0,0,0,0.25);">' +
-        '<div style="font-size:17px;font-weight:700;color:#333;margin-bottom:4px;">🔗 ' + safeLabel + '</div>' +
-        '<div style="font-size:12px;color:#888;margin-bottom:16px;line-height:1.6;">' + safeHint + '</div>' +
-        '<a href="' + safeUrl + '" target="_blank" rel="noopener" onclick="document.body.removeChild(document.getElementById(\'extLinkOverlay\'))" ' +
-          'style="display:block;text-align:center;padding:14px;background:linear-gradient(135deg,#1565C0,#0D47A1);color:white;border-radius:10px;font-size:15px;font-weight:700;text-decoration:none;margin-bottom:10px;">' +
-          '🚀 前往查詢（新分頁開啟）</a>' +
-        '<button onclick="document.body.removeChild(document.getElementById(\'extLinkOverlay\'))" ' +
-          'style="width:100%;padding:11px;background:#F5F5F5;color:#666;border:none;border-radius:10px;font-size:14px;cursor:pointer;">關閉</button>' +
-      '</div>';
+    var titleEl = document.createElement('div');
+    titleEl.style.cssText = 'font-size:17px;font-weight:700;color:#333;margin-bottom:4px;';
+    titleEl.textContent = '🔗 ' + label;
+    box.appendChild(titleEl);
 
+    var hintEl = document.createElement('div');
+    hintEl.style.cssText = 'font-size:12px;color:#888;margin-bottom:16px;line-height:1.6;';
+    hintEl.textContent = hint;
+    box.appendChild(hintEl);
+
+    // ★ 真實的 <a> 元素，iOS Safari 一定識別為新分頁
+    var link = document.createElement('a');
+    link.href   = url;
+    link.target = '_blank';
+    link.rel    = 'noopener noreferrer';
+    link.style.cssText = 'display:block;text-align:center;padding:14px;background:linear-gradient(135deg,#1565C0,#0D47A1);color:white;border-radius:10px;font-size:15px;font-weight:700;text-decoration:none;margin-bottom:10px;';
+    link.textContent = '🚀 前往查詢（開新分頁）';
+    link.addEventListener('click', function() {
+      var o = document.getElementById('extLinkOverlay');
+      if (o) document.body.removeChild(o);
+    });
+    box.appendChild(link);
+
+    var closeBtn = document.createElement('button');
+    closeBtn.style.cssText = 'width:100%;padding:11px;background:#F5F5F5;color:#666;border:none;border-radius:10px;font-size:14px;cursor:pointer;';
+    closeBtn.textContent = '關閉';
+    closeBtn.onclick = function() { document.body.removeChild(ov); };
+    box.appendChild(closeBtn);
+
+    ov.appendChild(box);
     document.body.appendChild(ov);
     ov.addEventListener('click', function(e){ if(e.target===ov) document.body.removeChild(ov); });
   }
@@ -3095,7 +3114,7 @@
           // 複製車牌後顯示中繼框
           html += '<button onclick="toolCopyAndGo(\'' + plate + '\',\'2stroke\')" ' +
             'style="flex:1;padding:8px 6px;background:#1565C0;color:white;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">' +
-            '🔍 前往<br><span style="font-size:11px;font-weight:400;opacity:0.9">二行程查詢</span></button>';
+            '🏍️ 前往<br><span style="font-size:11px;font-weight:400;opacity:0.9">機車定檢查詢</span></button>';
           html += '</div>';
         } else {
           // 定檢日
