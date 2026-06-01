@@ -4553,9 +4553,11 @@
 .col-group-sep { width:6px; background:#F0F4F8; }
 .cell-wrap { padding:2px; }
 .cell {
-  border-radius:6px; height:24px; display:flex; align-items:center;
-  justify-content:center; font-size:16px; transition:all 0.2s;
+  border-radius:6px; height:40px; display:flex; align-items:center;
+  justify-content:center; flex-direction:column; gap:1px;
+  font-size:13px; font-weight:bold; transition:all 0.2s; line-height:1.2;
 }
+.cell-amount { font-size:9px; font-weight:normal; line-height:1; opacity:0.85; letter-spacing:-0.2px; }
 .cell.ok   { background:#E8F5E9; border:2px solid #66BB6A; color:#2E7D32; }
 .cell.miss { background:#FFF8F8; border:2px dashed #FFCDD2; color:#FFCDD2; cursor:pointer; }
 .cell.miss:active { transform:scale(0.92); }
@@ -4727,9 +4729,15 @@ function openCarMapFromModal() {
   var main     = currentPolicyData.main;
   var details  = currentPolicyData.details || [];
 
-  // ── 建立險種清單 ──
+  // ── 建立險種清單 & 保額對照表 ──
   var types = [main.type || ''];
-  details.forEach(function(d){ if(d.name) types.push(d.name); });
+  var insuredAmounts = {};  // { '第三人責任險': '3,000萬', ... }
+  details.forEach(function(d) {
+    if (d.name) {
+      types.push(d.name);
+      if (d.amount) insuredAmounts[d.name] = _cmpFmtAmount(d.amount);
+    }
+  });
 
   // ★ 強制險 & 任意險到期日（由 Libcode getPolicyDetails 從同車牌所有保單計算好）
   var compulsoryExpiry = main.compulsoryExpiry || '';
@@ -4747,7 +4755,8 @@ function openCarMapFromModal() {
     insured:         main.insuredName || '—',
     expiry:          compulsoryExpiry,   // ★ 強制險到期日
     voluntaryExpiry: voluntaryExpiry,    // ★ 任意險到期日
-    insuredTypes:    types
+    insuredTypes:    types,
+    insuredAmounts:  insuredAmounts      // ★ 險種→保額對照表
   };
 
   _cmpManualCells  = {};
@@ -4815,11 +4824,21 @@ function _cmpHasKeyword(types, keywords) {
 
 // ── 主矩陣渲染 ──
 function _cmpRenderMatrix(types) {
-  var tbody = document.getElementById('cmpMatrixBody');
+  var tbody   = document.getElementById('cmpMatrixBody');
+  var amounts = (_cmpCurrentData && _cmpCurrentData.insuredAmounts) || {};
   tbody.innerHTML = '';
   CMP_MATRIX_DEF.forEach(function(row, ri) {
-    var has = _cmpHasKeyword(types, row.keywords);
-    var tr  = document.createElement('tr');
+    var has    = _cmpHasKeyword(types, row.keywords);
+    // 找到對應保額：用 row.keywords 比對 amounts 的 key
+    var amount = '';
+    if (has) {
+      Object.keys(amounts).forEach(function(k) {
+        if (!amount && row.keywords.some(function(kw){ return k.indexOf(kw) !== -1; })) {
+          amount = amounts[k];
+        }
+      });
+    }
+    var tr = document.createElement('tr');
 
     var tdL = document.createElement('td');
     tdL.className   = 'td-label';
@@ -4834,24 +4853,25 @@ function _cmpRenderMatrix(types) {
       }
       var key = ri + '_' + ci;
       var td  = document.createElement('td');
+      var amtHtml = (has && amount) ? '<div class="cell-amount">' + amount + '</div>' : '';
+
       if (colDef === 'na') {
         td.innerHTML = '<div class="cell-wrap"><div class="cell na">—</div></div>';
       } else if (colDef === 'toggle') {
-        // 手動選擇欄：不做自動判斷，純手動勾選
         var isManual = !!_cmpManualCells[key];
         if (isManual) {
-          td.innerHTML = '<div class="cell-wrap"><div class="cell manual" onclick="_cmpToggleCell(\'' + key + '\')" title="點擊取消">✓</div></div>';
+          td.innerHTML = '<div class="cell-wrap"><div class="cell manual" onclick="_cmpToggleCell('' + key + '')" title="點擊取消">✓</div></div>';
         } else {
-          td.innerHTML = '<div class="cell-wrap"><div class="cell miss" onclick="_cmpToggleCell(\'' + key + '\')" title="點擊勾選">○</div></div>';
+          td.innerHTML = '<div class="cell-wrap"><div class="cell miss" onclick="_cmpToggleCell('' + key + '')" title="點擊勾選">○</div></div>';
         }
       } else {
         var isManual = !!_cmpManualCells[key];
         if (has) {
-          td.innerHTML = '<div class="cell-wrap"><div class="cell ok">✓</div></div>';
+          td.innerHTML = '<div class="cell-wrap"><div class="cell ok">✓' + amtHtml + '</div></div>';
         } else if (isManual) {
-          td.innerHTML = '<div class="cell-wrap"><div class="cell manual" onclick="_cmpToggleCell(\'' + key + '\')" title="點擊取消">✓</div></div>';
+          td.innerHTML = '<div class="cell-wrap"><div class="cell manual" onclick="_cmpToggleCell('' + key + '')" title="點擊取消">✓</div></div>';
         } else {
-          td.innerHTML = '<div class="cell-wrap"><div class="cell miss" onclick="_cmpToggleCell(\'' + key + '\')" title="點擊手動標記">○</div></div>';
+          td.innerHTML = '<div class="cell-wrap"><div class="cell miss" onclick="_cmpToggleCell('' + key + '')" title="點擊手動標記">○</div></div>';
         }
       }
       tr.appendChild(td);
@@ -4867,24 +4887,47 @@ function _cmpRenderMatrix(types) {
 
 // ── 附加保障渲染 ──
 function _cmpRenderAddons(types) {
-  var list = document.getElementById('cmpAddonList');
+  var list    = document.getElementById('cmpAddonList');
+  var amounts = (_cmpCurrentData && _cmpCurrentData.insuredAmounts) || {};
   list.innerHTML = '';
   CMP_ADDON_DEF.forEach(function(addon) {
     var has      = _cmpHasKeyword(types, addon.keywords);
     var isManual = !!_cmpManualAddons[addon.label];
     var cls      = has ? 'ok' : (isManual ? 'manual' : 'miss');
     var icon     = (has || isManual) ? '✓' : '○';
-    var txt      = has ? '已投保' : (isManual ? '手動標記' : '未投保');
-    var div      = document.createElement('div');
+    // 找保額
+    var amount = '';
+    if (has) {
+      Object.keys(amounts).forEach(function(k) {
+        if (!amount && addon.keywords.some(function(kw){ return k.indexOf(kw) !== -1; })) {
+          amount = amounts[k];
+        }
+      });
+    }
+    var statusTxt = has
+      ? ('已投保' + (amount ? '　' + amount : ''))
+      : (isManual ? '手動標記' : '未投保');
+    var div = document.createElement('div');
     div.className = 'addon-item';
     if (!has) div.style.cursor = 'pointer';
     div.innerHTML =
       '<div class="addon-cell ' + cls + '">' + icon + '</div>' +
       '<div><div class="addon-name">' + addon.label + '</div>' +
-      '<div class="addon-status">' + txt + '</div></div>';
+      '<div class="addon-status">' + statusTxt + '</div></div>';
     if (!has) div.onclick = function(){ _cmpToggleAddon(addon.label); };
     list.appendChild(div);
   });
+}
+
+// ── 保額格式化：數字 → 萬/億，字串直接傳回 ──
+function _cmpFmtAmount(val) {
+  if (!val) return '';
+  var str = String(val).replace(/,/g, '').trim();
+  var num = parseFloat(str);
+  if (isNaN(num)) return str;  // 非數字（例如「市值」）直接回傳
+  if (num >= 100000000) return (num / 100000000).toFixed(0) + '億';
+  if (num >= 10000)     return (num / 10000).toFixed(0) + '萬';
+  return str;
 }
 
 // ── 手動切換 ──
