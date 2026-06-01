@@ -363,22 +363,22 @@
       </button>
     </div>
 
-    <!-- ★ 追蹤管理 2x2 -->
+    <!-- ★ 追蹤管理 2x2（v5.3）-->
     <div class="fn-group-label" style="margin-top:8px;">追蹤管理</div>
     <div class="fn-grid-2">
-      <button onclick="openCarMapFromModal()"
-        style="padding:12px 6px;background:#E6F1FB;color:#0C447C;border:1.5px solid #85B7EB;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;line-height:1.4;text-align:center;">
-        🛡️ 車險保障圖卡<br><span style="font-size:12px;font-weight:400;color:#185FA5">保障缺口分析</span>
-      </button>
       <button id="btnExpiryTrack" onclick="toggleExpiryPanel()"
         style="padding:12px 6px;background:#EEEDFE;color:#3C3489;border:1.5px solid #AFA9EC;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;line-height:1.4;text-align:center;">
-        📅 到期保單追蹤<br><span style="font-size:12px;font-weight:400;color:#534AB7">點選選擇日期</span>
+        📅 即將到期追蹤<br><span style="font-size:12px;font-weight:400;color:#534AB7">點選選擇日期</span>
+      </button>
+      <button onclick="loadUnrenewed()"
+        style="padding:12px 6px;background:#FCEBEB;color:#791F1F;border:1.5px solid #F09595;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;line-height:1.4;text-align:center;">
+        ⚠️ 近30日未續保<br><span style="font-size:12px;font-weight:400;color:#A32D2D">未續保名冊查詢</span>
       </button>
     </div>
 
-    <!-- 到期追蹤展開面板 -->
+    <!-- 即將到期追蹤展開面板 -->
     <div id="expiryTrackPanel" style="display:none;margin-top:6px;background:#F3E5F5;border-radius:10px;padding:14px;border:1.5px solid #CE93D8;">
-      <div style="font-weight:bold;color:#6A1B9A;font-size:13px;margin-bottom:10px;">📅 到期保單追蹤 — 選擇查詢區間</div>
+      <div style="font-weight:bold;color:#6A1B9A;font-size:13px;margin-bottom:10px;">📅 即將到期保單追蹤 — 選擇查詢區間</div>
       <div style="display:flex;gap:6px;margin-bottom:8px;">
         <div style="flex:1;">
           <div style="font-size:11px;color:#888;margin-bottom:3px;">開始日期</div>
@@ -389,10 +389,7 @@
           <input type="date" id="trackEndDate" style="width:100%;box-sizing:border-box;padding:7px;border:1px solid #CE93D8;border-radius:6px;font-size:13px;">
         </div>
       </div>
-      <div style="display:flex;gap:6px;">
-        <button onclick="loadExpiryRange()" style="flex:2;padding:9px;background:#6A1B9A;color:white;border:none;border-radius:6px;font-size:13px;font-weight:bold;cursor:pointer;">🔍 查詢到期保單</button>
-        <button onclick="loadUnrenewed()" style="flex:3;padding:9px;background:#C62828;color:white;border:none;border-radius:6px;font-size:13px;font-weight:bold;cursor:pointer;">⚠️ 近30天未續保名冊</button>
-      </div>
+      <button onclick="loadExpiryRange()" style="width:100%;padding:9px;background:#6A1B9A;color:white;border:none;border-radius:6px;font-size:13px;font-weight:bold;cursor:pointer;">🔍 查詢即將到期保單</button>
       <div style="font-size:11px;color:#888;margin-top:6px;">💡 查詢後可直接點選每張保單更新續保狀態</div>
     </div>
   </div>
@@ -4533,12 +4530,12 @@
 }
 .card-info-bar {
   background:linear-gradient(135deg,#1A237E 0%,#1565C0 60%,#00A3E0 100%);
-  padding:14px 16px; display:flex; justify-content:space-between;
+  padding:10px 14px; display:flex; justify-content:space-between;
   align-items:flex-end; flex-wrap:wrap; gap:6px;
 }
 .card-info-bar-left { display:flex; flex-direction:column; gap:2px; }
 .card-brand { font-size:11px; color:rgba(255,255,255,0.7); letter-spacing:2px; font-weight:bold; }
-.card-plate { font-size:26px; font-weight:900; color:white; letter-spacing:3px; line-height:1; }
+.card-plate { font-size:22px; font-weight:900; color:white; letter-spacing:3px; line-height:1; }
 .card-insured { font-size:13px; color:rgba(255,255,255,0.9); margin-top:3px; }
 .card-info-bar-right { text-align:right; }
 .card-expiry-label { font-size:10px; color:rgba(255,255,255,0.6); margin-bottom:2px; }
@@ -4547,17 +4544,17 @@
   background:rgba(255,255,255,0.2); padding:3px 10px; border-radius:10px;
 }
 .card-expiry-val.expiring { background:#FF5722; }
-.matrix-wrap { padding:14px 12px 8px; overflow-x:auto; }
-.matrix-table { width:100%; border-collapse:collapse; font-size:12px; table-layout:fixed; }
+.matrix-wrap { padding:8px 10px 4px; overflow-x:auto; }
+.matrix-table { width:100%; border-collapse:collapse; font-size:11px; table-layout:fixed; }
 .matrix-table th { padding:6px 4px; text-align:center; font-size:11px; font-weight:bold; }
 .th-group { background:#E3F2FD; color:#1565C0; }
 .th-group.orange { background:#FFF3E0; color:#E65100; }
 .th-item { color:#666; font-weight:normal; font-size:10px; padding:3px 2px 6px; }
 .td-label { text-align:left !important; font-size:12px; font-weight:bold; color:#333; padding:0 6px 0 2px !important; white-space:nowrap; }
 .col-group-sep { width:6px; background:#F0F4F8; }
-.cell-wrap { padding:3px; }
+.cell-wrap { padding:2px; }
 .cell {
-  border-radius:6px; height:36px; display:flex; align-items:center;
+  border-radius:6px; height:24px; display:flex; align-items:center;
   justify-content:center; font-size:16px; transition:all 0.2s;
 }
 .cell.ok   { background:#E8F5E9; border:2px solid #66BB6A; color:#2E7D32; }
@@ -4575,13 +4572,13 @@
   border-right:1px solid #EEE;
 }
 .addon-item:last-child { border-right:none; }
-.addon-cell { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+.addon-cell { width:26px; height:26px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
 .addon-cell.ok     { background:#E8F5E9; border:2px solid #66BB6A; }
 .addon-cell.miss   { background:#FFF8F8; border:2px dashed #FFCDD2; }
 .addon-cell.manual { background:#E3F2FD; border:2px solid #42A5F5; }
 .addon-name { font-size:13px; font-weight:bold; color:#333; }
 .addon-status { font-size:11px; color:#999; }
-.legend-bar { display:flex; gap:12px; padding:8px 12px 14px; flex-wrap:wrap; }
+.legend-bar { display:flex; gap:10px; padding:6px 10px 10px; flex-wrap:wrap; }
 .legend-item { display:flex; align-items:center; gap:4px; font-size:11px; color:#666; }
 .legend-dot { width:14px; height:14px; border-radius:3px; flex-shrink:0; }
 .legend-dot.ok     { background:#E8F5E9; border:2px solid #66BB6A; }
@@ -4693,7 +4690,7 @@ var CMP_MATRIX_DEF = [
   { label:'強制責任險', keywords:['強制'],                            cols:['na','ok_if_has','na','ok_if_has','na'] },
   { label:'第三人體傷', keywords:['第三人責任','第三人體傷','體傷'],    cols:['na','na','na','ok_if_has','na'] },
   { label:'第三人財損', keywords:['第三人財損'],                       cols:['na','na','na','na','ok_if_has'] },
-  { label:'超額責任險', keywords:['超額'],                             cols:['na','ok_if_has','na','ok_if_has','ok_if_has'] },
+  { label:'超額責任險', keywords:['超額'],                             cols:['na','toggle','na','ok_if_has','ok_if_has'] },
   { label:'乘客責任險', keywords:['乘客'],                             cols:['na','ok_if_has','na','na','na'] },
   { label:'駕駛人傷害', keywords:['駕駛人'],                           cols:['ok_if_has','na','na','na','na'] },
   { label:'車體險',     keywords:['車體損失','甲式','乙式','丙式'],     cols:['na','na','ok_if_has','na','na'] },
@@ -4806,6 +4803,14 @@ function _cmpRenderMatrix(types) {
       var td  = document.createElement('td');
       if (colDef === 'na') {
         td.innerHTML = '<div class="cell-wrap"><div class="cell na">—</div></div>';
+      } else if (colDef === 'toggle') {
+        // 手動選擇欄：不做自動判斷，純手動勾選
+        var isManual = !!_cmpManualCells[key];
+        if (isManual) {
+          td.innerHTML = '<div class="cell-wrap"><div class="cell manual" onclick="_cmpToggleCell(\'' + key + '\')" title="點擊取消">✓</div></div>';
+        } else {
+          td.innerHTML = '<div class="cell-wrap"><div class="cell miss" onclick="_cmpToggleCell(\'' + key + '\')" title="點擊勾選">○</div></div>';
+        }
       } else {
         var isManual = !!_cmpManualCells[key];
         if (has) {
