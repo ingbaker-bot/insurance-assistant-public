@@ -4613,29 +4613,29 @@
 <!-- HTML 結構 -->
 <!-- ★ 到期日手動輸入面板（獨立彈出，不影響圖卡截圖）-->
 <div id="cmpExpiryEditPanel" style="
-  display:none; position:fixed; bottom:0; left:0; width:100%; z-index:3000;
-  background:white; border-radius:18px 18px 0 0;
-  box-shadow:0 -4px 20px rgba(0,0,0,0.18); padding:20px 20px 32px;
-  box-sizing:border-box;">
-  <div style="font-size:14px; font-weight:bold; color:#333; margin-bottom:14px;" id="cmpEditPanelTitle">
-    ✏️ 輸入到期日
-  </div>
-  <input type="text" id="cmpExpiryEditInput"
-    placeholder="例：115/06/09"
-    style="width:100%; padding:12px 14px; border:2px solid #00A3E0; border-radius:10px;
-           font-size:16px; font-weight:bold; color:#333; box-sizing:border-box;
-           margin-bottom:12px; outline:none;">
-  <div style="display:flex; gap:10px;">
-    <button onclick="_cmpConfirmExpiry()"
-      style="flex:2; padding:13px; background:#00A3E0; color:white; border:none;
-             border-radius:10px; font-size:15px; font-weight:bold; cursor:pointer;">
-      ✓ 確認
-    </button>
-    <button onclick="_cmpCancelExpiry()"
-      style="flex:1; padding:13px; background:#F5F5F5; color:#666; border:none;
-             border-radius:10px; font-size:15px; cursor:pointer;">
-      取消
-    </button>
+  display:none; position:fixed; bottom:0; left:0; width:100%; z-index:3000;">
+  <div style="max-width:600px; margin:0 auto; background:white; border-radius:18px 18px 0 0;
+    box-shadow:0 -4px 20px rgba(0,0,0,0.18); padding:20px 20px 32px; box-sizing:border-box;">
+    <div style="font-size:14px; font-weight:bold; color:#333; margin-bottom:14px;" id="cmpEditPanelTitle">
+      ✏️ 輸入到期日
+    </div>
+    <input type="text" id="cmpExpiryEditInput"
+      placeholder="例：115/06/09"
+      style="width:100%; padding:12px 14px; border:2px solid #00A3E0; border-radius:10px;
+             font-size:16px; font-weight:bold; color:#333; box-sizing:border-box;
+             margin-bottom:12px; outline:none;">
+    <div style="display:flex; gap:10px;">
+      <button onclick="_cmpConfirmExpiry()"
+        style="flex:2; padding:13px; background:#00A3E0; color:white; border:none;
+               border-radius:10px; font-size:15px; font-weight:bold; cursor:pointer;">
+        ✓ 確認
+      </button>
+      <button onclick="_cmpCancelExpiry()"
+        style="flex:1; padding:13px; background:#F5F5F5; color:#666; border:none;
+               border-radius:10px; font-size:15px; cursor:pointer;">
+        取消
+      </button>
+    </div>
   </div>
 </div>
 <div id="cmpExpiryEditBg" onclick="_cmpCancelExpiry()"
@@ -4644,30 +4644,30 @@
 
 <!-- ★ 手動勾選保額輸入面板 -->
 <div id="cmpManualInputPanel" style="
-  display:none; position:fixed; bottom:0; left:0; width:100%; z-index:3000;
-  background:white; border-radius:18px 18px 0 0;
-  box-shadow:0 -4px 20px rgba(0,0,0,0.18); padding:20px 20px 32px;
-  box-sizing:border-box;">
-  <div style="font-size:14px; font-weight:bold; color:#333; margin-bottom:14px;" id="cmpManualInputTitle">
-    ✏️ 勾選並輸入保額
-  </div>
-  <input type="text" id="cmpManualAmtInput"
-    placeholder="例：300萬、3000000（可空白）"
-    style="width:100%; padding:12px 14px; border:2px solid #42A5F5; border-radius:10px;
-           font-size:16px; font-weight:bold; color:#333; box-sizing:border-box;
-           margin-bottom:12px; outline:none;"
-    onkeydown="if(event.key==='Enter')_cmpConfirmManualInput()">
-  <div style="display:flex; gap:10px;">
-    <button onclick="_cmpConfirmManualInput()"
-      style="flex:2; padding:13px; background:#1565C0; color:white; border:none;
-             border-radius:10px; font-size:15px; font-weight:bold; cursor:pointer;">
-      ✓ 確認勾選
-    </button>
-    <button id="cmpManualCancelBtn" onclick="_cmpCancelManualMark()"
-      style="flex:1; padding:13px; background:#F5F5F5; color:#666; border:none;
-             border-radius:10px; font-size:15px; cursor:pointer;">
-      關閉
-    </button>
+  display:none; position:fixed; bottom:0; left:0; width:100%; z-index:3000;">
+  <div style="max-width:600px; margin:0 auto; background:white; border-radius:18px 18px 0 0;
+    box-shadow:0 -4px 20px rgba(0,0,0,0.18); padding:20px 20px 32px; box-sizing:border-box;">
+    <div style="font-size:14px; font-weight:bold; color:#333; margin-bottom:14px;" id="cmpManualInputTitle">
+      ✏️ 勾選並輸入保額
+    </div>
+    <input type="text" id="cmpManualAmtInput"
+      placeholder="例：300萬、3000000（可空白）"
+      style="width:100%; padding:12px 14px; border:2px solid #42A5F5; border-radius:10px;
+             font-size:16px; font-weight:bold; color:#333; box-sizing:border-box;
+             margin-bottom:12px; outline:none;"
+      onkeydown="if(event.key==='Enter')_cmpConfirmManualInput()">
+    <div style="display:flex; gap:10px;">
+      <button onclick="_cmpConfirmManualInput()"
+        style="flex:2; padding:13px; background:#1565C0; color:white; border:none;
+               border-radius:10px; font-size:15px; font-weight:bold; cursor:pointer;">
+        ✓ 確認勾選
+      </button>
+      <button id="cmpManualCancelBtn" onclick="_cmpCancelManualMark()"
+        style="flex:1; padding:13px; background:#F5F5F5; color:#666; border:none;
+               border-radius:10px; font-size:15px; cursor:pointer;">
+        關閉
+      </button>
+    </div>
   </div>
 </div>
 <div id="cmpManualInputBg" onclick="_cmpCloseManalInput()"
