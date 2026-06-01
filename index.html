@@ -4623,8 +4623,10 @@
           <span class="card-insured" id="cmpInsured">被保險人：—</span>
         </div>
         <div class="card-info-bar-right">
-          <div class="card-expiry-label">強制險到期日</div>
+          <div class="card-expiry-label">🔵 強制險到期日</div>
           <div class="card-expiry-val" id="cmpExpiry">—</div>
+          <div class="card-expiry-label" id="cmpVoluntaryLabel" style="margin-top:6px;">🟢 任意險到期日</div>
+          <div class="card-expiry-val" id="cmpVoluntaryExpiry" style="background:rgba(255,255,255,0.15);">—</div>
         </div>
       </div>
       <div class="matrix-wrap">
@@ -4719,11 +4721,41 @@ function openCarMapFromModal() {
   var types = [main.type || ''];
   details.forEach(function(d){ if(d.name) types.push(d.name); });
 
+  // ★ 分別抓強制險 & 任意險到期日
+  // 判斷目前這張保單是強制險還是任意險
+  var isCompulsory = (main.type || '').indexOf('強制') !== -1;
+
+  // 強制險到期日：若本身是強制險用 main.expiry，否則從 details 找
+  var compulsoryExpiry = '';
+  var voluntaryExpiry  = '';
+
+  if (isCompulsory) {
+    compulsoryExpiry = main.expiry || main.expiryDate || '';
+    // 任意險從 details 找（附加險不含強制的那張）
+    details.forEach(function(d) {
+      if (!voluntaryExpiry && d.name && d.name.indexOf('強制') === -1
+          && (d.name.indexOf('任意') !== -1 || d.name.indexOf('車體') !== -1
+              || d.name.indexOf('第三人') !== -1 || d.name.indexOf('責任') !== -1
+              || d.name.indexOf('駕駛人') !== -1)) {
+        voluntaryExpiry = d.expiry || d.expiryDate || '';
+      }
+    });
+  } else {
+    voluntaryExpiry  = main.expiry || main.expiryDate || '';
+    // 強制險從 details 找
+    details.forEach(function(d) {
+      if (!compulsoryExpiry && d.name && d.name.indexOf('強制') !== -1) {
+        compulsoryExpiry = d.expiry || d.expiryDate || '';
+      }
+    });
+  }
+
   _cmpCurrentData = {
-    plate:        main.plateNo    || '—',
-    insured:      main.insuredName|| '—',
-    expiry:       main.expiry     || main.expiryDate || '',
-    insuredTypes: types
+    plate:           main.plateNo     || '—',
+    insured:         main.insuredName || '—',
+    expiry:          compulsoryExpiry,   // ★ 強制險到期日
+    voluntaryExpiry: voluntaryExpiry,    // ★ 任意險到期日
+    insuredTypes:    types
   };
 
   _cmpManualCells  = {};
@@ -4753,9 +4785,25 @@ function _cmpRenderCard() {
   document.getElementById('cmpPlate').textContent   = d.plate;
   document.getElementById('cmpInsured').textContent = '被保險人：' + d.insured;
 
+  // ★ 強制險到期日
   var expiryEl = document.getElementById('cmpExpiry');
   expiryEl.textContent = d.expiry || '—';
   expiryEl.className   = 'card-expiry-val' + (_cmpIsExpiringSoon(d.expiry) ? ' expiring' : '');
+
+  // ★ 任意險到期日（有值才顯示，沒有就隱藏整列）
+  var volEl    = document.getElementById('cmpVoluntaryExpiry');
+  var volLabel = document.getElementById('cmpVoluntaryLabel');
+  if (volEl && volLabel) {
+    if (d.voluntaryExpiry) {
+      volEl.textContent    = d.voluntaryExpiry;
+      volEl.className      = 'card-expiry-val' + (_cmpIsExpiringSoon(d.voluntaryExpiry) ? ' expiring' : '');
+      volEl.style.display    = '';
+      volLabel.style.display = '';
+    } else {
+      volEl.style.display    = 'none';
+      volLabel.style.display = 'none';
+    }
+  }
 
   // 顧問資訊（直接用系統現有全域變數）
   document.getElementById('cmpAdvisor').textContent      = ADVISOR_NAME  || '';
