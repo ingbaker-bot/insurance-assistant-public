@@ -4693,6 +4693,15 @@
 
 <!-- JavaScript -->
 <script>
+// ★ 全域橋接函式：第一層主頁按鈕呼叫此函式
+//   實際邏輯在主 script 閉包內的 _openCarMapFromModal
+function openCarMapFromModal() {
+  if (typeof _openCarMapFromModal === "function") {
+    _openCarMapFromModal();
+  } else {
+    alert("請先開啟一張保單");
+  }
+}
 // ════════════════════════════════════
 // ★ 車險保障矩陣定義
 // cols: [我方駕駛, 我方乘客, 我方車輛, 對方駕/乘/行人, 對方車輛財產]
@@ -4721,7 +4730,7 @@ var _cmpCurrentData  = null;  // { plate, insured, expiry, insuredTypes }
 // ════════════════════════════════════
 // ★ 從保單詳情 Modal 開啟（主要入口）
 // ════════════════════════════════════
-function openCarMapFromModal() {
+function _openCarMapFromModal() {
   if (!currentPolicyData || !currentPolicyData.main) {
     alert('請先開啟一張保單');
     return;
