@@ -4611,6 +4611,37 @@
 </style>
 
 <!-- HTML 結構 -->
+<!-- ★ 到期日手動輸入面板（獨立彈出，不影響圖卡截圖）-->
+<div id="cmpExpiryEditPanel" style="
+  display:none; position:fixed; bottom:0; left:0; width:100%; z-index:3000;
+  background:white; border-radius:18px 18px 0 0;
+  box-shadow:0 -4px 20px rgba(0,0,0,0.18); padding:20px 20px 32px;
+  box-sizing:border-box;">
+  <div style="font-size:14px; font-weight:bold; color:#333; margin-bottom:14px;" id="cmpEditPanelTitle">
+    ✏️ 輸入到期日
+  </div>
+  <input type="text" id="cmpExpiryEditInput"
+    placeholder="例：115/06/09"
+    style="width:100%; padding:12px 14px; border:2px solid #00A3E0; border-radius:10px;
+           font-size:16px; font-weight:bold; color:#333; box-sizing:border-box;
+           margin-bottom:12px; outline:none;">
+  <div style="display:flex; gap:10px;">
+    <button onclick="_cmpConfirmExpiry()"
+      style="flex:2; padding:13px; background:#00A3E0; color:white; border:none;
+             border-radius:10px; font-size:15px; font-weight:bold; cursor:pointer;">
+      ✓ 確認
+    </button>
+    <button onclick="_cmpCancelExpiry()"
+      style="flex:1; padding:13px; background:#F5F5F5; color:#666; border:none;
+             border-radius:10px; font-size:15px; cursor:pointer;">
+      取消
+    </button>
+  </div>
+</div>
+<div id="cmpExpiryEditBg" onclick="_cmpCancelExpiry()"
+  style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+         background:rgba(0,0,0,0.4); z-index:2999;"></div>
+
 <div id="carMapOverlay">
   <div id="carMapPanel">
     <div class="cmp-header">
@@ -4628,17 +4659,9 @@
         <div class="card-info-bar-right">
           <div class="card-expiry-label">🔵 強制險到期日</div>
           <div class="card-expiry-val" id="cmpExpiry" onclick="_cmpEditExpiry('compulsory')" title="點擊手動輸入">—</div>
-          <input type="text" id="cmpExpiryInput" placeholder="例：115/06/09"
-            style="display:none;width:100%;padding:3px 8px;border-radius:8px;border:1.5px solid rgba(255,255,255,0.6);
-                   background:rgba(255,255,255,0.15);color:white;font-size:13px;font-weight:bold;text-align:right;box-sizing:border-box;"
-            onblur="_cmpSaveExpiry('compulsory')" onkeydown="if(event.key==='Enter')_cmpSaveExpiry('compulsory')">
           <div class="card-expiry-label" id="cmpVoluntaryLabel" style="margin-top:6px;">🟢 任意險到期日</div>
           <div class="card-expiry-val" id="cmpVoluntaryExpiry" style="background:rgba(255,255,255,0.15);"
             onclick="_cmpEditExpiry('voluntary')" title="點擊手動輸入">—</div>
-          <input type="text" id="cmpVoluntaryInput" placeholder="例：115/08/19"
-            style="display:none;width:100%;padding:3px 8px;border-radius:8px;border:1.5px solid rgba(255,255,255,0.6);
-                   background:rgba(255,255,255,0.15);color:white;font-size:13px;font-weight:bold;text-align:right;box-sizing:border-box;margin-top:4px;"
-            onblur="_cmpSaveExpiry('voluntary')" onkeydown="if(event.key==='Enter')_cmpSaveExpiry('voluntary')">
         </div>
       </div>
       <div class="matrix-wrap">
@@ -5002,29 +5025,41 @@ function _cmpFallbackLine(canvas) {
 
 // ── 工具 ──
 // ── 手動輸入到期日 ──
+var _cmpEditType = '';  // 記錄目前編輯的是哪個欄位
+
 function _cmpEditExpiry(type) {
-  var valEl   = document.getElementById(type === 'compulsory' ? 'cmpExpiry'         : 'cmpVoluntaryExpiry');
-  var inputEl = document.getElementById(type === 'compulsory' ? 'cmpExpiryInput'    : 'cmpVoluntaryInput');
-  if (!valEl || !inputEl) return;
-  var cur = valEl.textContent;
-  inputEl.value = (cur && cur.indexOf('點擊') === -1) ? cur : '';
-  valEl.style.display   = 'none';
-  inputEl.style.display = 'block';
-  inputEl.focus();
+  _cmpEditType = type;
+  var valEl = document.getElementById(type === 'compulsory' ? 'cmpExpiry' : 'cmpVoluntaryExpiry');
+  var cur   = valEl ? valEl.textContent : '';
+  var title = type === 'compulsory' ? '🔵 輸入強制險到期日' : '🟢 輸入任意險到期日';
+
+  document.getElementById('cmpEditPanelTitle').textContent = title;
+  var input = document.getElementById('cmpExpiryEditInput');
+  input.value = (cur && cur.indexOf('點擊') === -1 && cur !== '—') ? cur : '';
+
+  document.getElementById('cmpExpiryEditBg').style.display    = 'block';
+  document.getElementById('cmpExpiryEditPanel').style.display = 'block';
+  setTimeout(function(){ input.focus(); }, 150);
 }
-function _cmpSaveExpiry(type) {
-  var valEl   = document.getElementById(type === 'compulsory' ? 'cmpExpiry'         : 'cmpVoluntaryExpiry');
-  var inputEl = document.getElementById(type === 'compulsory' ? 'cmpExpiryInput'    : 'cmpVoluntaryInput');
-  if (!valEl || !inputEl) return;
-  var val = inputEl.value.trim();
+
+function _cmpConfirmExpiry() {
+  var val   = document.getElementById('cmpExpiryEditInput').value.trim();
+  var type  = _cmpEditType;
   if (val) {
+    var valEl = document.getElementById(type === 'compulsory' ? 'cmpExpiry' : 'cmpVoluntaryExpiry');
     if (type === 'compulsory') _cmpCurrentData.expiry         = val;
     else                       _cmpCurrentData.voluntaryExpiry = val;
-    valEl.textContent  = val;
-    valEl.className    = 'card-expiry-val' + (_cmpIsExpiringSoon(val) ? ' expiring' : '');
+    if (valEl) {
+      valEl.textContent = val;
+      valEl.className   = 'card-expiry-val' + (_cmpIsExpiringSoon(val) ? ' expiring' : '');
+    }
   }
-  inputEl.style.display = 'none';
-  valEl.style.display   = '';
+  _cmpCancelExpiry();
+}
+
+function _cmpCancelExpiry() {
+  document.getElementById('cmpExpiryEditPanel').style.display = 'none';
+  document.getElementById('cmpExpiryEditBg').style.display    = 'none';
 }
 
 function _cmpIsExpiringSoon(expiry) {
