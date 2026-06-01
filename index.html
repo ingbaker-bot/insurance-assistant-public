@@ -4642,6 +4642,38 @@
   style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
          background:rgba(0,0,0,0.4); z-index:2999;"></div>
 
+<!-- ★ 手動勾選保額輸入面板 -->
+<div id="cmpManualInputPanel" style="
+  display:none; position:fixed; bottom:0; left:0; width:100%; z-index:3000;
+  background:white; border-radius:18px 18px 0 0;
+  box-shadow:0 -4px 20px rgba(0,0,0,0.18); padding:20px 20px 32px;
+  box-sizing:border-box;">
+  <div style="font-size:14px; font-weight:bold; color:#333; margin-bottom:14px;" id="cmpManualInputTitle">
+    ✏️ 勾選並輸入保額
+  </div>
+  <input type="text" id="cmpManualAmtInput"
+    placeholder="例：300萬、3000000（可空白）"
+    style="width:100%; padding:12px 14px; border:2px solid #42A5F5; border-radius:10px;
+           font-size:16px; font-weight:bold; color:#333; box-sizing:border-box;
+           margin-bottom:12px; outline:none;"
+    onkeydown="if(event.key==='Enter')_cmpConfirmManualInput()">
+  <div style="display:flex; gap:10px;">
+    <button onclick="_cmpConfirmManualInput()"
+      style="flex:2; padding:13px; background:#1565C0; color:white; border:none;
+             border-radius:10px; font-size:15px; font-weight:bold; cursor:pointer;">
+      ✓ 確認勾選
+    </button>
+    <button id="cmpManualCancelBtn" onclick="_cmpCancelManualMark()"
+      style="flex:1; padding:13px; background:#F5F5F5; color:#666; border:none;
+             border-radius:10px; font-size:15px; cursor:pointer;">
+      關閉
+    </button>
+  </div>
+</div>
+<div id="cmpManualInputBg" onclick="_cmpCloseManalInput()"
+  style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+         background:rgba(0,0,0,0.4); z-index:2999;"></div>
+
 <div id="carMapOverlay">
   <div id="carMapPanel">
     <div class="cmp-header">
@@ -4746,8 +4778,9 @@ var CMP_ADDON_DEF = [
 ];
 
 // ── 狀態 ──
-var _cmpManualCells  = {};
-var _cmpManualAddons = {};
+var _cmpManualCells   = {};
+var _cmpManualAddons  = {};
+var _cmpManualAmounts = {};  // { "ri_ci": "500萬" } 手動勾選時填入的保額
 var _cmpCurrentData  = null;  // { plate, insured, expiry, insuredTypes }
 
 // ════════════════════════════════════
@@ -4890,20 +4923,24 @@ function _cmpRenderMatrix(types) {
       if (colDef === 'na') {
         td.innerHTML = '<div class="cell-wrap"><div class="cell na">—</div></div>';
       } else if (colDef === 'toggle') {
-        var isManual = !!_cmpManualCells[key];
+        var isManual   = !!_cmpManualCells[key];
+        var manualAmt  = _cmpManualAmounts[key] || '';
+        var manualHtml = manualAmt ? '<div class="cell-amount">' + manualAmt + '</div>' : '';
         if (isManual) {
-          td.innerHTML = '<div class="cell-wrap"><div class="cell manual" onclick="_cmpToggleCell(\'' + key + '\')" title="點擊取消">✓</div></div>';
+          td.innerHTML = '<div class="cell-wrap"><div class="cell manual" onclick="_cmpToggleCell(\'' + key + '\')" title="點擊取消">✓' + manualHtml + '</div></div>';
         } else {
-          td.innerHTML = '<div class="cell-wrap"><div class="cell miss" onclick="_cmpToggleCell(\'' + key + '\')" title="點擊勾選">○</div></div>';
+          td.innerHTML = '<div class="cell-wrap"><div class="cell miss" onclick="_cmpOpenManualInput(\'' + key + '\')" title="點擊勾選並輸入保額">○</div></div>';
         }
       } else {
-        var isManual = !!_cmpManualCells[key];
+        var isManual   = !!_cmpManualCells[key];
+        var manualAmt  = _cmpManualAmounts[key] || '';
+        var manualHtml = manualAmt ? '<div class="cell-amount">' + manualAmt + '</div>' : '';
         if (has) {
           td.innerHTML = '<div class="cell-wrap"><div class="cell ok">✓' + amtHtml + '</div></div>';
         } else if (isManual) {
-          td.innerHTML = '<div class="cell-wrap"><div class="cell manual" onclick="_cmpToggleCell(\'' + key + '\')" title="點擊取消">✓</div></div>';
+          td.innerHTML = '<div class="cell-wrap"><div class="cell manual" onclick="_cmpOpenManualInput(\'' + key + '\')" title="點擊修改保額">✓' + manualHtml + '</div></div>';
         } else {
-          td.innerHTML = '<div class="cell-wrap"><div class="cell miss" onclick="_cmpToggleCell(\'' + key + '\')" title="點擊手動標記">○</div></div>';
+          td.innerHTML = '<div class="cell-wrap"><div class="cell miss" onclick="_cmpOpenManualInput(\'' + key + '\')" title="點擊勾選並輸入保額">○</div></div>';
         }
       }
       tr.appendChild(td);
@@ -4962,11 +4999,67 @@ function _cmpFmtAmount(val) {
   return str;
 }
 
-// ── 手動切換 ──
-function _cmpToggleCell(key) {
-  _cmpManualCells[key] = !_cmpManualCells[key];
+// ── 手動勾選：點擊開啟保額輸入面板 ──
+var _cmpManualInputKey = '';
+
+function _cmpOpenManualInput(key) {
+  _cmpManualInputKey = key;
+  var isMarked = !!_cmpManualCells[key];
+  var curAmt   = _cmpManualAmounts[key] || '';
+
+  document.getElementById('cmpManualInputTitle').textContent =
+    isMarked ? '✏️ 修改保額（空白表示不顯示）' : '✏️ 勾選並輸入保額（可空白）';
+  document.getElementById('cmpManualAmtInput').value = curAmt;
+
+  // 取消按鈕：若已勾選才顯示「取消勾選」
+  var cancelBtn = document.getElementById('cmpManualCancelBtn');
+  cancelBtn.textContent = isMarked ? '取消勾選' : '關閉';
+  cancelBtn.style.background = isMarked ? '#FFEBEE' : '#F5F5F5';
+  cancelBtn.style.color      = isMarked ? '#C62828' : '#666';
+
+  document.getElementById('cmpManualInputBg').style.display    = 'block';
+  document.getElementById('cmpManualInputPanel').style.display = 'block';
+  setTimeout(function(){ document.getElementById('cmpManualAmtInput').focus(); }, 150);
+}
+
+function _cmpConfirmManualInput() {
+  var key = _cmpManualInputKey;
+  var amt = document.getElementById('cmpManualAmtInput').value.trim();
+  _cmpManualCells[key]   = true;
+  _cmpManualAmounts[key] = _cmpFmtAmount(amt);
+  _cmpCloseManalInput();
   _cmpRenderMatrix(_cmpCurrentData.insuredTypes);
-  _cmpToast(_cmpManualCells[key] ? '✓ 已手動標記' : '已取消標記');
+  _cmpToast('✓ 已手動標記' + (amt ? '　' + _cmpFmtAmount(amt) : ''));
+}
+
+function _cmpCancelManualMark() {
+  var key     = _cmpManualInputKey;
+  var isMarked = !!_cmpManualCells[key];
+  if (isMarked) {
+    // 取消勾選
+    delete _cmpManualCells[key];
+    delete _cmpManualAmounts[key];
+    _cmpRenderMatrix(_cmpCurrentData.insuredTypes);
+    _cmpToast('已取消標記');
+  }
+  _cmpCloseManalInput();
+}
+
+function _cmpCloseManalInput() {
+  document.getElementById('cmpManualInputPanel').style.display = 'none';
+  document.getElementById('cmpManualInputBg').style.display    = 'none';
+}
+
+// （保留舊名供 toggle 型格子直接取消用）
+function _cmpToggleCell(key) {
+  if (_cmpManualCells[key]) {
+    delete _cmpManualCells[key];
+    delete _cmpManualAmounts[key];
+    _cmpRenderMatrix(_cmpCurrentData.insuredTypes);
+    _cmpToast('已取消標記');
+  } else {
+    _cmpOpenManualInput(key);
+  }
 }
 function _cmpToggleAddon(label) {
   _cmpManualAddons[label] = !_cmpManualAddons[label];
@@ -4974,8 +5067,9 @@ function _cmpToggleAddon(label) {
   _cmpToast(_cmpManualAddons[label] ? '✓ 已手動標記' : '已取消標記');
 }
 function resetManualCells() {
-  _cmpManualCells  = {};
-  _cmpManualAddons = {};
+  _cmpManualCells   = {};
+  _cmpManualAddons  = {};
+  _cmpManualAmounts = {};
   _cmpRenderMatrix(_cmpCurrentData.insuredTypes);
   _cmpRenderAddons(_cmpCurrentData.insuredTypes);
   _cmpToast('已重設所有手動標記');
