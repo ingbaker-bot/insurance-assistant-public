@@ -4763,14 +4763,46 @@ function openCarMapFromModal() {
 // 'ok_if_has' = 有保才打勾, 'na' = 不適用
 // ════════════════════════════════════
 var CMP_MATRIX_DEF = [
-  { label:'強制責任險', keywords:['強制'],                            cols:['na','ok_if_has','na','ok_if_has','na'] },
-  { label:'第三人體傷', keywords:['第三人責任','第三人體傷','體傷'],    cols:['na','na','na','ok_if_has','na'] },
-  { label:'第三人財損', keywords:['第三人財損'],                       cols:['na','na','na','na','ok_if_has'] },
-  { label:'超額責任險', keywords:['超額'],                             cols:['na','toggle','na','ok_if_has','ok_if_has'] },
-  { label:'乘客責任險', keywords:['乘客'],                             cols:['na','ok_if_has','na','na','na'] },
-  { label:'駕駛人傷害', keywords:['駕駛人'],                           cols:['ok_if_has','na','na','na','na'] },
-  { label:'車體險',     keywords:['車體損失','甲式','乙式','丙式'],     cols:['na','na','ok_if_has','na','na'] },
-  { label:'竊盜險',     keywords:['竊盜'],                             cols:['na','na','ok_if_has','na','na'] }
+  { label:'強制責任險', keywords:['強制'],
+    amtMatch: function(k){ return k.includes('強制'); },
+    amtExclude: null,
+    cols:['na','ok_if_has','na','ok_if_has','na'] },
+  { label:'第三人體傷', keywords:['第三人責任','第三人體傷','體傷'],
+    // 排除：超額、慰問金、失能增額、殘廢增額、附加
+    amtMatch: function(k){ return (k.includes('第三人責任') || k.includes('第三人體傷') || k.includes('體傷')); },
+    amtExclude: function(k){ return k.includes('超額') || k.includes('慰問') || k.includes('失能增額') || k.includes('殘廢增額') || k.includes('財損'); },
+    cols:['na','na','na','ok_if_has','na'] },
+  { label:'第三人財損', keywords:['第三人財損','財損'],
+    amtMatch: function(k){ return k.includes('財損'); },
+    amtExclude: null,
+    cols:['na','na','na','na','ok_if_has'] },
+  { label:'超額責任險', keywords:['超額'],
+    amtMatch: function(k){ return k.includes('超額責任'); },
+    amtExclude: null,
+    cols:['na','toggle','na','ok_if_has','ok_if_has'] },
+  { label:'乘客責任險', keywords:['乘客責任','增額乘客責任'],
+    amtMatch: function(k){ return k.includes('乘客責任'); },
+    amtExclude: null,
+    cols:['na','ok_if_has','na','na','na'] },
+  { label:'駕駛人傷害', keywords:['駕駛人傷害','單一事故駕駛人'],
+    // 多筆時取金額最大值（在 _cmpGetAmount 處理）
+    amtMatch: function(k){ return k.includes('駕駛人傷害') || k.includes('單一事故駕駛人'); },
+    amtExclude: function(k){ return k.includes('殘廢增額') || k.includes('失能增額'); },
+    amtMax: true,
+    cols:['ok_if_has','na','na','na','na'] },
+  { label:'車體險',
+    keywords:['車體損失險'],
+    // 精確：必須含「車體損失險」且含甲/乙/丙/丁式，排除附加/全損/殘值/零件
+    amtMatch: function(k){
+      return k.includes('車體損失險') &&
+             (k.includes('甲式') || k.includes('乙式') || k.includes('丙式') || k.includes('丁式'));
+    },
+    amtExclude: function(k){ return k.includes('全損') || k.includes('殘值') || k.includes('零件') || k.includes('附加'); },
+    cols:['na','na','ok_if_has','na','na'] },
+  { label:'竊盜險',     keywords:['竊盜損失','竊盜'],
+    amtMatch: function(k){ return k.includes('竊盜'); },
+    amtExclude: null,
+    cols:['na','na','ok_if_has','na','na'] }
 ];
 var CMP_ADDON_DEF = [
   { label:'道路救援', keywords:['道路救援'] },
@@ -4894,14 +4926,27 @@ function _cmpRenderMatrix(types) {
   tbody.innerHTML = '';
   CMP_MATRIX_DEF.forEach(function(row, ri) {
     var has    = _cmpHasKeyword(types, row.keywords);
-    // 找到對應保額：用 row.keywords 比對 amounts 的 key
+    // ★ 精準保額抓取：用每個 row 的 amtMatch / amtExclude 規則
     var amount = '';
-    if (has) {
+    if (has && row.amtMatch) {
+      var matched = [];
       Object.keys(amounts).forEach(function(k) {
-        if (!amount && row.keywords.some(function(kw){ return k.indexOf(kw) !== -1; })) {
-          amount = amounts[k];
+        if (row.amtMatch(k) && !(row.amtExclude && row.amtExclude(k))) {
+          matched.push(amounts[k]);
         }
       });
+      if (matched.length > 0) {
+        if (row.amtMax) {
+          // 取金額最大值（駕駛人傷害有多筆時）
+          var maxVal = 0;
+          matched.forEach(function(v) {
+            var n = _cmpParseAmount(v);
+            if (n > maxVal) { maxVal = n; amount = v; }
+          });
+        } else {
+          amount = matched[0];
+        }
+      }
     }
     var tr = document.createElement('tr');
 
@@ -4936,7 +4981,10 @@ function _cmpRenderMatrix(types) {
         var manualAmt  = _cmpManualAmounts[key] || '';
         var manualHtml = manualAmt ? '<div class="cell-amount">' + manualAmt + '</div>' : '';
         if (has) {
-          td.innerHTML = '<div class="cell-wrap"><div class="cell ok">✓' + amtHtml + '</div></div>';
+          // ★ 綠底格子也可點擊修改保額（_cmpManualAmounts 覆蓋系統值）
+          var displayAmt  = _cmpManualAmounts[key] || amount;
+          var displayHtml = displayAmt ? '<div class="cell-amount">' + displayAmt + '</div>' : '';
+          td.innerHTML = '<div class="cell-wrap"><div class="cell ok" onclick="_cmpOpenAmountEdit(\'' + key + '\',\'' + (amount||'') + '\')" title="點擊修改保額" style="cursor:pointer;">✓' + displayHtml + '</div></div>';
         } else if (isManual) {
           td.innerHTML = '<div class="cell-wrap"><div class="cell manual" onclick="_cmpOpenManualInput(\'' + key + '\')" title="點擊修改保額">✓' + manualHtml + '</div></div>';
         } else {
@@ -5000,6 +5048,52 @@ function _cmpFmtAmount(val) {
 }
 
 // ── 手動勾選：點擊開啟保額輸入面板 ──
+var _cmpManualInputKey  = '';
+var _cmpAmountEditKey   = '';
+var _cmpAmountEditOrig  = '';  // 系統原始保額
+
+// ── 綠底格子：只修改保額，不取消勾選 ──
+function _cmpOpenAmountEdit(key, origAmt) {
+  _cmpAmountEditKey  = key;
+  _cmpAmountEditOrig = origAmt;
+  document.getElementById('cmpManualInputTitle').textContent = '✏️ 修改保額（空白則恢復系統值）';
+  document.getElementById('cmpManualAmtInput').value = _cmpManualAmounts[key] || '';
+  var cancelBtn = document.getElementById('cmpManualCancelBtn');
+  cancelBtn.textContent      = '恢復系統值';
+  cancelBtn.style.background = '#F5F5F5';
+  cancelBtn.style.color      = '#666';
+  // 確認鈕改成只存保額
+  cancelBtn.onclick = function() {
+    delete _cmpManualAmounts[_cmpAmountEditKey];
+    _cmpCloseManalInput();
+    _cmpRenderMatrix(_cmpCurrentData.insuredTypes);
+  };
+  document.getElementById('cmpManualInputBg').style.display    = 'block';
+  document.getElementById('cmpManualInputPanel').style.display = 'block';
+  // 確認鈕換成只改保額的邏輯
+  document.querySelector('#cmpManualInputPanel button:first-of-type').onclick = function() {
+    var amt = document.getElementById('cmpManualAmtInput').value.trim();
+    if (amt) {
+      _cmpManualAmounts[_cmpAmountEditKey] = _cmpFmtAmount(amt);
+    } else {
+      delete _cmpManualAmounts[_cmpAmountEditKey];
+    }
+    _cmpCloseManalInput();
+    _cmpRenderMatrix(_cmpCurrentData.insuredTypes);
+    _cmpToast(amt ? '✓ 保額已修改為 ' + _cmpFmtAmount(amt) : '✓ 已恢復系統保額');
+  };
+  setTimeout(function(){ document.getElementById('cmpManualAmtInput').focus(); }, 150);
+}
+
+// ── 數字解析（供最大值比較）──
+function _cmpParseAmount(val) {
+  if (!val) return 0;
+  var s = String(val).replace(/,/g,'').trim();
+  if (s.includes('億')) return parseFloat(s) * 100000000;
+  if (s.includes('萬')) return parseFloat(s) * 10000;
+  return parseFloat(s) || 0;
+}
+
 var _cmpManualInputKey = '';
 
 function _cmpOpenManualInput(key) {
