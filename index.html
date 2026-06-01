@@ -4869,18 +4869,18 @@ function _cmpRenderMatrix(types) {
       } else if (colDef === 'toggle') {
         var isManual = !!_cmpManualCells[key];
         if (isManual) {
-          td.innerHTML = '<div class="cell-wrap"><div class="cell manual" onclick="_cmpToggleCell('' + key + '')" title="點擊取消">✓</div></div>';
+          td.innerHTML = '<div class="cell-wrap"><div class="cell manual" onclick="_cmpToggleCell(\'' + key + '\')" title="點擊取消">✓</div></div>';
         } else {
-          td.innerHTML = '<div class="cell-wrap"><div class="cell miss" onclick="_cmpToggleCell('' + key + '')" title="點擊勾選">○</div></div>';
+          td.innerHTML = '<div class="cell-wrap"><div class="cell miss" onclick="_cmpToggleCell(\'' + key + '\')" title="點擊勾選">○</div></div>';
         }
       } else {
         var isManual = !!_cmpManualCells[key];
         if (has) {
           td.innerHTML = '<div class="cell-wrap"><div class="cell ok">✓' + amtHtml + '</div></div>';
         } else if (isManual) {
-          td.innerHTML = '<div class="cell-wrap"><div class="cell manual" onclick="_cmpToggleCell('' + key + '')" title="點擊取消">✓</div></div>';
+          td.innerHTML = '<div class="cell-wrap"><div class="cell manual" onclick="_cmpToggleCell(\'' + key + '\')" title="點擊取消">✓</div></div>';
         } else {
-          td.innerHTML = '<div class="cell-wrap"><div class="cell miss" onclick="_cmpToggleCell('' + key + '')" title="點擊手動標記">○</div></div>';
+          td.innerHTML = '<div class="cell-wrap"><div class="cell miss" onclick="_cmpToggleCell(\'' + key + '\')" title="點擊手動標記">○</div></div>';
         }
       }
       tr.appendChild(td);
