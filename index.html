@@ -4542,6 +4542,7 @@
   background:rgba(255,255,255,0.2); padding:3px 10px; border-radius:10px;
 }
 .card-expiry-val.expiring { background:#FF5722; }
+.card-expiry-val.cmp-empty { background:rgba(255,255,255,0.10); color:rgba(255,255,255,0.5); font-size:11px; cursor:pointer; }
 .matrix-wrap { padding:8px 10px 4px; overflow-x:auto; }
 .matrix-table { width:100%; border-collapse:collapse; font-size:11px; table-layout:fixed; }
 .matrix-table th { padding:6px 4px; text-align:center; font-size:11px; font-weight:bold; }
@@ -4624,9 +4625,18 @@
         </div>
         <div class="card-info-bar-right">
           <div class="card-expiry-label">🔵 強制險到期日</div>
-          <div class="card-expiry-val" id="cmpExpiry">—</div>
+          <div class="card-expiry-val" id="cmpExpiry" onclick="_cmpEditExpiry('compulsory')" title="點擊手動輸入">—</div>
+          <input type="text" id="cmpExpiryInput" placeholder="例：115/06/09"
+            style="display:none;width:100%;padding:3px 8px;border-radius:8px;border:1.5px solid rgba(255,255,255,0.6);
+                   background:rgba(255,255,255,0.15);color:white;font-size:13px;font-weight:bold;text-align:right;box-sizing:border-box;"
+            onblur="_cmpSaveExpiry('compulsory')" onkeydown="if(event.key==='Enter')_cmpSaveExpiry('compulsory')">
           <div class="card-expiry-label" id="cmpVoluntaryLabel" style="margin-top:6px;">🟢 任意險到期日</div>
-          <div class="card-expiry-val" id="cmpVoluntaryExpiry" style="background:rgba(255,255,255,0.15);">—</div>
+          <div class="card-expiry-val" id="cmpVoluntaryExpiry" style="background:rgba(255,255,255,0.15);"
+            onclick="_cmpEditExpiry('voluntary')" title="點擊手動輸入">—</div>
+          <input type="text" id="cmpVoluntaryInput" placeholder="例：115/08/19"
+            style="display:none;width:100%;padding:3px 8px;border-radius:8px;border:1.5px solid rgba(255,255,255,0.6);
+                   background:rgba(255,255,255,0.15);color:white;font-size:13px;font-weight:bold;text-align:right;box-sizing:border-box;margin-top:4px;"
+            onblur="_cmpSaveExpiry('voluntary')" onkeydown="if(event.key==='Enter')_cmpSaveExpiry('voluntary')">
         </div>
       </div>
       <div class="matrix-wrap">
@@ -4721,33 +4731,15 @@ function openCarMapFromModal() {
   var types = [main.type || ''];
   details.forEach(function(d){ if(d.name) types.push(d.name); });
 
-  // ★ 分別抓強制險 & 任意險到期日
-  // 判斷目前這張保單是強制險還是任意險
-  var isCompulsory = (main.type || '').indexOf('強制') !== -1;
+  // ★ 強制險 & 任意險到期日（由 Libcode getPolicyDetails 從同車牌所有保單計算好）
+  var compulsoryExpiry = main.compulsoryExpiry || '';
+  var voluntaryExpiry  = main.voluntaryExpiry  || '';
 
-  // 強制險到期日：若本身是強制險用 main.expiry，否則從 details 找
-  var compulsoryExpiry = '';
-  var voluntaryExpiry  = '';
-
-  if (isCompulsory) {
-    compulsoryExpiry = main.expiry || main.expiryDate || '';
-    // 任意險從 details 找（附加險不含強制的那張）
-    details.forEach(function(d) {
-      if (!voluntaryExpiry && d.name && d.name.indexOf('強制') === -1
-          && (d.name.indexOf('任意') !== -1 || d.name.indexOf('車體') !== -1
-              || d.name.indexOf('第三人') !== -1 || d.name.indexOf('責任') !== -1
-              || d.name.indexOf('駕駛人') !== -1)) {
-        voluntaryExpiry = d.expiry || d.expiryDate || '';
-      }
-    });
-  } else {
-    voluntaryExpiry  = main.expiry || main.expiryDate || '';
-    // 強制險從 details 找
-    details.forEach(function(d) {
-      if (!compulsoryExpiry && d.name && d.name.indexOf('強制') !== -1) {
-        compulsoryExpiry = d.expiry || d.expiryDate || '';
-      }
-    });
+  // 若 Libcode 沒傳回（舊版相容）：fallback 用目前保單險種判斷
+  if (!compulsoryExpiry && !voluntaryExpiry) {
+    var isCompulsory = (main.type || '').indexOf('強制') !== -1;
+    if (isCompulsory) { compulsoryExpiry = main.expiry || main.expiryDate || ''; }
+    else              { voluntaryExpiry  = main.expiry || main.expiryDate || ''; }
   }
 
   _cmpCurrentData = {
@@ -4785,24 +4777,19 @@ function _cmpRenderCard() {
   document.getElementById('cmpPlate').textContent   = d.plate;
   document.getElementById('cmpInsured').textContent = '被保險人：' + d.insured;
 
-  // ★ 強制險到期日
+  // ★ 強制險到期日（抓不到顯示「點擊輸入」）
   var expiryEl = document.getElementById('cmpExpiry');
-  expiryEl.textContent = d.expiry || '—';
-  expiryEl.className   = 'card-expiry-val' + (_cmpIsExpiringSoon(d.expiry) ? ' expiring' : '');
+  expiryEl.textContent = d.expiry || '✏️ 點擊輸入';
+  expiryEl.className   = 'card-expiry-val' + (_cmpIsExpiringSoon(d.expiry) ? ' expiring' : (!d.expiry ? ' cmp-empty' : ''));
 
-  // ★ 任意險到期日（有值才顯示，沒有就隱藏整列）
+  // ★ 任意險到期日（一律顯示，抓不到顯示「點擊輸入」）
   var volEl    = document.getElementById('cmpVoluntaryExpiry');
   var volLabel = document.getElementById('cmpVoluntaryLabel');
   if (volEl && volLabel) {
-    if (d.voluntaryExpiry) {
-      volEl.textContent    = d.voluntaryExpiry;
-      volEl.className      = 'card-expiry-val' + (_cmpIsExpiringSoon(d.voluntaryExpiry) ? ' expiring' : '');
-      volEl.style.display    = '';
-      volLabel.style.display = '';
-    } else {
-      volEl.style.display    = 'none';
-      volLabel.style.display = 'none';
-    }
+    volEl.textContent    = d.voluntaryExpiry || '✏️ 點擊輸入';
+    volEl.className      = 'card-expiry-val' + (_cmpIsExpiringSoon(d.voluntaryExpiry) ? ' expiring' : (!d.voluntaryExpiry ? ' cmp-empty' : ''));
+    volEl.style.display    = '';
+    volLabel.style.display = '';
   }
 
   // 顧問資訊（直接用系統現有全域變數）
@@ -4962,6 +4949,32 @@ function _cmpFallbackLine(canvas) {
 }
 
 // ── 工具 ──
+// ── 手動輸入到期日 ──
+function _cmpEditExpiry(type) {
+  var valEl   = document.getElementById(type === 'compulsory' ? 'cmpExpiry'         : 'cmpVoluntaryExpiry');
+  var inputEl = document.getElementById(type === 'compulsory' ? 'cmpExpiryInput'    : 'cmpVoluntaryInput');
+  if (!valEl || !inputEl) return;
+  var cur = valEl.textContent;
+  inputEl.value = (cur && cur.indexOf('點擊') === -1) ? cur : '';
+  valEl.style.display   = 'none';
+  inputEl.style.display = 'block';
+  inputEl.focus();
+}
+function _cmpSaveExpiry(type) {
+  var valEl   = document.getElementById(type === 'compulsory' ? 'cmpExpiry'         : 'cmpVoluntaryExpiry');
+  var inputEl = document.getElementById(type === 'compulsory' ? 'cmpExpiryInput'    : 'cmpVoluntaryInput');
+  if (!valEl || !inputEl) return;
+  var val = inputEl.value.trim();
+  if (val) {
+    if (type === 'compulsory') _cmpCurrentData.expiry         = val;
+    else                       _cmpCurrentData.voluntaryExpiry = val;
+    valEl.textContent  = val;
+    valEl.className    = 'card-expiry-val' + (_cmpIsExpiringSoon(val) ? ' expiring' : '');
+  }
+  inputEl.style.display = 'none';
+  valEl.style.display   = '';
+}
+
 function _cmpIsExpiringSoon(expiry) {
   if (!expiry) return false;
   try {
