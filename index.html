@@ -193,6 +193,20 @@
       text-align: center; line-height: 1.3;
     }
     /* 第二層狀態按鈕（展開） */
+    .policy-card-detail-panel {
+      display: none; margin-top: 8px;
+      border-top: 1px dashed #E0E0E0; padding-top: 10px;
+    }
+    .policy-card-detail-panel.open { display: block; }
+    .policy-card-detail-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    }
+    .policy-card-detail-col-title {
+      color: #00A3E0; font-size: 12px; font-weight: bold; margin-bottom: 5px;
+    }
+    .policy-card-detail-row {
+      font-size: 12px; color: #555; margin-bottom: 3px; word-break: break-all;
+    }
     .policy-card-status-panel {
       display: none; margin-top: 8px;
       background: #F8F9FA; border-radius: 8px; padding: 10px 8px;
@@ -973,10 +987,22 @@
                   (source === 'warning') ? "earlyWarnShare('"   + encodedItem + "','" + pno + "')" :
                                            "quickShareFromTrack('" + safeName + "','" + safeType + "','" + pno + "','" + item.expiry + "')";
 
-    var statusPanelId = 'status-panel-' + pno;
+    var statusPanelId  = 'status-panel-' + pno;
+    var detailPanelId  = 'detail-panel-' + pno;
+    // 把 item 序列化為 data attribute，供展開時渲染（不需再呼叫 API）
+    var safeItem = encodeURIComponent(JSON.stringify({
+      maskedId:      item.maskedId      || '',
+      birthday:      item.birthday      || '',
+      insuredPhone:  item.insuredPhone  || '',
+      plateNo:       item.plateNo       || '',
+      expiry:        item.expiry        || '',
+      applicantName: item.applicantName || '',
+      applicantPhone:item.applicantPhone|| '',
+      address:       item.address       || ''
+    }));
 
     var html =
-      '<div class="policy-card" id="pcard-' + pno + '">' +
+      '<div class="policy-card" id="pcard-' + pno + '" data-item="' + safeItem + '">' +
 
         // 頂部：姓名 + 代號 + 天數 + 狀態徽章
         '<div class="policy-card-top">' +
@@ -1005,11 +1031,18 @@
         // ── 第一層按鈕：保單內容 / 提醒 / 更新狀態 ──
         '<div class="policy-card-btn-row1">' +
           '<button class="policy-card-btn" style="background:#0284c7;color:white;"' +
-            ' onclick="openDetailFromExpiry(\'' + pno + '\')">📋 保單內容</button>' +
+            ' onclick="togglePolicyDetail(\'' + pno + '\')">📋 保單內容</button>' +
           '<button class="policy-card-btn" style="background:#00B900;color:white;"' +
             ' onclick="' + shareFn + '">💬 提醒</button>' +
           '<button class="policy-card-btn" style="background:#6A1B9A;color:white;"' +
             ' onclick="toggleStatusPanel(\'' + statusPanelId + '\')">✏️ 更新狀態</button>' +
+        '</div>' +
+
+        // ── 詳情展開區（點「保單內容」展開，資料來自 data-item）──
+        '<div class="policy-card-detail-panel" id="' + detailPanelId + '">' +
+          '<div class="policy-card-detail-inner" id="detail-inner-' + pno + '">' +
+            '（載入中）' +
+          '</div>' +
         '</div>' +
 
         // ── 第二層：狀態按鈕（點「更新狀態」展開）──
@@ -1033,10 +1066,65 @@
     return html;
   }
 
+  // 展開/收合保單詳情區（原地展開，不呼叫 API）
+  function togglePolicyDetail(pno) {
+    var panel  = document.getElementById('detail-panel-' + pno);
+    var btn    = document.getElementById('detail-btn-' + pno);
+    var card   = document.getElementById('pcard-' + pno);
+    if (!panel) return;
+
+    var isOpen = panel.classList.contains('open');
+    if (isOpen) {
+      panel.classList.remove('open');
+      if (btn) btn.textContent = '📋 保單內容';
+      return;
+    }
+
+    // 第一次展開：從 data-item 取資料渲染
+    var inner = document.getElementById('detail-inner-' + pno);
+    if (inner && card) {
+      try {
+        var d = JSON.parse(decodeURIComponent(card.getAttribute('data-item') || '{}'));
+        var html =
+          '<div class="policy-card-detail-grid">' +
+            '<div>' +
+              '<div class="policy-card-detail-col-title">👤 被保人</div>' +
+              (d.maskedId     ? '<div class="policy-card-detail-row">🆔 ' + d.maskedId     + '</div>' : '') +
+              (d.birthday     ? '<div class="policy-card-detail-row">🎂 ' + d.birthday     + '</div>' : '') +
+              (d.insuredPhone ? '<div class="policy-card-detail-row">📱 ' + d.insuredPhone + '</div>' : '') +
+              (d.plateNo && d.plateNo !== '無' ? '<div class="policy-card-detail-row">🚗 ' + d.plateNo + '</div>' : '') +
+              (d.expiry       ? '<div class="policy-card-detail-row">📅 ' + d.expiry       + '</div>' : '') +
+            '</div>' +
+            '<div>' +
+              '<div class="policy-card-detail-col-title">📞 要保人</div>' +
+              (d.applicantName  ? '<div class="policy-card-detail-row">' + d.applicantName  + '</div>' : '') +
+              (d.applicantPhone ? '<div class="policy-card-detail-row">' + d.applicantPhone + '</div>' : '') +
+              (d.address && d.address !== '無' ? '<div class="policy-card-detail-row">🏠 ' + d.address + '</div>' : '') +
+            '</div>' +
+          '</div>';
+        inner.innerHTML = html;
+      } catch(e) { inner.innerHTML = '<div style="color:#999;font-size:12px;">資料讀取失敗</div>'; }
+    }
+
+    panel.classList.add('open');
+    if (btn) btn.textContent = '📋 保單內容 ▲';
+    // 關閉狀態面板（避免同時展開）
+    var sp = document.getElementById('status-panel-' + pno);
+    if (sp) sp.classList.remove('open');
+  }
+
   // 展開/收合第二層狀態面板
   function toggleStatusPanel(panelId) {
     var p = document.getElementById(panelId);
     if (p) p.classList.toggle('open');
+    // 關閉詳情面板（避免同時展開）
+    var pno = panelId.replace('status-panel-', '');
+    var dp = document.getElementById('detail-panel-' + pno);
+    if (dp) {
+      dp.classList.remove('open');
+      var btn = document.getElementById('detail-btn-' + pno);
+      if (btn) btn.textContent = '📋 保單內容';
+    }
   }
 
   // 統一狀態設定（轉接到各 source 的原有函式）
@@ -1067,14 +1155,13 @@
 
   // setTrackStatus：自訂區間 & 近30天未續保用
   function setTrackStatus(pno, status) {
-    var _fn = _directShellUrl
-      ? function(a,p,s,f){ directGasCall(a,p,s,f); }
-      : function(a,p,s,f){ gasCall(a,p,s,f); };
-    _fn('updateRenewalStatus', { policyNo: pno, status: status }, function(result) {
-      showBdToast(result && result.success ? '✓ 已更新為「' + status + '」' : '⚠️ 更新失敗，請重試');
-    }, function() {
-      showBdToast('⚠️ 網路錯誤，請重試');
-    });
+    var onOk  = function(r){ showBdToast(r && r.success ? '✓ 已更新為「' + status + '」' : '⚠️ 更新失敗'); };
+    var onErr = function(){ showBdToast('⚠️ 網路錯誤，請重試'); };
+    if (_directShellUrl) {
+      directGasCall('updateRenewalStatus', { policyNo: pno, status: status }, onOk, onErr);
+    } else {
+      gasCall('updateRenewalStatus', { policyNo: pno, status: status }, onOk, onErr);
+    }
   }
 
   function renderExpiryRows(list) {
