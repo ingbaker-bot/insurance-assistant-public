@@ -1101,6 +1101,14 @@
               (d.applicantPhone ? '<div class="policy-card-detail-row">' + d.applicantPhone + '</div>' : '') +
               (d.address && d.address !== '無' ? '<div class="policy-card-detail-row">🏠 ' + d.address + '</div>' : '') +
             '</div>' +
+          '</div>' +
+          // ★ 保單明細按鈕（進入 Modal 詳情）
+          '<div style="margin-top:10px;padding-top:8px;border-top:1px dashed #E0E0E0;">' +
+            '<button onclick="openDetailFromExpiry(\'' + pno + '\')" ' +
+              'style="width:100%;padding:10px;background:#F5F5F5;color:#333;border:1px solid #DDD;' +
+                     'border-radius:8px;font-size:13px;font-weight:bold;cursor:pointer;">' +
+              '🔍 查看保單明細（附加險項目）' +
+            '</button>' +
           '</div>';
         inner.innerHTML = html;
       } catch(e) { inner.innerHTML = '<div style="color:#999;font-size:12px;">資料讀取失敗</div>'; }
