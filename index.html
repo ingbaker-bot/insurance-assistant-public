@@ -930,31 +930,26 @@
   }
 
 
-  // ★ v6.1 統一保單卡片渲染函式
+  // ★ v6.3 統一保單卡片渲染函式
   // source: 'urgent'|'warning'|'track'|'unrenewed'
   function renderPolicyCard(item, source) {
-    var pno        = (item.policyNo  || '').replace(/'/g, '');
-    var name       = (item.name      || item.applicantName || '—');
-    var safeName   = name.replace(/'/g, "\\'");
-    var safeType   = (item.type || '').replace(/'/g, "\\'");
-    var safeId     = (item.maskedId  || '').replace(/'/g, '');
-    var safePlate  = (item.plateNo   || '').replace(/[-\s]/g,'').replace(/'/g,'');
-    var isCar      = item.type && (item.type.includes('汽車') || item.type.includes('機車'));
+    var pno       = (item.policyNo  || '').replace(/'/g, '');
+    var name      = (item.name || item.applicantName || '—');
+    var safeName  = name.replace(/'/g, "\'");
+    var safeType  = (item.type || '').replace(/'/g, "\'");
 
-    // 天數徽章
-    var daysLeft   = item.daysLeft != null ? item.daysLeft : null;
-    var dayText    = '';
-    if (daysLeft === 0) dayText = '今天到期！';
-    else if (daysLeft != null) dayText = '剩 ' + daysLeft + ' 天';
-    var badgeBg    = daysLeft != null && daysLeft <= 5  ? '#FFEBEE' :
-                     daysLeft != null && daysLeft <= 15 ? '#FFF3E0' : '#E8F5E9';
-    var badgeClr   = daysLeft != null && daysLeft <= 5  ? '#C62828' :
-                     daysLeft != null && daysLeft <= 15 ? '#E65100' : '#2E7D32';
+    // ── 天數徽章 ──
+    var daysLeft  = (item.daysLeft != null) ? item.daysLeft : null;
+    var dayText   = daysLeft === 0 ? '今天到期！' : (daysLeft != null ? '剩 ' + daysLeft + ' 天' : '');
+    var badgeBg   = daysLeft != null && daysLeft <= 5  ? '#FFEBEE' :
+                    daysLeft != null && daysLeft <= 15 ? '#FFF3E0' : '#E8F5E9';
+    var badgeClr  = daysLeft != null && daysLeft <= 5  ? '#C62828' :
+                    daysLeft != null && daysLeft <= 15 ? '#E65100' : '#2E7D32';
 
-    // 續保狀態標籤
+    // ── 續保狀態徽章 ──
     var rs = _renewStatusStyle(item.renewStatus);
 
-    // 被保人資訊列
+    // ── 被保人資訊 ──
     var infoHtml = '';
     if (item.maskedId && item.maskedId !== '無')
       infoHtml += '<div class="policy-card-info-item">🪪 ' + item.maskedId + '</div>';
@@ -967,12 +962,7 @@
     if (item.applicantPhone && item.applicantPhone !== '無')
       infoHtml += '<div class="policy-card-info-item">📞 ' + item.applicantPhone + '</div>';
 
-    // 更新狀態按鈕對應函式
-    var setFn = (source === 'urgent') ? 'setRenewalStatus' :
-                (source === 'warning') ? 'setEarlyWarningStatus' : 'setTrackStatus';
-    var statusPanelId = 'status-panel-' + pno;
-
-    // 傳提醒 encodedItem
+    // ── 傳提醒函式（依來源區分）──
     var encodedItem = encodeURIComponent(JSON.stringify({
       name: item.name, type: item.type, policyNo: pno,
       effectiveDate: item.effectiveDate || '', expiry: item.expiry,
@@ -983,18 +973,20 @@
                   (source === 'warning') ? "earlyWarnShare('"   + encodedItem + "','" + pno + "')" :
                                            "quickShareFromTrack('" + safeName + "','" + safeType + "','" + pno + "','" + item.expiry + "')";
 
+    var statusPanelId = 'status-panel-' + pno;
+
     var html =
       '<div class="policy-card" id="pcard-' + pno + '">' +
 
-        // 頂部：名字 + 代號 + 天數徽章
+        // 頂部：姓名 + 代號 + 天數 + 狀態徽章
         '<div class="policy-card-top">' +
           '<div class="policy-card-name">' + name +
             (item.agentCode && item.agentCode !== '無'
               ? ' <span style="color:#FF9800;font-size:12px;">[' + item.agentCode + ']</span>' : '') +
           '</div>' +
-          '<div style="display:flex;gap:5px;align-items:center;">' +
+          '<div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">' +
             (dayText ? '<span class="policy-card-badge" style="background:' + badgeBg + ';color:' + badgeClr + ';">' + dayText + '</span>' : '') +
-            '<span class="policy-card-badge" style="background:' + rs.bg + ';color:' + rs.clr + ';border:1px solid ' + rs.clr + ';">' + rs.icon + ' ' + rs.label + '</span>' +
+            '<span class="policy-card-badge" id="rs-badge-' + pno + '" style="background:' + rs.bg + ';color:' + rs.clr + ';border:1px solid ' + rs.clr + ';">' + rs.icon + ' ' + rs.label + '</span>' +
           '</div>' +
         '</div>' +
 
@@ -1007,43 +999,33 @@
             ? '<span style="background:#FFF3E0;color:#E65100;font-size:11px;font-weight:bold;padding:1px 7px;border-radius:8px;">🎯 爭取轉單</span>' : '') +
         '</div>' +
 
-        // 被保人資訊
+        // 被保人/要保人資訊
         (infoHtml ? '<div class="policy-card-info">' + infoHtml + '</div>' : '') +
 
-        // 第一層按鈕：保單內容 / 提醒 / 更新狀態
+        // ── 第一層按鈕：保單內容 / 提醒 / 更新狀態 ──
         '<div class="policy-card-btn-row1">' +
           '<button class="policy-card-btn" style="background:#0284c7;color:white;"' +
-            ' onclick="openDetailFromExpiry(\'' + pno + '\')">' +
-            '📋 保單內容</button>' +
+            ' onclick="openDetailFromExpiry(\'' + pno + '\')">📋 保單內容</button>' +
           '<button class="policy-card-btn" style="background:#00B900;color:white;"' +
-            ' onclick="' + shareFn + '">' +
-            '💬 提醒</button>' +
+            ' onclick="' + shareFn + '">💬 提醒</button>' +
           '<button class="policy-card-btn" style="background:#6A1B9A;color:white;"' +
-            ' onclick="toggleStatusPanel(\'' + statusPanelId + '\')">' +
-            '✏️ 更新狀態</button>' +
+            ' onclick="toggleStatusPanel(\'' + statusPanelId + '\')">✏️ 更新狀態</button>' +
         '</div>' +
 
-        // 第二層：狀態按鈕（預設隱藏）
+        // ── 第二層：狀態按鈕（點「更新狀態」展開）──
         '<div class="policy-card-status-panel" id="' + statusPanelId + '">' +
           '<div class="policy-card-status-hint">選擇後自動儲存並收合</div>' +
           '<div class="policy-card-status-row">' +
             '<button class="policy-card-status-btn" style="background:#E3F2FD;color:#1565C0;"' +
-              ' onclick="pcardSetStatus(\'' + pno + '\',\'已聯繫\',\'' + source + '\')">' +
-              '📞 已聯繫</button>' +
+              ' onclick="pcardSetStatus(\'' + pno + '\',\'已聯繫\',\'' + source + '\')">📞 已聯繫</button>' +
             '<button class="policy-card-status-btn" style="background:#E8F5E9;color:#2E7D32;"' +
-              ' onclick="pcardSetStatus(\'' + pno + '\',\'已續保\',\'' + source + '\')">' +
-              '✅ 已續保</button>' +
-            '<button class="policy-card-status-btn" style="background:#FAFAFA;color:#666;"' +
-              ' onclick="pcardSetStatus(\'' + pno + '\',\'不續保\',\'' + source + '\')">' +
-              '✗ 不續保</button>' +
-            (isCar
-              ? '<button class="policy-card-status-btn" style="background:#E3F2FD;color:#1565C0;"' +
-                  ' onclick="pcardSetStatus(\'' + pno + '\',\'已過戶\',\'' + source + '\')">' +
-                  '🔄 已過戶</button>' +
-                '<button class="policy-card-status-btn" style="background:#EFEBE9;color:#4E342E;"' +
-                  ' onclick="pcardSetStatus(\'' + pno + '\',\'已報廢\',\'' + source + '\')">' +
-                  '🗑️ 已報廢</button>'
-              : '') +
+              ' onclick="pcardSetStatus(\'' + pno + '\',\'已續保\',\'' + source + '\')">✅ 已續保</button>' +
+            '<button class="policy-card-status-btn" style="background:#FAFAFA;color:#666;border:1px solid #DDD;"' +
+              ' onclick="pcardSetStatus(\'' + pno + '\',\'不續保\',\'' + source + '\')">✗ 不續保</button>' +
+            '<button class="policy-card-status-btn" style="background:#E8F5E9;color:#1B5E20;"' +
+              ' onclick="pcardSetStatus(\'' + pno + '\',\'已過戶\',\'' + source + '\')">🔄 已過戶</button>' +
+            '<button class="policy-card-status-btn" style="background:#EFEBE9;color:#4E342E;"' +
+              ' onclick="pcardSetStatus(\'' + pno + '\',\'已報廢\',\'' + source + '\')">🗑️ 已報廢</button>' +
           '</div>' +
         '</div>' +
 
@@ -1059,38 +1041,40 @@
 
   // 統一狀態設定（轉接到各 source 的原有函式）
   function pcardSetStatus(pno, status, source) {
-    if (source === 'urgent')  setRenewalStatus(pno, status);
-    else if (source === 'warning') setEarlyWarningStatus(pno, status);
-    else setTrackStatus(pno, status);
-    // 收合面板
+    // 先更新 UI（即時反饋）
+    var rs = _renewStatusStyle(status);
+    var badge = document.getElementById('rs-badge-' + pno);
+    if (badge) {
+      badge.textContent       = rs.icon + ' ' + rs.label;
+      badge.style.background  = rs.bg;
+      badge.style.color       = rs.clr;
+      badge.style.borderColor = rs.clr;
+    }
+    // 已續保/不續保/已過戶/已報廢 → 淡化卡片
+    if (['已續保','不續保','已過戶','已報廢'].includes(status)) {
+      var card = document.getElementById('pcard-' + pno);
+      if (card) card.style.opacity = '0.4';
+    }
+    // 收合第二層面板
     var p = document.getElementById('status-panel-' + pno);
     if (p) p.classList.remove('open');
+
+    // 呼叫對應的後端寫入函式
+    if (source === 'urgent')       setRenewalStatus(pno, status);
+    else if (source === 'warning') setEarlyWarningStatus(pno, status);
+    else                           setTrackStatus(pno, status);
   }
 
   // setTrackStatus：自訂區間 & 近30天未續保用
   function setTrackStatus(pno, status) {
-    var callFn = (_directShellUrl)
+    var _fn = _directShellUrl
       ? function(a,p,s,f){ directGasCall(a,p,s,f); }
       : function(a,p,s,f){ gasCall(a,p,s,f); };
-    callFn('updateRenewalStatus', { policyNo: pno, status: status }, function() {
-      // 更新卡片上的狀態徽章
-      var rs = _renewStatusStyle(status);
-      var card = document.getElementById('pcard-' + pno);
-      if (card) {
-        var badges = card.querySelectorAll('.policy-card-badge');
-        if (badges.length >= 2) {
-          badges[1].textContent   = rs.icon + ' ' + rs.label;
-          badges[1].style.background = rs.bg;
-          badges[1].style.color      = rs.clr;
-          badges[1].style.borderColor = rs.clr;
-        }
-        // 已續保/不續保/他家 → 淡化整張卡片
-        if (['已續保','不續保'].includes(status) || status.startsWith('他家')) {
-          card.style.opacity = '0.45';
-        }
-      }
-      _showToast('✓ 已更新為「' + status + '」');
-    }, null);
+    _fn('updateRenewalStatus', { policyNo: pno, status: status }, function(result) {
+      showBdToast(result && result.success ? '✓ 已更新為「' + status + '」' : '⚠️ 更新失敗，請重試');
+    }, function() {
+      showBdToast('⚠️ 網路錯誤，請重試');
+    });
   }
 
   function renderExpiryRows(list) {
