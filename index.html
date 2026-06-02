@@ -319,7 +319,7 @@
   <!-- ★ 主控 Tab（v5.2 重設計：大卡片式，凸顯主功能切換）-->
   <div style="font-size:10px;color:#aaa;letter-spacing:1.5px;font-weight:bold;margin-bottom:6px;padding-left:2px;">主功能切換</div>
   <div class="tab-bar">
-    <button class="tab-btn active-insurance" id="tabInsurance" onclick="switchTab('insurance')">
+    <button class="tab-btn" id="tabInsurance" onclick="switchTab('insurance')">
       <span style="font-size:22px;line-height:1;">🚗</span>
       <span>產險保單</span>
     </button>
@@ -329,7 +329,7 @@
     </button>
   </div>
   <!-- ══════ 產險保單功能區 ══════ -->
-  <div id="insuranceSearch">
+  <div id="insuranceSearch" style="display:none;">
 
     <!-- 四個工具按鈕 2×2 -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px 0 4px;">
@@ -834,6 +834,7 @@
 
   // ── 系統初始化（授權通過後才執行）──
   function initSystem() {
+    switchTab('insurance');  // ★ v6.2：預設展開產險Tab
     setTimeout(initTrackDates, 100);
     setTimeout(loadTodayBirthdays, 500); // 載入今日生日橫幅
     // 載入到期提醒
@@ -1422,8 +1423,11 @@
     document.getElementById('resultsList').innerHTML = '';
     document.getElementById('tabInsurance').className = 'tab-btn' + (tab === 'insurance' ? ' active-insurance' : '');
     document.getElementById('tabTravel').className    = 'tab-btn' + (tab === 'travel'    ? ' active-travel'    : '');
-    document.getElementById('insuranceSearch').style.display = tab === 'insurance' ? 'block' : 'none';
-    document.getElementById('travelSearch').style.display    = tab === 'travel'    ? 'block' : 'none';
+    // ★ v6.2：預設收合，點Tab才展開
+    var insEl = document.getElementById('insuranceSearch');
+    var trvEl = document.getElementById('travelSearch');
+    if (insEl) insEl.style.display = (tab === 'insurance') ? 'block' : 'none';
+    if (trvEl) trvEl.style.display = (tab === 'travel')    ? 'block' : 'none';
     // 切換 Tab 時關閉所有展開面板
     ['caliQuickPanel','strokePanel','inspectionPanel','searchPanel'].forEach(function(id) {
       var el = document.getElementById(id); if (el) el.style.display = 'none';
