@@ -445,18 +445,93 @@
     <!-- 即將到期追蹤展開面板 -->
     <div id="expiryTrackPanel" style="display:none;margin-top:6px;background:#F3E5F5;border-radius:10px;padding:14px;border:1.5px solid #CE93D8;">
       <div style="font-weight:bold;color:#6A1B9A;font-size:13px;margin-bottom:10px;">📅 即將到期保單追蹤 — 選擇查詢區間</div>
-      <div style="display:flex;gap:6px;margin-bottom:8px;">
+
+      <!-- 隱藏的原生 input（供 JS 讀值用）-->
+      <input type="date" id="trackStartDate" style="position:absolute;opacity:0;pointer-events:none;width:0;height:0;">
+      <input type="date" id="trackEndDate"   style="position:absolute;opacity:0;pointer-events:none;width:0;height:0;">
+
+      <!-- 自訂顯示欄位 -->
+      <div style="display:flex;gap:8px;margin-bottom:10px;">
         <div style="flex:1;">
-          <div style="font-size:11px;color:#888;margin-bottom:3px;">開始日期</div>
-          <input type="date" id="trackStartDate" style="width:100%;box-sizing:border-box;padding:7px;border:1px solid #CE93D8;border-radius:6px;font-size:13px;">
+          <div style="font-size:11px;color:#888;margin-bottom:4px;">開始日期</div>
+          <div id="trackStartDisplay"
+            onclick="openDatePicker('start')"
+            style="width:100%;box-sizing:border-box;padding:9px 12px;border:1.5px solid #CE93D8;
+                   border-radius:8px;font-size:14px;background:white;cursor:pointer;
+                   display:flex;align-items:center;justify-content:space-between;color:#555;">
+            <span id="trackStartText">點選選擇</span>
+            <span style="color:#CE93D8;font-size:16px;">📅</span>
+          </div>
         </div>
         <div style="flex:1;">
-          <div style="font-size:11px;color:#888;margin-bottom:3px;">結束日期</div>
-          <input type="date" id="trackEndDate" style="width:100%;box-sizing:border-box;padding:7px;border:1px solid #CE93D8;border-radius:6px;font-size:13px;">
+          <div style="font-size:11px;color:#888;margin-bottom:4px;">結束日期</div>
+          <div id="trackEndDisplay"
+            onclick="openDatePicker('end')"
+            style="width:100%;box-sizing:border-box;padding:9px 12px;border:1.5px solid #CE93D8;
+                   border-radius:8px;font-size:14px;background:white;cursor:pointer;
+                   display:flex;align-items:center;justify-content:space-between;color:#555;">
+            <span id="trackEndText">點選選擇</span>
+            <span style="color:#CE93D8;font-size:16px;">📅</span>
+          </div>
         </div>
       </div>
-      <button onclick="loadExpiryRange()" style="width:100%;padding:9px;background:#6A1B9A;color:white;border:none;border-radius:6px;font-size:13px;font-weight:bold;cursor:pointer;">🔍 查詢即將到期保單</button>
+
+      <button onclick="loadExpiryRange()" style="width:100%;padding:11px;background:#6A1B9A;color:white;border:none;border-radius:8px;font-size:14px;font-weight:bold;cursor:pointer;">🔍 查詢即將到期保單</button>
       <div style="font-size:11px;color:#888;margin-top:6px;">💡 查詢後可直接點選每張保單更新續保狀態</div>
+    </div>
+
+    <!-- ★ 自訂日期選擇器底部面板 -->
+    <div id="datepickerOverlay" onclick="closeDatePicker()"
+      style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+             background:rgba(0,0,0,0.4);z-index:3500;"></div>
+    <div id="datepickerPanel"
+      style="display:none;position:fixed;bottom:0;left:0;width:100%;z-index:3501;">
+      <div style="max-width:600px;margin:0 auto;background:white;
+                  border-radius:18px 18px 0 0;padding:20px 20px 32px;box-sizing:border-box;
+                  box-shadow:0 -4px 20px rgba(0,0,0,0.15);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <span style="font-size:15px;font-weight:bold;color:#6A1B9A;" id="dpTitle">選擇開始日期</span>
+          <button onclick="closeDatePicker()"
+            style="background:#F5F5F5;border:none;border-radius:50%;width:32px;height:32px;
+                   font-size:18px;cursor:pointer;color:#666;">✕</button>
+        </div>
+        <!-- 快速區間按鈕 -->
+        <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;">
+          <button onclick="setDateRange(0,30)"  style="flex:1;padding:8px 4px;background:#F3E5F5;color:#6A1B9A;border:1.5px solid #CE93D8;border-radius:8px;font-size:12px;font-weight:bold;cursor:pointer;">今天起30天</button>
+          <button onclick="setDateRange(0,60)"  style="flex:1;padding:8px 4px;background:#F3E5F5;color:#6A1B9A;border:1.5px solid #CE93D8;border-radius:8px;font-size:12px;font-weight:bold;cursor:pointer;">今天起60天</button>
+          <button onclick="setDateRange(0,90)"  style="flex:1;padding:8px 4px;background:#F3E5F5;color:#6A1B9A;border:1.5px solid #CE93D8;border-radius:8px;font-size:12px;font-weight:bold;cursor:pointer;">今天起90天</button>
+          <button onclick="setDateRange(-30,0)" style="flex:1;padding:8px 4px;background:#FAFAFA;color:#666;border:1.5px solid #DDD;border-radius:8px;font-size:12px;font-weight:bold;cursor:pointer;">過去30天</button>
+        </div>
+        <!-- 年月日選擇 -->
+        <div style="display:flex;gap:8px;margin-bottom:16px;">
+          <div style="flex:2;">
+            <div style="font-size:11px;color:#888;margin-bottom:4px;">年（民國）</div>
+            <select id="dpYear"
+              style="width:100%;padding:10px 8px;border:1.5px solid #CE93D8;border-radius:8px;
+                     font-size:15px;background:white;color:#333;">
+            </select>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:11px;color:#888;margin-bottom:4px;">月</div>
+            <select id="dpMonth"
+              style="width:100%;padding:10px 8px;border:1.5px solid #CE93D8;border-radius:8px;
+                     font-size:15px;background:white;color:#333;">
+            </select>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:11px;color:#888;margin-bottom:4px;">日</div>
+            <select id="dpDay"
+              style="width:100%;padding:10px 8px;border:1.5px solid #CE93D8;border-radius:8px;
+                     font-size:15px;background:white;color:#333;">
+            </select>
+          </div>
+        </div>
+        <button onclick="confirmDatePicker()"
+          style="width:100%;padding:13px;background:#6A1B9A;color:white;border:none;
+                 border-radius:10px;font-size:15px;font-weight:bold;cursor:pointer;">
+          ✓ 確認日期
+        </button>
+      </div>
     </div>
   </div>
 
@@ -4221,6 +4296,103 @@
   }
 
   // 初始化日期選擇器（預設本月1日到今天+7天）
+  // ★ v6.6 自訂日期選擇器
+  var _dpTarget = 'start';  // 'start' or 'end'
+
+  function openDatePicker(target) {
+    _dpTarget = target;
+    var isStart = target === 'start';
+    document.getElementById('dpTitle').textContent = isStart ? '選擇開始日期' : '選擇結束日期';
+
+    // 讀取目前值或預設值
+    var cur = document.getElementById(isStart ? 'trackStartDate' : 'trackEndDate').value;
+    var d   = cur ? new Date(cur) : new Date();
+    var roc = d.getFullYear() - 1911;
+
+    // 填充年份選項（民國100~120年）
+    var ySel = document.getElementById('dpYear');
+    ySel.innerHTML = '';
+    var curYear = new Date().getFullYear() - 1911;
+    for (var y = curYear - 5; y <= curYear + 5; y++) {
+      var opt = document.createElement('option');
+      opt.value = y; opt.textContent = y + ' 年';
+      if (y === roc) opt.selected = true;
+      ySel.appendChild(opt);
+    }
+
+    // 填充月份（1~12）
+    var mSel = document.getElementById('dpMonth');
+    mSel.innerHTML = '';
+    for (var m = 1; m <= 12; m++) {
+      var opt = document.createElement('option');
+      opt.value = m; opt.textContent = m + ' 月';
+      if (m === d.getMonth() + 1) opt.selected = true;
+      mSel.appendChild(opt);
+    }
+    mSel.addEventListener('change', refreshDpDays);
+
+    // 填充日（依年月動態計算）
+    refreshDpDays(d.getDate());
+
+    document.getElementById('datepickerOverlay').style.display = 'block';
+    document.getElementById('datepickerPanel').style.display  = 'block';
+  }
+
+  function refreshDpDays(preSelectDay) {
+    var y    = parseInt(document.getElementById('dpYear').value)  + 1911;
+    var m    = parseInt(document.getElementById('dpMonth').value);
+    var days = new Date(y, m, 0).getDate();  // 該月天數
+    var dSel = document.getElementById('dpDay');
+    var prev = preSelectDay || parseInt(dSel.value) || 1;
+    dSel.innerHTML = '';
+    for (var d = 1; d <= days; d++) {
+      var opt = document.createElement('option');
+      opt.value = d; opt.textContent = d + ' 日';
+      if (d === Math.min(prev, days)) opt.selected = true;
+      dSel.appendChild(opt);
+    }
+  }
+
+  function confirmDatePicker() {
+    var y   = parseInt(document.getElementById('dpYear').value)  + 1911;
+    var m   = parseInt(document.getElementById('dpMonth').value);
+    var d   = parseInt(document.getElementById('dpDay').value);
+    var fmt = y + '-' + ('0'+m).slice(-2) + '-' + ('0'+d).slice(-2);
+    var roc = (y - 1911) + '/' + ('0'+m).slice(-2) + '/' + ('0'+d).slice(-2);
+
+    if (_dpTarget === 'start') {
+      document.getElementById('trackStartDate').value = fmt;
+      document.getElementById('trackStartText').textContent = roc;
+    } else {
+      document.getElementById('trackEndDate').value = fmt;
+      document.getElementById('trackEndText').textContent  = roc;
+    }
+    closeDatePicker();
+  }
+
+  function closeDatePicker() {
+    document.getElementById('datepickerOverlay').style.display = 'none';
+    document.getElementById('datepickerPanel').style.display   = 'none';
+  }
+
+  // 快速設定區間（相對今天的天數偏移）
+  function setDateRange(startOffset, endOffset) {
+    var today = new Date();
+    var s = new Date(today); s.setDate(today.getDate() + startOffset);
+    var e = new Date(today); e.setDate(today.getDate() + endOffset);
+    var fmt = function(d) {
+      return d.getFullYear() + '-' + ('0'+(d.getMonth()+1)).slice(-2) + '-' + ('0'+d.getDate()).slice(-2);
+    };
+    var roc = function(d) {
+      return (d.getFullYear()-1911) + '/' + ('0'+(d.getMonth()+1)).slice(-2) + '/' + ('0'+d.getDate()).slice(-2);
+    };
+    document.getElementById('trackStartDate').value = fmt(s);
+    document.getElementById('trackEndDate').value   = fmt(e);
+    document.getElementById('trackStartText').textContent = roc(s);
+    document.getElementById('trackEndText').textContent   = roc(e);
+    closeDatePicker();
+  }
+
   function initTrackDates() {
     var today = new Date();
     var start = new Date(today.getFullYear(), today.getMonth(), 1); // 本月1日
