@@ -515,6 +515,7 @@
       <button class="btn-action bg-line"  onclick="shareToLine()">📄 純文字分享</button>
       <button class="btn-action" style="background:#1565C0;color:white;" onclick="markVehicleStatus('已過戶')">🔄 標記已過戶</button>
       <button class="btn-action" style="background:#4E342E;color:white;" onclick="markVehicleStatus('已報廢')">🗑️ 標記已報廢</button>
+      <button class="btn-action" style="background:#B71C1C;color:white;" onclick="confirmDeletePolicy()">🗑️ 刪除此保單</button>
       <button class="btn-action bg-close" onclick="closeModalOrBack()">關閉返回</button>
     </div>
   </div>
@@ -4934,9 +4935,112 @@
 <div id="cmpToast"></div>
 
 <!-- JavaScript -->
+<!-- ★ v6.6 刪除保單確認 Modal -->
+<div id="deletePolicyModal" style="
+  display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+  background:rgba(0,0,0,0.6); z-index:4000;
+  justify-content:center; align-items:center;">
+  <div style="background:white; border-radius:16px; padding:24px 20px;
+    max-width:320px; width:90%; box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+    <div style="font-size:36px; text-align:center; margin-bottom:12px;">⚠️</div>
+    <div style="font-size:16px; font-weight:bold; color:#B71C1C; text-align:center; margin-bottom:8px;">
+      確認刪除保單？
+    </div>
+    <div style="font-size:13px; color:#555; text-align:center; margin-bottom:6px;" id="delModalPolicyNo">
+      保單號碼：—
+    </div>
+    <div style="font-size:12px; color:#999; text-align:center; margin-bottom:20px;" id="delModalPolicyInfo">
+    </div>
+    <div style="background:#FFF3E0; border-radius:8px; padding:10px 12px; margin-bottom:18px;">
+      <div style="font-size:12px; color:#E65100; font-weight:bold;">⚠️ 注意事項</div>
+      <div style="font-size:11px; color:#E65100; margin-top:4px; line-height:1.6;">
+        • 同時刪除保單主表及險種明細表<br>
+        • 此操作無法復原，請確認後再刪除<br>
+        • 建議僅刪除測試或明確錯誤的資料
+      </div>
+    </div>
+    <div style="display:flex; gap:10px;">
+      <button onclick="cancelDeletePolicy()"
+        style="flex:1; padding:12px; background:#F5F5F5; color:#666;
+               border:none; border-radius:10px; font-size:14px; cursor:pointer;">
+        取消
+      </button>
+      <button onclick="executeDeletePolicy()"
+        style="flex:1; padding:12px; background:#B71C1C; color:white;
+               border:none; border-radius:10px; font-size:14px; font-weight:bold; cursor:pointer;">
+        確認刪除
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ★ 全域橋接函式：第一層主頁按鈕呼叫此函式
 //   實際邏輯在主 script 閉包內的 _openCarMapFromModal
+// ★ v6.6 刪除保單相關函式
+var _deletePolicyNo = '';  // 暫存待刪除的保單號碼
+
+function confirmDeletePolicy() {
+  if (!currentPolicyData || !currentPolicyData.main) {
+    alert('請先開啟一張保單');
+    return;
+  }
+  var main = currentPolicyData.main;
+  var pno  = main.policyNo || main.no || '';
+  if (!pno) {
+    alert('無法取得保單號碼');
+    return;
+  }
+  _deletePolicyNo = pno;
+
+  // 填入確認 Modal 的保單資訊
+  document.getElementById('delModalPolicyNo').textContent  = '保單號碼：' + pno;
+  document.getElementById('delModalPolicyInfo').textContent =
+    (main.insuredName || '') + '　' + (main.type || '') + '　' + (main.expiry || main.expiryDate || '');
+
+  document.getElementById('deletePolicyModal').style.display = 'flex';
+}
+
+function cancelDeletePolicy() {
+  document.getElementById('deletePolicyModal').style.display = 'none';
+  _deletePolicyNo = '';
+}
+
+function executeDeletePolicy() {
+  if (!_deletePolicyNo) return;
+  var pno = _deletePolicyNo;
+
+  // 關閉確認 Modal，顯示載入中
+  document.getElementById('deletePolicyModal').style.display = 'none';
+  document.getElementById('loading').style.display = 'block';
+
+  var onOk = function(result) {
+    document.getElementById('loading').style.display = 'none';
+    if (result && result.success) {
+      showBdToast('✅ ' + result.msg);
+      closeModalOrBack();
+      // 若目前在到期提醒列表，刷新對應列表
+      if (typeof loadExpiringLists === 'function') {
+        setTimeout(loadExpiringLists, 500);
+      }
+    } else {
+      alert('⚠️ 刪除失敗：' + (result ? result.msg : '未知錯誤'));
+    }
+    _deletePolicyNo = '';
+  };
+  var onErr = function() {
+    document.getElementById('loading').style.display = 'none';
+    alert('⚠️ 網路錯誤，請重試');
+    _deletePolicyNo = '';
+  };
+
+  if (_directShellUrl) {
+    directGasCall('deletePolicy', { policyNo: pno }, onOk, onErr);
+  } else {
+    gasCall('deletePolicy', { policyNo: pno }, onOk, onErr);
+  }
+}
+
 function openCarMapFromModal() {
   if (typeof _openCarMapFromModal === "function") {
     _openCarMapFromModal();
