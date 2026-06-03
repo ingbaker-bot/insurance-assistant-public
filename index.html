@@ -4889,6 +4889,14 @@
     if (ADVISOR_LINE) msg += '\n📲 加入 LINE：https://line.me/ti/p/' + ADVISOR_LINE;
     shareViaLine(msg);
   }
+
+  // ★ v6.6 把卡片互動函式 expose 到全域（HTML onclick 需要全域函式）
+  window.renderPolicyCard     = renderPolicyCard;
+  window.togglePolicyDetail   = togglePolicyDetail;
+  window.toggleStatusPanel    = toggleStatusPanel;
+  window.pcardSetStatus       = pcardSetStatus;
+  window.setTrackStatus       = setTrackStatus;
+  window.openDetailFromExpiry = openDetailFromExpiry;
   </script> 
   <!-- ══════════════════════════════════════════
      車險保障圖卡 功能區塊（v5.0 整合版）
