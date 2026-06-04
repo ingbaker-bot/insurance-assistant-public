@@ -5311,9 +5311,19 @@ function _renderFamTable(data) {
   var healthPolicies= [];  // 健康傷害險
   var firePolicies  = [];  // 住宅火險
 
+  var todayMs = new Date().setHours(0,0,0,0);
+
   data.memberGroups.forEach(function(m) {
     m.policies.forEach(function(p) {
-      var t = p.type || '';
+      var t  = p.type || '';
+      var rs = (p.renewStatus || '').trim();
+
+      // ★ 修正1：Z欄「已報廢」或「已過戶」→ 直接排除，車已不屬於被保人
+      if (rs === '已報廢' || rs === '已過戶') return;
+
+      // ★ 修正2：到期日 < 今天 → 舊保單，排除（不含非富邦標記的他家保單）
+      if (!rs.includes('他家') && p.daysLeft !== null && p.daysLeft < 0) return;
+
       var item = Object.assign({}, p, { memberName: m.name, relation: m.relation });
       if      (t.includes('汽車'))   carPolicies.push(item);
       else if (t.includes('機車'))   motoPolicies.push(item);
@@ -5385,12 +5395,22 @@ function _renderFamTable(data) {
   }
 
   // ── Section 標題 ──
+  // 各 Section 色系設定
+  var sectionColors = {
+    '汽車險':   { bg:'#E6F1FB', border:'#85B7EB', text:'#0C447C' },
+    '機車險':   { bg:'#EEEDFE', border:'#AFA9EC', text:'#3C3489' },
+    '健康傷害險':{ bg:'#EAF3DE', border:'#97C459', text:'#27500A' },
+    '住宅火險': { bg:'#FAEEDA', border:'#EF9F27', text:'#633806' }
+  };
+
   function sectionTitle(label, count, subtotal) {
+    var c = sectionColors[label] || { bg:'#F5F5F5', border:'#DDD', text:'#555' };
     return '<div style="display:flex;justify-content:space-between;align-items:center;' +
-      'padding:10px 0 6px;border-bottom:1.5px solid #EEE;margin-bottom:0;">' +
-      '<span style="font-size:12px;font-weight:500;letter-spacing:.05em;color:#666;">' +
-        label.toUpperCase() + ' (' + count + ' 張)</span>' +
-      (subtotal ? '<span style="font-size:12px;color:#555;">小計 NT$' + subtotal.toLocaleString() + '</span>' : '') +
+      'background:' + c.bg + ';border-left:4px solid ' + c.border + ';' +
+      'padding:10px 14px;border-radius:0 6px 6px 0;margin-bottom:0;">' +
+      '<span style="font-size:13px;font-weight:500;color:' + c.text + ';">' +
+        label + ' <span style="font-size:12px;font-weight:400;opacity:.8;">(' + count + ' 張)</span></span>' +
+      (subtotal ? '<span style="font-size:13px;font-weight:500;color:' + c.text + ';">小計 NT$' + subtotal.toLocaleString() + '</span>' : '') +
       '</div>';
   }
 
@@ -5408,7 +5428,7 @@ function _renderFamTable(data) {
   // ── 1. 汽車險 ──
   if (carPolicies.length > 0) {
     var carSub = calcSubtotal(carPolicies);
-    html += '<div style="margin-bottom:18px;">';
+    html += '<div style="margin-bottom:24px;">';
     html += sectionTitle('汽車險', carPolicies.length, carSub);
     html += '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
     html += thead([
@@ -5421,12 +5441,13 @@ function _renderFamTable(data) {
     var carSeq = 1;
     Object.keys(carGroups).forEach(function(plate) {
       var rows = carGroups[plate];
-      // 分組標題列
+      // 分組標題列（含左色條）
       var members = [...new Set(rows.map(function(r){ return r.memberName; }))].join(' / ');
-      html += '<tr><td colspan="8" style="padding:4px 10px;background:#F8F9FA;' +
-        'font-size:11px;font-weight:500;color:#888;border-bottom:0.5px solid #EEE;">' +
-        '<span style="font-family:monospace;letter-spacing:1px;">' + plate + '</span>' +
-        '　' + members + '</td></tr>';
+      html += '<tr><td colspan="8" style="padding:6px 10px 6px 14px;background:#EEF4FA;' +
+        'font-size:12px;font-weight:500;color:#185FA5;border-bottom:0.5px solid #C8DDEF;' +
+        'border-left:3px solid #378ADD;">' +
+        '<span style="font-family:monospace;letter-spacing:1px;font-size:13px;">' + plate + '</span>' +
+        '<span style="margin-left:10px;color:#555;font-weight:400;">' + members + '</span></td></tr>';
       rows.forEach(function(p) {
         var isOther = isOtherCompany(p);
         html += '<tr style="' + (isOther?'opacity:0.7;':'') + '">' +
@@ -5449,7 +5470,7 @@ function _renderFamTable(data) {
   // ── 2. 機車險 ──
   if (motoPolicies.length > 0) {
     var motoSub = calcSubtotal(motoPolicies);
-    html += '<div style="margin-bottom:18px;">';
+    html += '<div style="margin-bottom:24px;">';
     html += sectionTitle('機車險', motoPolicies.length, motoSub);
     html += '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
     html += thead([
@@ -5463,10 +5484,11 @@ function _renderFamTable(data) {
     Object.keys(motoGroups).forEach(function(plate) {
       var rows = motoGroups[plate];
       var members = [...new Set(rows.map(function(r){ return r.memberName; }))].join(' / ');
-      html += '<tr><td colspan="8" style="padding:4px 10px;background:#F8F9FA;' +
-        'font-size:11px;font-weight:500;color:#888;border-bottom:0.5px solid #EEE;">' +
-        '<span style="font-family:monospace;letter-spacing:1px;">' + plate + '</span>' +
-        '　' + members + '</td></tr>';
+      html += '<tr><td colspan="8" style="padding:6px 10px 6px 14px;background:#EEEDF9;' +
+        'font-size:12px;font-weight:500;color:#3C3489;border-bottom:0.5px solid #C5C2EA;' +
+        'border-left:3px solid #7F77DD;">' +
+        '<span style="font-family:monospace;letter-spacing:1px;font-size:13px;">' + plate + '</span>' +
+        '<span style="margin-left:10px;color:#555;font-weight:400;">' + members + '</span></td></tr>';
       rows.forEach(function(p) {
         var isOther = isOtherCompany(p);
         html += '<tr style="' + (isOther?'opacity:0.7;':'') + '">' +
@@ -5489,7 +5511,7 @@ function _renderFamTable(data) {
   // ── 3. 健康傷害險 ──
   if (healthPolicies.length > 0) {
     var healthSub = calcSubtotal(healthPolicies);
-    html += '<div style="margin-bottom:18px;">';
+    html += '<div style="margin-bottom:24px;">';
     html += sectionTitle('健康傷害險', healthPolicies.length, healthSub);
     html += '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
     html += thead([
@@ -5516,7 +5538,7 @@ function _renderFamTable(data) {
   // ── 4. 住宅火險 ──
   if (firePolicies.length > 0) {
     var fireSub = calcSubtotal(firePolicies);
-    html += '<div style="margin-bottom:18px;">';
+    html += '<div style="margin-bottom:24px;">';
     html += sectionTitle('住宅火險', firePolicies.length, fireSub);
     html += '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
     html += thead([
