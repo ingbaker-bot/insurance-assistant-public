@@ -504,10 +504,8 @@
         </div>
         <!-- 快速區間按鈕 -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px;">
+          <button onclick="setDateRange(0,20)"  style="padding:10px 4px;background:#F3E5F5;color:#6A1B9A;border:1.5px solid #CE93D8;border-radius:8px;font-size:13px;font-weight:bold;cursor:pointer;">今天起 20 天</button>
           <button onclick="setDateRange(0,30)"  style="padding:10px 4px;background:#F3E5F5;color:#6A1B9A;border:1.5px solid #CE93D8;border-radius:8px;font-size:13px;font-weight:bold;cursor:pointer;">今天起 30 天</button>
-          <button onclick="setDateRange(0,60)"  style="padding:10px 4px;background:#F3E5F5;color:#6A1B9A;border:1.5px solid #CE93D8;border-radius:8px;font-size:13px;font-weight:bold;cursor:pointer;">今天起 60 天</button>
-          <button onclick="setDateRange(0,90)"  style="padding:10px 4px;background:#F3E5F5;color:#6A1B9A;border:1.5px solid #CE93D8;border-radius:8px;font-size:13px;font-weight:bold;cursor:pointer;">今天起 90 天</button>
-          <button onclick="setDateRange(-30,0)" style="padding:10px 4px;background:#FAFAFA;color:#666;border:1.5px solid #DDD;border-radius:8px;font-size:13px;font-weight:bold;cursor:pointer;">過去 30 天</button>
         </div>
         <!-- 年月日選擇 -->
         <div style="display:flex;gap:8px;margin-bottom:16px;align-items:flex-end;">
@@ -4282,13 +4280,17 @@
     if (sub) sub.textContent = isOpen ? "點選選擇日期" : "點擊收起";
     // 展開時自動設預設日期（今天起 60 天）
     if (!isOpen) {
-      var today = new Date();
-      var end   = new Date(); end.setDate(today.getDate() + 60);
+      var today   = new Date();
+      var start6  = new Date(today); start6.setDate(today.getDate() + 6);
+      var endOfM  = new Date(today.getFullYear(), today.getMonth() + 1, 0); // 當月最後一日
       var fmt = function(d){ return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2); };
+      var roc = function(d){ return (d.getFullYear()-1911)+"/"+("0"+(d.getMonth()+1)).slice(-2)+"/"+("0"+d.getDate()).slice(-2); };
       var s = document.getElementById("trackStartDate");
       var e = document.getElementById("trackEndDate");
-      if (s && !s.value) s.value = fmt(today);
-      if (e && !e.value) e.value = fmt(end);
+      var st = document.getElementById("trackStartText");
+      var et = document.getElementById("trackEndText");
+      if (s && !s.value) { s.value = fmt(start6); if(st) st.textContent = roc(start6); }
+      if (e && !e.value) { e.value = fmt(endOfM); if(et) et.textContent = roc(endOfM); }
     }
   }
 
@@ -4311,9 +4313,20 @@
     var isStart = target === 'start';
     document.getElementById('dpTitle').textContent = isStart ? '選擇開始日期' : '選擇結束日期';
 
-    // 讀取目前值或預設值
+    // ★ 預設日期：開始=今天+6天，結束=當月最後一日
     var cur = document.getElementById(isStart ? 'trackStartDate' : 'trackEndDate').value;
-    var d   = cur ? new Date(cur) : new Date();
+    var d;
+    if (cur) {
+      d = new Date(cur);
+    } else if (isStart) {
+      // 開始日期預設：今天 + 6 天
+      d = new Date();
+      d.setDate(d.getDate() + 6);
+    } else {
+      // 結束日期預設：當月最後一日
+      var now = new Date();
+      d = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    }
     var roc = d.getFullYear() - 1911;
 
     // 填充年份（民國100~125年）
