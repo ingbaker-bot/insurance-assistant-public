@@ -409,7 +409,7 @@
       <div style="font-size:11px;color:#888;margin-bottom:8px;">💡 可混合輸入：李 11507　機車 115　ABC-1234　0912345678</div>
       <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#888;">
         <input type="checkbox" id="showAllToggle" onchange="handleSearch()" style="width:14px;height:14px;cursor:pointer;">
-        顯示已報廢／過戶保單
+        顯示已報廢／過戶／退保／註銷保單
       </label>
     </div>
 
@@ -5389,7 +5389,7 @@ function _renderFamTable(data) {
     return '<thead><tr style="background:#F8F9FA;">' +
       cols.map(function(c) {
         return '<th style="padding:7px 10px;text-align:' + (c.right?'right':'left') +
-          ';font-size:11px;font-weight:500;color:#888;border-bottom:1px solid #EEE;white-space:nowrap;' +
+          ';font-size:12px;font-weight:500;color:#555;border-bottom:1px solid #DDD;white-space:nowrap;' +
           (c.w?'width:'+c.w:'')+'">' + c.label + '</th>';
       }).join('') + '</tr></thead>';
   }
@@ -5423,7 +5423,7 @@ function _renderFamTable(data) {
     }, 0);
   }
 
-  var html = '<div id="famTableContent">';
+  var html = '<div id="famTableContent" style="color:#333;">';
 
   // ── 1. 汽車險 ──
   if (carPolicies.length > 0) {
@@ -5451,14 +5451,14 @@ function _renderFamTable(data) {
       rows.forEach(function(p) {
         var isOther = isOtherCompany(p);
         html += '<tr style="' + (isOther?'opacity:0.7;':'') + '">' +
-          '<td style="padding:7px 10px;color:#bbb;font-size:11px;">' + carSeq++ + '</td>' +
+          '<td style="padding:7px 10px;color:#888;font-size:12px;font-weight:500;">' + carSeq++ + '</td>' +
           '<td style="padding:7px 10px;">' + typeTag(p.type, isOther) + otherBadge(p) + '</td>' +
-          '<td style="padding:7px 10px;font-family:monospace;font-size:12px;color:#333;">' + (p.plate||'—') + '</td>' +
-          '<td style="padding:7px 10px;font-size:12px;color:#333;">' + p.memberName + '</td>' +
-          '<td style="padding:7px 10px;font-size:11px;color:#999;font-family:monospace;">' + p.policyNo + '</td>' +
-          '<td style="padding:7px 10px;font-size:12px;color:#777;">' + (p.effectiveDate||'—') + '</td>' +
-          '<td style="padding:7px 10px;font-size:12px;' + expiryStyle(p) + '">' + (p.expiry||'—') + '</td>' +
-          '<td style="padding:7px 10px;text-align:right;font-size:12px;color:#333;">' +
+          '<td style="padding:7px 10px;font-family:monospace;font-size:12px;color:#333;font-weight:500;">' + (p.plate||'—') + '</td>' +
+          '<td style="padding:7px 10px;font-size:12px;color:#333;font-weight:500;">' + p.memberName + '</td>' +
+          '<td style="padding:7px 10px;font-size:12px;color:#666;font-family:monospace;font-weight:500;">' + p.policyNo + '</td>' +
+          '<td style="padding:7px 10px;font-size:12px;color:#555;font-weight:500;">' + (p.effectiveDate||'—') + '</td>' +
+          '<td style="padding:7px 10px;font-size:12px;font-weight:500;' + expiryStyle(p) + '">' + (p.expiry||'—') + '</td>' +
+          '<td style="padding:7px 10px;text-align:right;font-size:12px;color:#333;font-weight:500;">' +
             (isOther ? '<span style="color:#bbb;">—</span>' :
              (parseInt(String(p.premium).replace(/,/g,''))||0).toLocaleString()) + '</td>' +
           '</tr>';
@@ -5492,14 +5492,14 @@ function _renderFamTable(data) {
       rows.forEach(function(p) {
         var isOther = isOtherCompany(p);
         html += '<tr style="' + (isOther?'opacity:0.7;':'') + '">' +
-          '<td style="padding:7px 10px;color:#bbb;font-size:11px;">' + motoSeq++ + '</td>' +
+          '<td style="padding:7px 10px;color:#888;font-size:12px;font-weight:500;">' + motoSeq++ + '</td>' +
           '<td style="padding:7px 10px;">' + typeTag(p.type, isOther) + otherBadge(p) + '</td>' +
-          '<td style="padding:7px 10px;font-family:monospace;font-size:12px;color:#333;">' + (p.plate||'—') + '</td>' +
-          '<td style="padding:7px 10px;font-size:12px;color:#333;">' + p.memberName + '</td>' +
-          '<td style="padding:7px 10px;font-size:11px;color:#999;font-family:monospace;">' + p.policyNo + '</td>' +
-          '<td style="padding:7px 10px;font-size:12px;color:#777;">' + (p.effectiveDate||'—') + '</td>' +
-          '<td style="padding:7px 10px;font-size:12px;' + expiryStyle(p) + '">' + (p.expiry||'—') + '</td>' +
-          '<td style="padding:7px 10px;text-align:right;font-size:12px;color:#333;">' +
+          '<td style="padding:7px 10px;font-family:monospace;font-size:12px;color:#333;font-weight:500;">' + (p.plate||'—') + '</td>' +
+          '<td style="padding:7px 10px;font-size:12px;color:#333;font-weight:500;">' + p.memberName + '</td>' +
+          '<td style="padding:7px 10px;font-size:12px;color:#666;font-family:monospace;font-weight:500;">' + p.policyNo + '</td>' +
+          '<td style="padding:7px 10px;font-size:12px;color:#555;font-weight:500;">' + (p.effectiveDate||'—') + '</td>' +
+          '<td style="padding:7px 10px;font-size:12px;font-weight:500;' + expiryStyle(p) + '">' + (p.expiry||'—') + '</td>' +
+          '<td style="padding:7px 10px;text-align:right;font-size:12px;color:#333;font-weight:500;">' +
             (isOther ? '<span style="color:#bbb;">—</span>' :
              (parseInt(String(p.premium).replace(/,/g,''))||0).toLocaleString()) + '</td>' +
           '</tr>';
@@ -5522,11 +5522,11 @@ function _renderFamTable(data) {
     healthPolicies.forEach(function(p, i) {
       var isOther = isOtherCompany(p);
       html += '<tr>' +
-        '<td style="padding:7px 10px;color:#bbb;font-size:11px;">' + (i+1) + '</td>' +
-        '<td style="padding:7px 10px;font-size:12px;color:#333;">' + p.memberName + otherBadge(p) + '</td>' +
-        '<td style="padding:7px 10px;font-size:11px;color:#999;font-family:monospace;">' + p.policyNo + '</td>' +
-        '<td style="padding:7px 10px;font-size:12px;color:#777;">' + (p.effectiveDate||'—') + '</td>' +
-        '<td style="padding:7px 10px;font-size:12px;' + expiryStyle(p) + '">' + (p.expiry||'—') + '</td>' +
+        '<td style="padding:7px 10px;color:#888;font-size:12px;font-weight:500;">' + (i+1) + '</td>' +
+        '<td style="padding:7px 10px;font-size:12px;color:#333;font-weight:500;">' + p.memberName + otherBadge(p) + '</td>' +
+        '<td style="padding:7px 10px;font-size:12px;color:#666;font-family:monospace;font-weight:500;">' + p.policyNo + '</td>' +
+        '<td style="padding:7px 10px;font-size:12px;color:#555;font-weight:500;">' + (p.effectiveDate||'—') + '</td>' +
+        '<td style="padding:7px 10px;font-size:12px;font-weight:500;' + expiryStyle(p) + '">' + (p.expiry||'—') + '</td>' +
         '<td style="padding:7px 10px;text-align:right;font-size:12px;color:#333;">' +
           (isOther ? '<span style="color:#bbb;">—</span>' :
            (parseInt(String(p.premium).replace(/,/g,''))||0).toLocaleString()) + '</td>' +
@@ -5549,11 +5549,11 @@ function _renderFamTable(data) {
     firePolicies.forEach(function(p, i) {
       var isOther = isOtherCompany(p);
       html += '<tr>' +
-        '<td style="padding:7px 10px;color:#bbb;font-size:11px;">' + (i+1) + '</td>' +
-        '<td style="padding:7px 10px;font-size:12px;color:#333;">' + p.memberName + otherBadge(p) + '</td>' +
-        '<td style="padding:7px 10px;font-size:11px;color:#999;font-family:monospace;">' + p.policyNo + '</td>' +
-        '<td style="padding:7px 10px;font-size:12px;color:#777;">' + (p.effectiveDate||'—') + '</td>' +
-        '<td style="padding:7px 10px;font-size:12px;' + expiryStyle(p) + '">' + (p.expiry||'—') + '</td>' +
+        '<td style="padding:7px 10px;color:#888;font-size:12px;font-weight:500;">' + (i+1) + '</td>' +
+        '<td style="padding:7px 10px;font-size:12px;color:#333;font-weight:500;">' + p.memberName + otherBadge(p) + '</td>' +
+        '<td style="padding:7px 10px;font-size:12px;color:#666;font-family:monospace;font-weight:500;">' + p.policyNo + '</td>' +
+        '<td style="padding:7px 10px;font-size:12px;color:#555;font-weight:500;">' + (p.effectiveDate||'—') + '</td>' +
+        '<td style="padding:7px 10px;font-size:12px;font-weight:500;' + expiryStyle(p) + '">' + (p.expiry||'—') + '</td>' +
         '<td style="padding:7px 10px;text-align:right;font-size:12px;color:#333;">' +
           (isOther ? '<span style="color:#bbb;">—</span>' :
            (parseInt(String(p.premium).replace(/,/g,''))||0).toLocaleString()) + '</td>' +
@@ -5565,9 +5565,9 @@ function _renderFamTable(data) {
   // ── 合計列 ──
   html += '<div style="border-top:2px solid #EEE;padding:10px 0 4px;' +
     'display:flex;justify-content:space-between;align-items:center;">' +
-    '<span style="font-size:12px;color:#888;">顧問：' + (data.advisorName||'—') + '</span>' +
+    '<span style="font-size:13px;color:#555;font-weight:500;">顧問：' + (data.advisorName||'—') + '</span>' +
     '<div style="text-align:right;">' +
-    '<span style="font-size:11px;color:#999;margin-right:8px;">有效保費合計</span>' +
+    '<span style="font-size:13px;color:#555;font-weight:500;margin-right:8px;">有效保費合計</span>' +
     '<span style="font-size:16px;font-weight:500;color:#1565C0;">NT$' +
     totalPremium.toLocaleString() + '</span></div></div>';
 
