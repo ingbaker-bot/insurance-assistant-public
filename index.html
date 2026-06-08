@@ -1092,8 +1092,11 @@
       address:       item.address       || ''
     }));
 
+    // 判斷是否為他家保單，動態加上 is-other-company 樣式
+    var isOther = String(item.renewStatus||'').startsWith('他家');
+    var cardClass = isOther ? 'policy-card is-other-company' : 'policy-card';
     var html =
-      '<div class="policy-card" id="pcard-' + pno + '" data-item="' + safeItem + '">' +
+      '<div class="' + cardClass + '" id="pcard-' + pno + '" data-item="' + safeItem + '">' +
 
         // 頂部：姓名 + 代號 + 天數 + 狀態徽章
         '<div class="policy-card-top">' +
@@ -1661,7 +1664,11 @@
       // 【核心修正】修正 quickShare 括號內的變數名稱，對齊 Library 的回傳特徵
       // 原本 item.effectDate -> 修正為 item.effectiveDate
       // 原本 item.totalPremium -> 修正為 item.premium
-      html += '<div class="card" onclick="openDetail(\'' + item.policyNo + '\')">' +
+      // 【核心修正】修正 quickShare 括號內的變數名稱，對齊 Library 的回傳特徵
+      // 判斷是否為他家保單，動態加上 is-other-company 樣式
+      var isOther = String(item.renewStatus||'').startsWith('他家');
+      var cardClass = isOther ? 'card is-other-company' : 'card';
+      html += '<div class="' + cardClass + '" onclick="openDetail(\'' + item.policyNo + '\')">' +
         '<div style="margin-bottom:10px;">' +
           '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;margin-bottom:6px;">' +
             '<div class="card-title" style="margin-bottom:0;font-size:16px;flex:1;min-width:0;word-break:break-word;">' + item.name + agentTag + renewTag + '</div>' +
