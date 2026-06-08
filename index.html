@@ -16,6 +16,8 @@
       --text-muted: #666666;
       --line-color: #00B900;
       --ai-color: #FF9800;
+      --other-company-bg: #F5F7FA;
+      --other-company-border: #94A3B8;
     }
     html { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
     body { font-family: Arial, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 16px 14px; -webkit-overflow-scrolling: touch; }
@@ -68,7 +70,15 @@
     .card-info { font-size: 14px; color: var(--text-muted); margin-bottom: 4px; }
     .address-wrap { white-space: normal !important; overflow: visible !important; text-overflow: unset !important; overflow-wrap: anywhere; word-break: break-word; line-height: 1.5; }
     .status-badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 12px; background: #E8F5E9; color: #2E7D32; }
-
+    .card.is-other-company {
+      border-left: 5px solid var(--other-company-border) !important;
+      background-color: var(--other-company-bg) !important;
+    }
+    /* 為了相容 v6.1 新版的統一保單卡片，我們連同 policy-card 一起加上設定 */
+    .policy-card.is-other-company {
+      border: 2px solid var(--other-company-border) !important;
+      background-color: var(--other-company-bg) !important;
+    }
     /* ── 旅平卡卡片 ── */
     .travel-card { background: var(--card-bg); border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 5px solid var(--travel-color); cursor: pointer; }
     .travel-card-title { font-size: 17px; font-weight: bold; color: var(--travel-color); margin-bottom: 8px; }
@@ -317,7 +327,7 @@
           ➕ 新增
         </button>
       </div>
-      <div id="taskListBody" style="max-height:220px;overflow-y:auto;">
+      <div id="taskListBody" style="max-height:160px;overflow-y:auto;padding-right:4px;">
         <div style="color:#999;font-size:13px;text-align:center;padding:10px;">點擊展開後載入...</div>
       </div>
     </div>
@@ -5397,10 +5407,10 @@ function _renderFamTable(data) {
   // ── Section 標題 ──
   // 各 Section 色系設定
   var sectionColors = {
-    '汽車險':   { bg:'#E6F1FB', border:'#85B7EB', text:'#0C447C' },
-    '機車險':   { bg:'#EEEDFE', border:'#AFA9EC', text:'#3C3489' },
-    '健康傷害險':{ bg:'#EAF3DE', border:'#97C459', text:'#27500A' },
-    '住宅火險': { bg:'#FAEEDA', border:'#EF9F27', text:'#633806' }
+  '汽車險':   { bg:'#E6F2F5', border:'#007A87', text:'#004D56' }, // 藍綠色系
+  '機車險':   { bg:'#EBF7F5', border:'#00A480', text:'#005441' }, // 碧綠色系
+  '健康傷害險':{ bg:'#F4F9ED', border:'#8CB83E', text:'#3B5215' }, 
+  '住宅火險': { bg:'#FFF8F0', border:'#F2A134', text:'#663F0C' }
   };
 
   function sectionTitle(label, count, subtotal) {
