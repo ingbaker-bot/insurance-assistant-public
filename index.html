@@ -311,11 +311,6 @@
         <input type="date" id="taskDate" style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;flex:0 0 140px;">
         <input type="text" id="taskContent" placeholder="代辦內容..." style="flex:1;min-width:100px;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;">
         <input type="text" id="taskAgentCode" placeholder="業務員" maxlength="5" style="width:64px;padding:8px 6px;border:1px solid #ddd;border-radius:8px;font-size:12px;text-align:center;">
-        <button id="taskSubmitBtn" onclick="submitTask()"
-          style="padding:8px 16px;background:#00A3E0;color:white;border:none;border-radius:8px;
-                 font-size:13px;font-weight:bold;cursor:pointer;white-space:nowrap;flex-shrink:0;">
-          ➕ 新增
-        </button>
       </div>
       <div id="taskListBody" style="max-height:220px;overflow-y:auto;">
         <div style="color:#999;font-size:13px;text-align:center;padding:10px;">點擊展開後載入...</div>
@@ -409,7 +404,7 @@
       <div style="font-size:11px;color:#888;margin-bottom:8px;">💡 可混合輸入：李 11507　機車 115　ABC-1234　0912345678</div>
       <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#888;">
         <input type="checkbox" id="showAllToggle" onchange="handleSearch()" style="width:14px;height:14px;cursor:pointer;">
-        顯示已報廢／過戶／退保／註銷保單
+        顯示已報廢／過戶保單
       </label>
     </div>
 
@@ -450,93 +445,18 @@
     <!-- 即將到期追蹤展開面板 -->
     <div id="expiryTrackPanel" style="display:none;margin-top:6px;background:#F3E5F5;border-radius:10px;padding:14px;border:1.5px solid #CE93D8;">
       <div style="font-weight:bold;color:#6A1B9A;font-size:13px;margin-bottom:10px;">📅 即將到期保單追蹤 — 選擇查詢區間</div>
-
-      <!-- 隱藏的原生 input（供 JS 讀值用）-->
-      <input type="date" id="trackStartDate" style="position:absolute;opacity:0;pointer-events:none;width:0;height:0;">
-      <input type="date" id="trackEndDate"   style="position:absolute;opacity:0;pointer-events:none;width:0;height:0;">
-
-      <!-- 自訂顯示欄位 -->
-      <div style="display:flex;gap:8px;margin-bottom:10px;">
+      <div style="display:flex;gap:6px;margin-bottom:8px;">
         <div style="flex:1;">
-          <div style="font-size:11px;color:#888;margin-bottom:4px;">開始日期</div>
-          <div id="trackStartDisplay"
-            onclick="openDatePicker('start')"
-            style="width:100%;box-sizing:border-box;padding:9px 12px;border:1.5px solid #CE93D8;
-                   border-radius:8px;font-size:14px;background:white;cursor:pointer;
-                   display:flex;align-items:center;justify-content:space-between;color:#555;">
-            <span id="trackStartText">點選選擇</span>
-            <span style="color:#CE93D8;font-size:16px;">📅</span>
-          </div>
+          <div style="font-size:11px;color:#888;margin-bottom:3px;">開始日期</div>
+          <input type="date" id="trackStartDate" style="width:100%;box-sizing:border-box;padding:7px;border:1px solid #CE93D8;border-radius:6px;font-size:13px;">
         </div>
         <div style="flex:1;">
-          <div style="font-size:11px;color:#888;margin-bottom:4px;">結束日期</div>
-          <div id="trackEndDisplay"
-            onclick="openDatePicker('end')"
-            style="width:100%;box-sizing:border-box;padding:9px 12px;border:1.5px solid #CE93D8;
-                   border-radius:8px;font-size:14px;background:white;cursor:pointer;
-                   display:flex;align-items:center;justify-content:space-between;color:#555;">
-            <span id="trackEndText">點選選擇</span>
-            <span style="color:#CE93D8;font-size:16px;">📅</span>
-          </div>
+          <div style="font-size:11px;color:#888;margin-bottom:3px;">結束日期</div>
+          <input type="date" id="trackEndDate" style="width:100%;box-sizing:border-box;padding:7px;border:1px solid #CE93D8;border-radius:6px;font-size:13px;">
         </div>
       </div>
-
-      <button onclick="loadExpiryRange()" style="width:100%;padding:11px;background:#6A1B9A;color:white;border:none;border-radius:8px;font-size:14px;font-weight:bold;cursor:pointer;">🔍 查詢即將到期保單</button>
+      <button onclick="loadExpiryRange()" style="width:100%;padding:9px;background:#6A1B9A;color:white;border:none;border-radius:6px;font-size:13px;font-weight:bold;cursor:pointer;">🔍 查詢即將到期保單</button>
       <div style="font-size:11px;color:#888;margin-top:6px;">💡 查詢後可直接點選每張保單更新續保狀態</div>
-    </div>
-
-    <!-- ★ 自訂日期選擇器 -->
-    <div id="datepickerOverlay" onclick="closeDatePicker()"
-      style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
-             background:rgba(0,0,0,0.3);z-index:3500;"></div>
-
-    <!-- 面板：手機用 fixed bottom，電腦用 absolute 在按鈕下方 -->
-    <div id="datepickerPanel" style="display:none;position:fixed;z-index:3501;">
-      <div id="datepickerInner" style="background:white;border-radius:14px;
-                  padding:18px 18px 22px;box-sizing:border-box;
-                  box-shadow:0 6px 28px rgba(0,0,0,0.18);
-                  width:340px;max-width:92vw;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-          <span style="font-size:16px;font-weight:bold;color:#6A1B9A;" id="dpTitle">選擇開始日期</span>
-          <button onclick="closeDatePicker()"
-            style="background:#F5F5F5;border:none;border-radius:50%;width:34px;height:34px;
-                   font-size:18px;cursor:pointer;color:#666;line-height:1;">✕</button>
-        </div>
-        <!-- 快速區間按鈕 -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px;">
-          <button onclick="setDateRange(0,20)"  style="padding:10px 4px;background:#F3E5F5;color:#6A1B9A;border:1.5px solid #CE93D8;border-radius:8px;font-size:13px;font-weight:bold;cursor:pointer;">今天起 20 天</button>
-          <button onclick="setDateRange(0,30)"  style="padding:10px 4px;background:#F3E5F5;color:#6A1B9A;border:1.5px solid #CE93D8;border-radius:8px;font-size:13px;font-weight:bold;cursor:pointer;">今天起 30 天</button>
-        </div>
-        <!-- 年月日選擇 -->
-        <div style="display:flex;gap:8px;margin-bottom:16px;align-items:flex-end;">
-          <div style="flex:5;">
-            <div style="font-size:13px;color:#888;margin-bottom:5px;font-weight:bold;">年（民國）</div>
-            <select id="dpYear"
-              style="width:100%;padding:12px 10px;border:1.5px solid #CE93D8;border-radius:8px;
-                     font-size:20px;font-weight:bold;background:white;color:#333;cursor:pointer;">
-            </select>
-          </div>
-          <div style="flex:3;">
-            <div style="font-size:13px;color:#888;margin-bottom:5px;font-weight:bold;">月</div>
-            <select id="dpMonth"
-              style="width:100%;padding:12px 6px;border:1.5px solid #CE93D8;border-radius:8px;
-                     font-size:20px;font-weight:bold;background:white;color:#333;cursor:pointer;">
-            </select>
-          </div>
-          <div style="flex:3;">
-            <div style="font-size:13px;color:#888;margin-bottom:5px;font-weight:bold;">日</div>
-            <select id="dpDay"
-              style="width:100%;padding:12px 6px;border:1.5px solid #CE93D8;border-radius:8px;
-                     font-size:20px;font-weight:bold;background:white;color:#333;cursor:pointer;">
-            </select>
-          </div>
-        </div>
-        <button onclick="confirmDatePicker()"
-          style="width:100%;padding:14px;background:#6A1B9A;color:white;border:none;
-                 border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;">
-          ✓ 確認日期
-        </button>
-      </div>
     </div>
   </div>
 
@@ -595,7 +515,6 @@
       <button class="btn-action bg-line"  onclick="shareToLine()">📄 純文字分享</button>
       <button class="btn-action" style="background:#1565C0;color:white;" onclick="markVehicleStatus('已過戶')">🔄 標記已過戶</button>
       <button class="btn-action" style="background:#4E342E;color:white;" onclick="markVehicleStatus('已報廢')">🗑️ 標記已報廢</button>
-      <button class="btn-action" style="background:#B71C1C;color:white;" onclick="confirmDeletePolicy()">🗑️ 刪除此保單</button>
       <button class="btn-action bg-close" onclick="closeModalOrBack()">關閉返回</button>
     </div>
   </div>
@@ -632,8 +551,7 @@
   // ★ 授權狀態（Google 登入後取得）
   // ══════════════════════════════════════════════════════
   var _userEmail = '';
-  var _gasCallSeq      = 0;
-  var _prefetchedTasks = null;  // ★ 代辦清單預載暫存
+  var _gasCallSeq = 0;
 
   // JSONP 呼叫 GAS API（帶 email 做授權）
   function gasCall(action, params, successFn, failFn, timeout) {
@@ -792,50 +710,26 @@
 
   // ── 【直連模式新增：繞過中央直接向個人薄殼讀取到期資料】 ──
   function initDirectSystem() {
-    // ★ v7.1 三個請求同時發出，共用同一次 GAS 冷啟動
     var hint = document.getElementById('expiryLoadingHint');
-    var cfgDone = false, listDone = false;
-    var expiryResult = null;
-
-    // 請求1：系統設定
+    
     directGasCall('getSystemConfig', {}, function(cfg) {
-      if (cfg && cfg['顧問姓名']) ADVISOR_NAME  = cfg['顧問姓名'];
-      if (cfg && cfg['顧問LINE'])  ADVISOR_LINE  = cfg['顧問LINE'];
+      if (cfg && cfg['顧問姓名']) ADVISOR_NAME = cfg['顧問姓名'];
+      if (cfg && cfg['顧問LINE'])  ADVISOR_LINE = cfg['顧問LINE'];
       if (cfg && cfg['顧問電話'])  ADVISOR_PHONE = cfg['顧問電話'];
-      cfgDone = true;
-      if (listDone) _applyExpiryResult(expiryResult, hint);
-    }, function() {
-      cfgDone = true;
-      if (listDone) _applyExpiryResult(expiryResult, hint);
+      
+      directGasCall('getExpiringLists', {}, function(result) {
+        if (hint) hint.style.display = 'none';
+        var hasUrgent  = result && result.urgent  && result.urgent.length  > 0;
+        var hasWarning = result && result.warning && result.warning.length > 0;
+        if (!hasUrgent && !hasWarning) {
+          document.getElementById('expiryAlertArea').innerHTML =
+            '<div style="background:#E8F5E9;border:1px solid #A5D6A7;border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:13px;color:#2E7D32;">✅ 目前無即將到期保單</div>';
+          return;
+        }
+        if (hasUrgent)  renderExpiryAlert(result.urgent);
+        if (hasWarning) renderEarlyWarning(result.warning);
+      });
     });
-
-    // 請求2：到期名單
-    directGasCall('getExpiringLists', {}, function(result) {
-      expiryResult = result;
-      listDone = true;
-      if (cfgDone) _applyExpiryResult(expiryResult, hint);
-    }, function() {
-      listDone = true;
-      if (cfgDone) _applyExpiryResult(null, hint);
-    });
-
-    // ★ 請求3：代辦清單預載（背景靜默，不影響主畫面）
-    directGasCall('getTasks', {}, function(result) {
-      _prefetchedTasks = result;
-    }, null);
-  }
-
-  function _applyExpiryResult(result, hint) {
-    if (hint) hint.style.display = 'none';
-    var hasUrgent  = result && result.urgent  && result.urgent.length  > 0;
-    var hasWarning = result && result.warning && result.warning.length > 0;
-    if (!hasUrgent && !hasWarning) {
-      document.getElementById('expiryAlertArea').innerHTML =
-        '<div style="background:#E8F5E9;border:1px solid #A5D6A7;border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:13px;color:#2E7D32;">✅ 目前無即將到期保單</div>';
-      return;
-    }
-    if (hasUrgent)  renderExpiryAlert(result.urgent);
-    if (hasWarning) renderEarlyWarning(result.warning);
   }
 
   // ── 【直連模式新增：專用 JSONP 輕量化請求】 ──
@@ -1207,14 +1101,6 @@
               (d.applicantPhone ? '<div class="policy-card-detail-row">' + d.applicantPhone + '</div>' : '') +
               (d.address && d.address !== '無' ? '<div class="policy-card-detail-row">🏠 ' + d.address + '</div>' : '') +
             '</div>' +
-          '</div>' +
-          // ★ 保單明細按鈕（進入 Modal 詳情）
-          '<div style="margin-top:10px;padding-top:8px;border-top:1px dashed #E0E0E0;">' +
-            '<button onclick="openDetailFromExpiry(\'' + pno + '\')" ' +
-              'style="width:100%;padding:10px;background:#F5F5F5;color:#333;border:1px solid #DDD;' +
-                     'border-radius:8px;font-size:13px;font-weight:bold;cursor:pointer;">' +
-              '🔍 查看保單明細（附加險項目）' +
-            '</button>' +
           '</div>';
         inner.innerHTML = html;
       } catch(e) { inner.innerHTML = '<div style="color:#999;font-size:12px;">資料讀取失敗</div>'; }
@@ -1955,11 +1841,8 @@
             '<div><span style="font-weight:bold;color:#333;">👨‍👩‍👧‍👦 家庭保障</span>' +
             '<span style="font-size:12px;color:#888;margin-left:8px;">(' + main.familyId + ')</span></div>' +
             '<button onclick="loadFamilyReport(\'' + main.familyId + '\')" ' +
-              'style="background:#00A3E0;color:white;border:none;padding:8px 16px;border-radius:6px;font-weight:bold;cursor:pointer;font-size:13px;margin-right:8px;">' +
+              'style="background:#00A3E0;color:white;border:none;padding:8px 16px;border-radius:6px;font-weight:bold;cursor:pointer;font-size:13px;">' +
               '展開家庭總覽 ↓</button>' +
-            '<button onclick="openFamilyTableReport(\'' + main.familyId + '\')" ' +
-              'style="background:#1565C0;color:white;border:none;padding:8px 16px;border-radius:6px;font-weight:bold;cursor:pointer;font-size:13px;">' +
-              '📋 家庭保障報表</button>' +
           '</div>' +
         '</div>';
     }
@@ -2836,17 +2719,7 @@
     var panel = document.getElementById('taskPanel');
     var isOpen = panel.style.display !== 'none';
     panel.style.display = isOpen ? 'none' : 'block';
-    if (!isOpen) {
-      if (_prefetchedTasks !== null) {
-        // ★ 有預載資料：直接渲染，不呼叫 API（瞬間顯示）
-        _taskData = _prefetchedTasks;
-        _prefetchedTasks = null;  // 用完清空，下次再開才重新載入
-        renderTasks();
-      } else {
-        // 無預載（失敗或已用過）：即時呼叫 API
-        loadTasks();
-      }
-    }
+    if (!isOpen) loadTasks();
   }
 
   // ══════════════════════════════════════════════════════
@@ -4318,17 +4191,13 @@
     if (sub) sub.textContent = isOpen ? "點選選擇日期" : "點擊收起";
     // 展開時自動設預設日期（今天起 60 天）
     if (!isOpen) {
-      var today   = new Date();
-      var start6  = new Date(today); start6.setDate(today.getDate() + 6);
-      var endOfM  = new Date(today.getFullYear(), today.getMonth() + 1, 0); // 當月最後一日
+      var today = new Date();
+      var end   = new Date(); end.setDate(today.getDate() + 60);
       var fmt = function(d){ return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2); };
-      var roc = function(d){ return (d.getFullYear()-1911)+"/"+("0"+(d.getMonth()+1)).slice(-2)+"/"+("0"+d.getDate()).slice(-2); };
       var s = document.getElementById("trackStartDate");
       var e = document.getElementById("trackEndDate");
-      var st = document.getElementById("trackStartText");
-      var et = document.getElementById("trackEndText");
-      if (s && !s.value) { s.value = fmt(start6); if(st) st.textContent = roc(start6); }
-      if (e && !e.value) { e.value = fmt(endOfM); if(et) et.textContent = roc(endOfM); }
+      if (s && !s.value) s.value = fmt(today);
+      if (e && !e.value) e.value = fmt(end);
     }
   }
 
@@ -4343,153 +4212,6 @@
   }
 
   // 初始化日期選擇器（預設本月1日到今天+7天）
-  // ★ v6.6 自訂日期選擇器
-  var _dpTarget = 'start';  // 'start' or 'end'
-
-  function openDatePicker(target) {
-    _dpTarget = target;
-    var isStart = target === 'start';
-    document.getElementById('dpTitle').textContent = isStart ? '選擇開始日期' : '選擇結束日期';
-
-    // ★ 預設日期：開始=今天+6天，結束=當月最後一日
-    var cur = document.getElementById(isStart ? 'trackStartDate' : 'trackEndDate').value;
-    var d;
-    if (cur) {
-      d = new Date(cur);
-    } else if (isStart) {
-      // 開始日期預設：今天 + 6 天
-      d = new Date();
-      d.setDate(d.getDate() + 6);
-    } else {
-      // 結束日期預設：當月最後一日
-      var now = new Date();
-      d = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    }
-    var roc = d.getFullYear() - 1911;
-
-    // 填充年份（民國100~125年）
-    var ySel = document.getElementById('dpYear');
-    ySel.innerHTML = '';
-    var curYear = new Date().getFullYear() - 1911;
-    for (var y = curYear - 5; y <= curYear + 5; y++) {
-      var opt = document.createElement('option');
-      opt.value = y; opt.textContent = y + ' 年';
-      if (y === roc) opt.selected = true;
-      ySel.appendChild(opt);
-    }
-
-    // 填充月份（1~12）
-    var mSel = document.getElementById('dpMonth');
-    mSel.innerHTML = '';
-    for (var m = 1; m <= 12; m++) {
-      var opt = document.createElement('option');
-      opt.value = m; opt.textContent = m + ' 月';
-      if (m === d.getMonth() + 1) opt.selected = true;
-      mSel.appendChild(opt);
-    }
-    // 移除舊的 listener 避免重複累積
-    var newMSel = mSel.cloneNode(true);
-    mSel.parentNode.replaceChild(newMSel, mSel);
-    document.getElementById('dpMonth').addEventListener('change', function(){ refreshDpDays(); });
-    document.getElementById('dpYear').addEventListener('change', function(){ refreshDpDays(); });
-
-    // 填充日
-    refreshDpDays(d.getDate());
-
-    // ★ 定位：出現在觸發按鈕正下方
-    var triggerEl = document.getElementById(isStart ? 'trackStartDisplay' : 'trackEndDisplay');
-    var panel     = document.getElementById('datepickerPanel');
-    panel.style.display = 'block';
-    document.getElementById('datepickerOverlay').style.display = 'block';
-
-    var rect      = triggerEl.getBoundingClientRect();
-    var panelW    = 340;
-    var left      = rect.left;
-    var top       = rect.bottom + 8;
-
-    // 防止超出右側螢幕
-    if (left + panelW > window.innerWidth - 10) {
-      left = window.innerWidth - panelW - 10;
-    }
-    // 防止超出底部螢幕 → 改顯示在按鈕上方
-    var panelH = document.getElementById('datepickerInner').offsetHeight || 320;
-    if (top + panelH > window.innerHeight - 20) {
-      top = rect.top - panelH - 8;
-    }
-    // 手機（寬度小於 500）→ 置中底部
-    if (window.innerWidth < 500) {
-      panel.style.left   = '0';
-      panel.style.top    = '';
-      panel.style.bottom = '0';
-      panel.style.width  = '100%';
-      document.getElementById('datepickerInner').style.width         = '100%';
-      document.getElementById('datepickerInner').style.maxWidth      = '100%';
-      document.getElementById('datepickerInner').style.borderRadius  = '18px 18px 0 0';
-    } else {
-      panel.style.left   = left + 'px';
-      panel.style.top    = top  + 'px';
-      panel.style.bottom = '';
-      panel.style.width  = 'auto';
-      document.getElementById('datepickerInner').style.width         = '340px';
-      document.getElementById('datepickerInner').style.borderRadius  = '14px';
-    }
-  }
-
-  function refreshDpDays(preSelectDay) {
-    var y    = parseInt(document.getElementById('dpYear').value)  + 1911;
-    var m    = parseInt(document.getElementById('dpMonth').value);
-    var days = new Date(y, m, 0).getDate();  // 該月天數
-    var dSel = document.getElementById('dpDay');
-    var prev = preSelectDay || parseInt(dSel.value) || 1;
-    dSel.innerHTML = '';
-    for (var d = 1; d <= days; d++) {
-      var opt = document.createElement('option');
-      opt.value = d; opt.textContent = d + ' 日';
-      if (d === Math.min(prev, days)) opt.selected = true;
-      dSel.appendChild(opt);
-    }
-  }
-
-  function confirmDatePicker() {
-    var y   = parseInt(document.getElementById('dpYear').value)  + 1911;
-    var m   = parseInt(document.getElementById('dpMonth').value);
-    var d   = parseInt(document.getElementById('dpDay').value);
-    var fmt = y + '-' + ('0'+m).slice(-2) + '-' + ('0'+d).slice(-2);
-    var roc = (y - 1911) + '/' + ('0'+m).slice(-2) + '/' + ('0'+d).slice(-2);
-
-    if (_dpTarget === 'start') {
-      document.getElementById('trackStartDate').value = fmt;
-      document.getElementById('trackStartText').textContent = roc;
-    } else {
-      document.getElementById('trackEndDate').value = fmt;
-      document.getElementById('trackEndText').textContent  = roc;
-    }
-    closeDatePicker();
-  }
-
-  function closeDatePicker() {
-    document.getElementById('datepickerOverlay').style.display = 'none';
-    document.getElementById('datepickerPanel').style.display   = 'none';
-  }
-
-  // 快速設定區間（相對今天的天數偏移）
-  function setDateRange(startOffset, endOffset) {
-    var today = new Date();
-    var s = new Date(today); s.setDate(today.getDate() + startOffset);
-    var e = new Date(today); e.setDate(today.getDate() + endOffset);
-    var fmt = function(d) {
-      return d.getFullYear() + '-' + ('0'+(d.getMonth()+1)).slice(-2) + '-' + ('0'+d.getDate()).slice(-2);
-    };
-    var roc = function(d) {
-      return (d.getFullYear()-1911) + '/' + ('0'+(d.getMonth()+1)).slice(-2) + '/' + ('0'+d.getDate()).slice(-2);
-    };
-    document.getElementById('trackStartDate').value = fmt(s);
-    document.getElementById('trackEndDate').value   = fmt(e);
-    document.getElementById('trackStartText').textContent = roc(s);
-    document.getElementById('trackEndText').textContent   = roc(e);
-    closeDatePicker();
-  }
-
   function initTrackDates() {
     var today = new Date();
     var start = new Date(today.getFullYear(), today.getMonth(), 1); // 本月1日
@@ -4940,14 +4662,6 @@
     if (ADVISOR_LINE) msg += '\n📲 加入 LINE：https://line.me/ti/p/' + ADVISOR_LINE;
     shareViaLine(msg);
   }
-
-  // ★ v6.6 把卡片互動函式 expose 到全域（HTML onclick 需要全域函式）
-  window.renderPolicyCard     = renderPolicyCard;
-  window.togglePolicyDetail   = togglePolicyDetail;
-  window.toggleStatusPanel    = toggleStatusPanel;
-  window.pcardSetStatus       = pcardSetStatus;
-  window.setTrackStatus       = setTrackStatus;
-  window.openDetailFromExpiry = openDetailFromExpiry;
   </script> 
   <!-- ══════════════════════════════════════════
      車險保障圖卡 功能區塊（v5.0 整合版）
@@ -5212,518 +4926,9 @@
 <div id="cmpToast"></div>
 
 <!-- JavaScript -->
-<!-- ★ 家庭保障報表 Modal -->
-<div id="famTableModal" style="
-  display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-  background:rgba(0,0,0,0.6); z-index:3000; overflow-y:auto;">
-  <div style="max-width:700px; margin:20px auto; background:white;
-    border-radius:14px; overflow:hidden; box-shadow:0 8px 32px rgba(0,0,0,0.2);">
-
-    <!-- 頂部標題列 -->
-    <div style="background:linear-gradient(135deg,#1A237E,#1565C0);
-      padding:16px 20px; display:flex; justify-content:space-between; align-items:center;">
-      <div>
-        <div style="color:rgba(255,255,255,0.7);font-size:11px;letter-spacing:1px;">家庭保障報表</div>
-        <div style="color:white;font-size:18px;font-weight:bold;" id="famTableTitle">—</div>
-      </div>
-      <button onclick="closeFamTableModal()"
-        style="background:rgba(255,255,255,0.2);border:none;color:white;
-          border-radius:50%;width:34px;height:34px;font-size:18px;cursor:pointer;">✕</button>
-    </div>
-
-    <!-- 報表內容 -->
-    <div id="famTableBody" style="padding:16px 20px 8px;">
-      <div style="text-align:center;color:#999;padding:30px;">載入中...</div>
-    </div>
-
-    <!-- 底部操作 -->
-    <div style="padding:12px 20px 20px;display:flex;gap:10px;">
-      <button onclick="downloadFamTable()"
-        style="flex:1;padding:12px;background:#00A3E0;color:white;border:none;
-          border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;">
-        📥 下載圖片
-      </button>
-      <button onclick="shareFamTableLine()"
-        style="flex:1;padding:12px;background:#00B900;color:white;border:none;
-          border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;">
-        💬 LINE 分享
-      </button>
-      <button onclick="closeFamTableModal()"
-        style="flex:0 0 48px;padding:12px;background:#F5F5F5;color:#666;border:none;
-          border-radius:10px;font-size:14px;cursor:pointer;">✕</button>
-    </div>
-  </div>
-</div>
-
-<!-- ★ v6.6 刪除保單確認 Modal -->
-<div id="deletePolicyModal" style="
-  display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-  background:rgba(0,0,0,0.6); z-index:4000;
-  justify-content:center; align-items:center;">
-  <div style="background:white; border-radius:16px; padding:24px 20px;
-    max-width:320px; width:90%; box-shadow:0 8px 32px rgba(0,0,0,0.2);">
-    <div style="font-size:36px; text-align:center; margin-bottom:12px;">⚠️</div>
-    <div style="font-size:16px; font-weight:bold; color:#B71C1C; text-align:center; margin-bottom:8px;">
-      確認刪除保單？
-    </div>
-    <div style="font-size:13px; color:#555; text-align:center; margin-bottom:6px;" id="delModalPolicyNo">
-      保單號碼：—
-    </div>
-    <div style="font-size:12px; color:#999; text-align:center; margin-bottom:20px;" id="delModalPolicyInfo">
-    </div>
-    <div style="background:#FFF3E0; border-radius:8px; padding:10px 12px; margin-bottom:18px;">
-      <div style="font-size:12px; color:#E65100; font-weight:bold;">⚠️ 注意事項</div>
-      <div style="font-size:11px; color:#E65100; margin-top:4px; line-height:1.6;">
-        • 同時刪除保單主表及險種明細表<br>
-        • 此操作無法復原，請確認後再刪除<br>
-        • 建議僅刪除測試或明確錯誤的資料
-      </div>
-    </div>
-    <div style="display:flex; gap:10px;">
-      <button onclick="cancelDeletePolicy()"
-        style="flex:1; padding:12px; background:#F5F5F5; color:#666;
-               border:none; border-radius:10px; font-size:14px; cursor:pointer;">
-        取消
-      </button>
-      <button onclick="executeDeletePolicy()"
-        style="flex:1; padding:12px; background:#B71C1C; color:white;
-               border:none; border-radius:10px; font-size:14px; font-weight:bold; cursor:pointer;">
-        確認刪除
-      </button>
-    </div>
-  </div>
-</div>
-
 <script>
-// ══════════════════════════════════════════════
-// ★ 家庭保障報表功能
-// ══════════════════════════════════════════════
-
-function openFamilyTableReport(familyId) {
-  if (!familyId || familyId === '無') { alert('此保戶無家庭編號'); return; }
-  document.getElementById('famTableTitle').textContent = familyId;
-  document.getElementById('famTableBody').innerHTML =
-    '<div style="text-align:center;color:#999;padding:30px;">載入中...</div>';
-  document.getElementById('famTableModal').style.display = 'block';
-  document.body.style.overflow = 'hidden';
-
-  var onOk = function(data) { _renderFamTable(data); };
-  var onErr= function()    { document.getElementById('famTableBody').innerHTML =
-    '<div style="text-align:center;color:#d32f2f;padding:30px;">讀取失敗，請重試</div>'; };
-
-  if (_directShellUrl) directGasCall('getFamilyReport', { id: familyId }, onOk, onErr);
-  else                 gasCall('getFamilyReport',        { id: familyId }, onOk, onErr);
-}
-
-function closeFamTableModal() {
-  document.getElementById('famTableModal').style.display = 'none';
-  document.body.style.overflow = '';
-}
-
-function _renderFamTable(data) {
-  if (!data || !data.memberGroups) {
-    document.getElementById('famTableBody').innerHTML =
-      '<div style="text-align:center;color:#999;padding:30px;">此家庭暫無保單資料</div>';
-    return;
-  }
-
-  // 更新標題
-  var totalPremium = 0;
-  data.memberGroups.forEach(function(m) {
-    m.policies.forEach(function(p) {
-      if (p.status !== '退保' && p.urgency !== 'expired') {
-        totalPremium += parseInt(String(p.premium).replace(/,/g,'')) || 0;
-      }
-    });
-  });
-  document.getElementById('famTableTitle').textContent =
-    data.id + '　共 ' + data.summary.total + ' 張・保費合計 NT$' +
-    totalPremium.toLocaleString();
-
-  // ── 分類保單 ──
-  var carPolicies   = [];  // 汽車強制 + 任意
-  var motoPolicies  = [];  // 機車強制 + 任意
-  var healthPolicies= [];  // 健康傷害險
-  var firePolicies  = [];  // 住宅火險
-
-  var todayMs = new Date().setHours(0,0,0,0);
-
-  data.memberGroups.forEach(function(m) {
-    m.policies.forEach(function(p) {
-      var t  = p.type || '';
-      var rs = (p.renewStatus || '').trim();
-
-      // ★ 修正1：Z欄「已報廢」或「已過戶」→ 直接排除，車已不屬於被保人
-      if (rs === '已報廢' || rs === '已過戶') return;
-
-      // ★ 修正2：到期日 < 今天 → 舊保單，排除（不含非富邦標記的他家保單）
-      if (!rs.includes('他家') && p.daysLeft !== null && p.daysLeft < 0) return;
-
-      var item = Object.assign({}, p, { memberName: m.name, relation: m.relation });
-      if      (t.includes('汽車'))   carPolicies.push(item);
-      else if (t.includes('機車'))   motoPolicies.push(item);
-      else if (t.includes('住宅') || t.includes('火險')) firePolicies.push(item);
-      else if (t.includes('健康') || t.includes('傷害') ||
-               t.includes('意外') || t.includes('傷殘')) healthPolicies.push(item);
-    });
-  });
-
-  // 車牌分組排序（強制先、任意後）
-  function groupByPlate(policies) {
-    var map = {};
-    policies.forEach(function(p) {
-      var key = p.plate || '無車牌';
-      if (!map[key]) map[key] = [];
-      map[key].push(p);
-    });
-    Object.keys(map).forEach(function(k) {
-      map[k].sort(function(a, b) {
-        var aComp = a.type.includes('強制') ? 0 : 1;
-        var bComp = b.type.includes('強制') ? 0 : 1;
-        return aComp - bComp;
-      });
-    });
-    return map;
-  }
-
-  var today = new Date(); today.setHours(0,0,0,0);
-
-  // ── 是否非富邦（Z欄含「他家」）──
-  function isOtherCompany(p) {
-    return p.renewStatus && p.renewStatus.includes('他家');
-  }
-
-  // ── 到期日樣式（60天內標紅）──
-  function expiryStyle(p) {
-    if (isOtherCompany(p)) return 'color:#888;';
-    if (!p.expiry || p.urgency === 'expired') return 'color:#bbb;';
-    if (p.daysLeft !== null && p.daysLeft <= 60)
-      return 'color:#A32D2D;font-weight:500;';
-    return 'color:#555;';
-  }
-
-  // ── 險種標籤 ──
-  function typeTag(t, isOther) {
-    if (isOther) return '<span style="background:#F5F5F5;color:#888;font-size:11px;padding:2px 7px;border-radius:4px;border:1px solid #DDD;">'+t+'</span>';
-    if (t.includes('強制')) return '<span style="background:#F1EFE8;color:#5F5E5A;font-size:11px;padding:2px 7px;border-radius:4px;">強制</span>';
-    if (t.includes('汽車')) return '<span style="background:#E6F1FB;color:#0C447C;font-size:11px;padding:2px 7px;border-radius:4px;">任意</span>';
-    if (t.includes('機車')) return '<span style="background:#EEEDFE;color:#3C3489;font-size:11px;padding:2px 7px;border-radius:4px;">任意</span>';
-    if (t.includes('住宅')||t.includes('火險')) return '<span style="background:#FAEEDA;color:#633806;font-size:11px;padding:2px 7px;border-radius:4px;">火險</span>';
-    return '<span style="background:#EAF3DE;color:#27500A;font-size:11px;padding:2px 7px;border-radius:4px;">'+t+'</span>';
-  }
-
-  // ── 非富邦標示 ──
-  function otherBadge(p) {
-    if (!isOtherCompany(p)) return '';
-    var note = p.renewStatus.replace('他家', '').trim() || '他家';
-    return '<span style="background:#FFF3E0;color:#E65100;font-size:10px;padding:1px 6px;border-radius:4px;margin-left:4px;border:1px solid #FFB74D;">'+note+'</span>';
-  }
-
-  // ── 表格共用 thead ──
-  function thead(cols) {
-    return '<thead><tr style="background:#F8F9FA;">' +
-      cols.map(function(c) {
-        return '<th style="padding:7px 10px;text-align:' + (c.right?'right':'left') +
-          ';font-size:12px;font-weight:500;color:#555;border-bottom:1px solid #DDD;white-space:nowrap;' +
-          (c.w?'width:'+c.w:'')+'">' + c.label + '</th>';
-      }).join('') + '</tr></thead>';
-  }
-
-  // ── Section 標題 ──
-  // 各 Section 色系設定
-  var sectionColors = {
-    '汽車險':   { bg:'#E6F1FB', border:'#85B7EB', text:'#0C447C' },
-    '機車險':   { bg:'#EEEDFE', border:'#AFA9EC', text:'#3C3489' },
-    '健康傷害險':{ bg:'#EAF3DE', border:'#97C459', text:'#27500A' },
-    '住宅火險': { bg:'#FAEEDA', border:'#EF9F27', text:'#633806' }
-  };
-
-  function sectionTitle(label, count, subtotal) {
-    var c = sectionColors[label] || { bg:'#F5F5F5', border:'#DDD', text:'#555' };
-    return '<div style="display:flex;justify-content:space-between;align-items:center;' +
-      'background:' + c.bg + ';border-left:4px solid ' + c.border + ';' +
-      'padding:10px 14px;border-radius:0 6px 6px 0;margin-bottom:0;">' +
-      '<span style="font-size:13px;font-weight:500;color:' + c.text + ';">' +
-        label + ' <span style="font-size:12px;font-weight:400;opacity:.8;">(' + count + ' 張)</span></span>' +
-      (subtotal ? '<span style="font-size:13px;font-weight:500;color:' + c.text + ';">小計 NT$' + subtotal.toLocaleString() + '</span>' : '') +
-      '</div>';
-  }
-
-  // ── 計算小計 ──
-  function calcSubtotal(policies) {
-    return policies.reduce(function(s, p) {
-      if (!isOtherCompany(p) && p.urgency !== 'expired')
-        s += parseInt(String(p.premium).replace(/,/g,'')) || 0;
-      return s;
-    }, 0);
-  }
-
-  var html = '<div id="famTableContent" style="color:#333;">';
-
-  // ── 1. 汽車險 ──
-  if (carPolicies.length > 0) {
-    var carSub = calcSubtotal(carPolicies);
-    html += '<div style="margin-bottom:24px;">';
-    html += sectionTitle('汽車險', carPolicies.length, carSub);
-    html += '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
-    html += thead([
-      {label:'',w:'32px'},{label:'險種',w:'80px'},{label:'車牌',w:'90px'},
-      {label:'被保人',w:'70px'},{label:'保單號碼'},{label:'生效日',w:'72px'},
-      {label:'到期日',w:'72px'},{label:'保費',w:'64px',right:true}
-    ]);
-    html += '<tbody>';
-    var carGroups = groupByPlate(carPolicies);
-    var carSeq = 1;
-    Object.keys(carGroups).forEach(function(plate) {
-      var rows = carGroups[plate];
-      // 分組標題列（含左色條）
-      var members = [...new Set(rows.map(function(r){ return r.memberName; }))].join(' / ');
-      html += '<tr><td colspan="8" style="padding:6px 10px 6px 14px;background:#EEF4FA;' +
-        'font-size:12px;font-weight:500;color:#185FA5;border-bottom:0.5px solid #C8DDEF;' +
-        'border-left:3px solid #378ADD;">' +
-        '<span style="font-family:monospace;letter-spacing:1px;font-size:13px;">' + plate + '</span>' +
-        '<span style="margin-left:10px;color:#555;font-weight:400;">' + members + '</span></td></tr>';
-      rows.forEach(function(p) {
-        var isOther = isOtherCompany(p);
-        html += '<tr style="' + (isOther?'opacity:0.7;':'') + '">' +
-          '<td style="padding:7px 10px;color:#888;font-size:12px;font-weight:500;">' + carSeq++ + '</td>' +
-          '<td style="padding:7px 10px;">' + typeTag(p.type, isOther) + otherBadge(p) + '</td>' +
-          '<td style="padding:7px 10px;font-family:monospace;font-size:12px;color:#333;font-weight:500;">' + (p.plate||'—') + '</td>' +
-          '<td style="padding:7px 10px;font-size:12px;color:#333;font-weight:500;">' + p.memberName + '</td>' +
-          '<td style="padding:7px 10px;font-size:12px;color:#666;font-family:monospace;font-weight:500;">' + p.policyNo + '</td>' +
-          '<td style="padding:7px 10px;font-size:12px;color:#555;font-weight:500;">' + (p.effectiveDate||'—') + '</td>' +
-          '<td style="padding:7px 10px;font-size:12px;font-weight:500;' + expiryStyle(p) + '">' + (p.expiry||'—') + '</td>' +
-          '<td style="padding:7px 10px;text-align:right;font-size:12px;color:#333;font-weight:500;">' +
-            (isOther ? '<span style="color:#bbb;">—</span>' :
-             (parseInt(String(p.premium).replace(/,/g,''))||0).toLocaleString()) + '</td>' +
-          '</tr>';
-      });
-    });
-    html += '</tbody></table></div>';
-  }
-
-  // ── 2. 機車險 ──
-  if (motoPolicies.length > 0) {
-    var motoSub = calcSubtotal(motoPolicies);
-    html += '<div style="margin-bottom:24px;">';
-    html += sectionTitle('機車險', motoPolicies.length, motoSub);
-    html += '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
-    html += thead([
-      {label:'',w:'32px'},{label:'險種',w:'80px'},{label:'車牌',w:'90px'},
-      {label:'被保人',w:'70px'},{label:'保單號碼'},{label:'生效日',w:'72px'},
-      {label:'到期日',w:'72px'},{label:'保費',w:'64px',right:true}
-    ]);
-    html += '<tbody>';
-    var motoGroups = groupByPlate(motoPolicies);
-    var motoSeq = 1;
-    Object.keys(motoGroups).forEach(function(plate) {
-      var rows = motoGroups[plate];
-      var members = [...new Set(rows.map(function(r){ return r.memberName; }))].join(' / ');
-      html += '<tr><td colspan="8" style="padding:6px 10px 6px 14px;background:#EEEDF9;' +
-        'font-size:12px;font-weight:500;color:#3C3489;border-bottom:0.5px solid #C5C2EA;' +
-        'border-left:3px solid #7F77DD;">' +
-        '<span style="font-family:monospace;letter-spacing:1px;font-size:13px;">' + plate + '</span>' +
-        '<span style="margin-left:10px;color:#555;font-weight:400;">' + members + '</span></td></tr>';
-      rows.forEach(function(p) {
-        var isOther = isOtherCompany(p);
-        html += '<tr style="' + (isOther?'opacity:0.7;':'') + '">' +
-          '<td style="padding:7px 10px;color:#888;font-size:12px;font-weight:500;">' + motoSeq++ + '</td>' +
-          '<td style="padding:7px 10px;">' + typeTag(p.type, isOther) + otherBadge(p) + '</td>' +
-          '<td style="padding:7px 10px;font-family:monospace;font-size:12px;color:#333;font-weight:500;">' + (p.plate||'—') + '</td>' +
-          '<td style="padding:7px 10px;font-size:12px;color:#333;font-weight:500;">' + p.memberName + '</td>' +
-          '<td style="padding:7px 10px;font-size:12px;color:#666;font-family:monospace;font-weight:500;">' + p.policyNo + '</td>' +
-          '<td style="padding:7px 10px;font-size:12px;color:#555;font-weight:500;">' + (p.effectiveDate||'—') + '</td>' +
-          '<td style="padding:7px 10px;font-size:12px;font-weight:500;' + expiryStyle(p) + '">' + (p.expiry||'—') + '</td>' +
-          '<td style="padding:7px 10px;text-align:right;font-size:12px;color:#333;font-weight:500;">' +
-            (isOther ? '<span style="color:#bbb;">—</span>' :
-             (parseInt(String(p.premium).replace(/,/g,''))||0).toLocaleString()) + '</td>' +
-          '</tr>';
-      });
-    });
-    html += '</tbody></table></div>';
-  }
-
-  // ── 3. 健康傷害險 ──
-  if (healthPolicies.length > 0) {
-    var healthSub = calcSubtotal(healthPolicies);
-    html += '<div style="margin-bottom:24px;">';
-    html += sectionTitle('健康傷害險', healthPolicies.length, healthSub);
-    html += '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
-    html += thead([
-      {label:'',w:'32px'},{label:'被保人',w:'70px'},{label:'保單號碼'},
-      {label:'生效日',w:'72px'},{label:'到期日',w:'72px'},{label:'保費',w:'64px',right:true}
-    ]);
-    html += '<tbody>';
-    healthPolicies.forEach(function(p, i) {
-      var isOther = isOtherCompany(p);
-      html += '<tr>' +
-        '<td style="padding:7px 10px;color:#888;font-size:12px;font-weight:500;">' + (i+1) + '</td>' +
-        '<td style="padding:7px 10px;font-size:12px;color:#333;font-weight:500;">' + p.memberName + otherBadge(p) + '</td>' +
-        '<td style="padding:7px 10px;font-size:12px;color:#666;font-family:monospace;font-weight:500;">' + p.policyNo + '</td>' +
-        '<td style="padding:7px 10px;font-size:12px;color:#555;font-weight:500;">' + (p.effectiveDate||'—') + '</td>' +
-        '<td style="padding:7px 10px;font-size:12px;font-weight:500;' + expiryStyle(p) + '">' + (p.expiry||'—') + '</td>' +
-        '<td style="padding:7px 10px;text-align:right;font-size:12px;color:#333;">' +
-          (isOther ? '<span style="color:#bbb;">—</span>' :
-           (parseInt(String(p.premium).replace(/,/g,''))||0).toLocaleString()) + '</td>' +
-        '</tr>';
-    });
-    html += '</tbody></table></div>';
-  }
-
-  // ── 4. 住宅火險 ──
-  if (firePolicies.length > 0) {
-    var fireSub = calcSubtotal(firePolicies);
-    html += '<div style="margin-bottom:24px;">';
-    html += sectionTitle('住宅火險', firePolicies.length, fireSub);
-    html += '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
-    html += thead([
-      {label:'',w:'32px'},{label:'被保人',w:'70px'},{label:'保單號碼'},
-      {label:'生效日',w:'72px'},{label:'到期日',w:'72px'},{label:'保費',w:'64px',right:true}
-    ]);
-    html += '<tbody>';
-    firePolicies.forEach(function(p, i) {
-      var isOther = isOtherCompany(p);
-      html += '<tr>' +
-        '<td style="padding:7px 10px;color:#888;font-size:12px;font-weight:500;">' + (i+1) + '</td>' +
-        '<td style="padding:7px 10px;font-size:12px;color:#333;font-weight:500;">' + p.memberName + otherBadge(p) + '</td>' +
-        '<td style="padding:7px 10px;font-size:12px;color:#666;font-family:monospace;font-weight:500;">' + p.policyNo + '</td>' +
-        '<td style="padding:7px 10px;font-size:12px;color:#555;font-weight:500;">' + (p.effectiveDate||'—') + '</td>' +
-        '<td style="padding:7px 10px;font-size:12px;font-weight:500;' + expiryStyle(p) + '">' + (p.expiry||'—') + '</td>' +
-        '<td style="padding:7px 10px;text-align:right;font-size:12px;color:#333;">' +
-          (isOther ? '<span style="color:#bbb;">—</span>' :
-           (parseInt(String(p.premium).replace(/,/g,''))||0).toLocaleString()) + '</td>' +
-        '</tr>';
-    });
-    html += '</tbody></table></div>';
-  }
-
-  // ── 合計列 ──
-  html += '<div style="border-top:2px solid #EEE;padding:10px 0 4px;' +
-    'display:flex;justify-content:space-between;align-items:center;">' +
-    '<span style="font-size:13px;color:#555;font-weight:500;">顧問：' + (data.advisorName||'—') + '</span>' +
-    '<div style="text-align:right;">' +
-    '<span style="font-size:13px;color:#555;font-weight:500;margin-right:8px;">有效保費合計</span>' +
-    '<span style="font-size:16px;font-weight:500;color:#1565C0;">NT$' +
-    totalPremium.toLocaleString() + '</span></div></div>';
-
-  html += '</div>'; // famTableContent
-
-  document.getElementById('famTableBody').innerHTML = html;
-}
-
-// ── 下載圖片 ──
-function downloadFamTable() {
-  var el = document.getElementById('famTableContent');
-  if (!el || typeof html2canvas === 'undefined') {
-    alert('請稍後再試');
-    return;
-  }
-  html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#ffffff' })
-    .then(function(canvas) {
-      var a = document.createElement('a');
-      a.download = '家庭保障報表_' + (document.getElementById('famTableTitle').textContent||'').split('　')[0] + '.png';
-      a.href = canvas.toDataURL('image/png');
-      a.click();
-      showBdToast('📥 已下載報表圖片');
-    });
-}
-
-// ── LINE 分享 ──
-function shareFamTableLine() {
-  var el = document.getElementById('famTableContent');
-  if (!el || typeof html2canvas === 'undefined') { alert('請稍後再試'); return; }
-  html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#ffffff' })
-    .then(function(canvas) {
-      canvas.toBlob(function(blob) {
-        if (navigator.clipboard && window.ClipboardItem) {
-          navigator.clipboard.write([new ClipboardItem({'image/png': blob})])
-            .then(function() {
-              showBdToast('✅ 已複製！正在開啟 LINE...');
-              setTimeout(function(){ window.location.href = 'line://'; }, 800);
-            })
-            .catch(function() { _fallbackFamLine(canvas); });
-        } else {
-          _fallbackFamLine(canvas);
-        }
-      });
-    });
-}
-
-function _fallbackFamLine(canvas) {
-  var a = document.createElement('a');
-  a.download = '家庭保障報表.png';
-  a.href = canvas.toDataURL('image/png');
-  a.click();
-  setTimeout(function(){ window.location.href = 'line://'; }, 600);
-  showBdToast('📥 已下載，請手動傳入 LINE');
-}
-
 // ★ 全域橋接函式：第一層主頁按鈕呼叫此函式
 //   實際邏輯在主 script 閉包內的 _openCarMapFromModal
-// ★ v6.6 刪除保單相關函式
-var _deletePolicyNo = '';  // 暫存待刪除的保單號碼
-
-function confirmDeletePolicy() {
-  if (!currentPolicyData || !currentPolicyData.main) {
-    alert('請先開啟一張保單');
-    return;
-  }
-  var main = currentPolicyData.main;
-  var pno  = main.policyNo || main.no || '';
-  if (!pno) {
-    alert('無法取得保單號碼');
-    return;
-  }
-  _deletePolicyNo = pno;
-
-  // 填入確認 Modal 的保單資訊
-  document.getElementById('delModalPolicyNo').textContent  = '保單號碼：' + pno;
-  document.getElementById('delModalPolicyInfo').textContent =
-    (main.insuredName || '') + '　' + (main.type || '') + '　' + (main.expiry || main.expiryDate || '');
-
-  document.getElementById('deletePolicyModal').style.display = 'flex';
-}
-
-function cancelDeletePolicy() {
-  document.getElementById('deletePolicyModal').style.display = 'none';
-  _deletePolicyNo = '';
-}
-
-function executeDeletePolicy() {
-  if (!_deletePolicyNo) return;
-  var pno = _deletePolicyNo;
-
-  // 關閉確認 Modal，顯示載入中
-  document.getElementById('deletePolicyModal').style.display = 'none';
-  document.getElementById('loading').style.display = 'block';
-
-  var onOk = function(result) {
-    document.getElementById('loading').style.display = 'none';
-    if (result && result.success) {
-      showBdToast('✅ ' + result.msg);
-      closeModalOrBack();
-      // 若目前在到期提醒列表，刷新對應列表
-      if (typeof loadExpiringLists === 'function') {
-        setTimeout(loadExpiringLists, 500);
-      }
-    } else {
-      alert('⚠️ 刪除失敗：' + (result ? result.msg : '未知錯誤'));
-    }
-    _deletePolicyNo = '';
-  };
-  var onErr = function() {
-    document.getElementById('loading').style.display = 'none';
-    alert('⚠️ 網路錯誤，請重試');
-    _deletePolicyNo = '';
-  };
-
-  if (_directShellUrl) {
-    directGasCall('deletePolicy', { policyNo: pno }, onOk, onErr);
-  } else {
-    gasCall('deletePolicy', { policyNo: pno }, onOk, onErr);
-  }
-}
-
 function openCarMapFromModal() {
   if (typeof _openCarMapFromModal === "function") {
     _openCarMapFromModal();
