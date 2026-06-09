@@ -21,6 +21,23 @@
     body { font-family: Arial, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 16px 14px; -webkit-overflow-scrolling: touch; }
     .container { max-width: 600px; margin: 0 auto; }
 
+    /* ── 骨架畫面（v7.1）── */
+    .skeleton-alert {
+      border-radius: 10px; padding: 12px 14px; margin-bottom: 8px;
+    }
+    .skeleton-urgent  { background: #FFF3E0; border: 1px solid #FFCC80; }
+    .skeleton-warning { background: #F1F8E9; border: 1px solid #C5E1A5; }
+    .skeleton-bar {
+      background: linear-gradient(90deg, #E0E0E0 25%, #F5F5F5 50%, #E0E0E0 75%);
+      background-size: 200% 100%;
+      animation: skeleton-shimmer 1.4s infinite;
+      display: inline-block;
+    }
+    @keyframes skeleton-shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
     /* ── 主控 Tab 切換（v5.3 透明粗框）── */
     .tab-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 4px; }
     .tab-btn {
@@ -324,8 +341,28 @@
   </div>
 
   <!-- 近期到期提醒（頁面載入時自動查詢） -->
-  <div id="expiryLoadingHint" style="background:#FFF8E1;border:1px solid #FFE082;border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:13px;color:#F57F17;display:flex;align-items:center;gap:8px;">
-    ⏳ 載入到期提醒中...
+  <!-- ★ v7.1 骨架畫面：資料到來前先顯示佔位元素，消除空白感 -->
+  <div id="expiryLoadingHint">
+    <!-- 5天骨架 -->
+    <div class="skeleton-alert skeleton-urgent">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="skeleton-bar" style="width:140px;height:16px;border-radius:6px;"></div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div class="skeleton-bar" style="width:40px;height:22px;border-radius:12px;"></div>
+          <div class="skeleton-bar" style="width:70px;height:14px;border-radius:6px;"></div>
+        </div>
+      </div>
+    </div>
+    <!-- 45~51天骨架 -->
+    <div class="skeleton-alert skeleton-warning">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="skeleton-bar" style="width:160px;height:16px;border-radius:6px;"></div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div class="skeleton-bar" style="width:40px;height:22px;border-radius:12px;"></div>
+          <div class="skeleton-bar" style="width:50px;height:14px;border-radius:6px;"></div>
+        </div>
+      </div>
+    </div>
   </div>
   <div id="expiryAlertArea"></div>
 
