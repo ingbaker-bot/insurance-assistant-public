@@ -341,25 +341,27 @@
   </div>
 
   <!-- 近期到期提醒（頁面載入時自動查詢） -->
-  <!-- ★ v7.1 骨架畫面：資料到來前先顯示佔位元素，消除空白感 -->
+  <!-- ★ v7.1 骨架畫面：保留文字標題，只對數字用佔位條 -->
   <div id="expiryLoadingHint">
     <!-- 5天骨架 -->
     <div class="skeleton-alert skeleton-urgent">
       <div style="display:flex;justify-content:space-between;align-items:center;">
-        <div class="skeleton-bar" style="width:140px;height:16px;border-radius:6px;"></div>
+        <span style="font-size:14px;font-weight:bold;color:#E65100;">⏰ 5 天內即將到期</span>
         <div style="display:flex;gap:8px;align-items:center;">
-          <div class="skeleton-bar" style="width:40px;height:22px;border-radius:12px;"></div>
-          <div class="skeleton-bar" style="width:70px;height:14px;border-radius:6px;"></div>
+          <div class="skeleton-bar" style="width:44px;height:22px;border-radius:12px;"></div>
+          <div class="skeleton-bar" style="width:72px;height:14px;border-radius:6px;"></div>
+          <span style="color:#E65100;font-size:14px;">▼</span>
         </div>
       </div>
     </div>
     <!-- 45~51天骨架 -->
     <div class="skeleton-alert skeleton-warning">
       <div style="display:flex;justify-content:space-between;align-items:center;">
-        <div class="skeleton-bar" style="width:160px;height:16px;border-radius:6px;"></div>
+        <span style="font-size:14px;font-weight:bold;color:#558B2F;">📅 45～51 天即將到期</span>
         <div style="display:flex;gap:8px;align-items:center;">
-          <div class="skeleton-bar" style="width:40px;height:22px;border-radius:12px;"></div>
-          <div class="skeleton-bar" style="width:50px;height:14px;border-radius:6px;"></div>
+          <div class="skeleton-bar" style="width:44px;height:22px;border-radius:12px;"></div>
+          <span style="color:#558B2F;font-size:12px;">提前預警</span>
+          <span style="color:#558B2F;font-size:14px;">▼</span>
         </div>
       </div>
     </div>
