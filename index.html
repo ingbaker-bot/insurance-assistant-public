@@ -16,8 +16,6 @@
       --text-muted: #666666;
       --line-color: #00B900;
       --ai-color: #FF9800;
-      --other-company-bg: #F5F7FA;
-      --other-company-border: #94A3B8;
     }
     html { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
     body { font-family: Arial, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 16px 14px; -webkit-overflow-scrolling: touch; }
@@ -70,15 +68,7 @@
     .card-info { font-size: 14px; color: var(--text-muted); margin-bottom: 4px; }
     .address-wrap { white-space: normal !important; overflow: visible !important; text-overflow: unset !important; overflow-wrap: anywhere; word-break: break-word; line-height: 1.5; }
     .status-badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 12px; background: #E8F5E9; color: #2E7D32; }
-    .card.is-other-company {
-      border-left: 5px solid var(--other-company-border) !important;
-      background-color: var(--other-company-bg) !important;
-    }
-    /* 為了相容 v6.1 新版的統一保單卡片，我們連同 policy-card 一起加上設定 */
-    .policy-card.is-other-company {
-      border: 2px solid var(--other-company-border) !important;
-      background-color: var(--other-company-bg) !important;
-    }
+
     /* ── 旅平卡卡片 ── */
     .travel-card { background: var(--card-bg); border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 5px solid var(--travel-color); cursor: pointer; }
     .travel-card-title { font-size: 17px; font-weight: bold; color: var(--travel-color); margin-bottom: 8px; }
@@ -284,21 +274,6 @@
   </style>
 </head>
 <body>
-
-<div style="padding:10px; background:#fff2cc; text-align:center;">
-  <button onclick="testSpeed()" style="padding:10px; font-size:16px;">🔍 點擊測速</button>
-</div>
-
-<script>
-function testSpeed() {
-  var start = new Date().getTime();
-  google.script.run.withSuccessHandler(function(res) {
-    var end = new Date().getTime();
-    alert("後端讀取結果：" + res + "\n網路往返耗時：" + (end - start) + " 毫秒");
-  }).getFastData();
-}
-</script>
-  
 <!-- ★ 授權遮罩 -->
 <div id="authOverlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#1a73e8 0%,#0d47a1 100%);z-index:9999;display:flex;justify-content:center;align-items:center;transition:opacity 0.4s ease;">
   <div style="background:white;border-radius:20px;padding:40px 32px;max-width:360px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.2);text-align:center;">
@@ -342,7 +317,7 @@ function testSpeed() {
           ➕ 新增
         </button>
       </div>
-      <div id="taskListBody" style="max-height:160px;overflow-y:auto;padding-right:4px;">
+      <div id="taskListBody" style="max-height:220px;overflow-y:auto;">
         <div style="color:#999;font-size:13px;text-align:center;padding:10px;">點擊展開後載入...</div>
       </div>
     </div>
@@ -816,26 +791,45 @@ function testSpeed() {
 
   // ── 【直連模式新增：繞過中央直接向個人薄殼讀取到期資料】 ──
   function initDirectSystem() {
+    // ★ v7.1 平行呼叫：getSystemConfig 和 getExpiringLists 同時發出
+    // 不再序列等待，兩個請求共用同一次 GAS 冷啟動時間
     var hint = document.getElementById('expiryLoadingHint');
-    
+    var cfgDone = false, listDone = false;
+    var expiryResult = null;
+
+    // 兩個請求同時發出
     directGasCall('getSystemConfig', {}, function(cfg) {
-      if (cfg && cfg['顧問姓名']) ADVISOR_NAME = cfg['顧問姓名'];
-      if (cfg && cfg['顧問LINE'])  ADVISOR_LINE = cfg['顧問LINE'];
+      if (cfg && cfg['顧問姓名']) ADVISOR_NAME  = cfg['顧問姓名'];
+      if (cfg && cfg['顧問LINE'])  ADVISOR_LINE  = cfg['顧問LINE'];
       if (cfg && cfg['顧問電話'])  ADVISOR_PHONE = cfg['顧問電話'];
-      
-      directGasCall('getExpiringLists', {}, function(result) {
-        if (hint) hint.style.display = 'none';
-        var hasUrgent  = result && result.urgent  && result.urgent.length  > 0;
-        var hasWarning = result && result.warning && result.warning.length > 0;
-        if (!hasUrgent && !hasWarning) {
-          document.getElementById('expiryAlertArea').innerHTML =
-            '<div style="background:#E8F5E9;border:1px solid #A5D6A7;border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:13px;color:#2E7D32;">✅ 目前無即將到期保單</div>';
-          return;
-        }
-        if (hasUrgent)  renderExpiryAlert(result.urgent);
-        if (hasWarning) renderEarlyWarning(result.warning);
-      });
+      cfgDone = true;
+      if (listDone) _applyExpiryResult(expiryResult, hint);
+    }, function() {
+      cfgDone = true;
+      if (listDone) _applyExpiryResult(expiryResult, hint);
     });
+
+    directGasCall('getExpiringLists', {}, function(result) {
+      expiryResult = result;
+      listDone = true;
+      if (cfgDone) _applyExpiryResult(expiryResult, hint);
+    }, function() {
+      listDone = true;
+      if (cfgDone) _applyExpiryResult(null, hint);
+    });
+  }
+
+  function _applyExpiryResult(result, hint) {
+    if (hint) hint.style.display = 'none';
+    var hasUrgent  = result && result.urgent  && result.urgent.length  > 0;
+    var hasWarning = result && result.warning && result.warning.length > 0;
+    if (!hasUrgent && !hasWarning) {
+      document.getElementById('expiryAlertArea').innerHTML =
+        '<div style="background:#E8F5E9;border:1px solid #A5D6A7;border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:13px;color:#2E7D32;">✅ 目前無即將到期保單</div>';
+      return;
+    }
+    if (hasUrgent)  renderExpiryAlert(result.urgent);
+    if (hasWarning) renderEarlyWarning(result.warning);
   }
 
   // ── 【直連模式新增：專用 JSONP 輕量化請求】 ──
@@ -1107,11 +1101,8 @@ function testSpeed() {
       address:       item.address       || ''
     }));
 
-    // 判斷是否為他家保單，動態加上 is-other-company 樣式
-    var isOther = String(item.renewStatus||'').startsWith('他家');
-    var cardClass = isOther ? 'policy-card is-other-company' : 'policy-card';
     var html =
-      '<div class="' + cardClass + '" id="pcard-' + pno + '" data-item="' + safeItem + '">' +
+      '<div class="policy-card" id="pcard-' + pno + '" data-item="' + safeItem + '">' +
 
         // 頂部：姓名 + 代號 + 天數 + 狀態徽章
         '<div class="policy-card-top">' +
@@ -1679,11 +1670,7 @@ function testSpeed() {
       // 【核心修正】修正 quickShare 括號內的變數名稱，對齊 Library 的回傳特徵
       // 原本 item.effectDate -> 修正為 item.effectiveDate
       // 原本 item.totalPremium -> 修正為 item.premium
-      // 【核心修正】修正 quickShare 括號內的變數名稱，對齊 Library 的回傳特徵
-      // 判斷是否為他家保單，動態加上 is-other-company 樣式
-      var isOther = String(item.renewStatus||'').startsWith('他家');
-      var cardClass = isOther ? 'card is-other-company' : 'card';
-      html += '<div class="' + cardClass + '" onclick="openDetail(\'' + item.policyNo + '\')">' +
+      html += '<div class="card" onclick="openDetail(\'' + item.policyNo + '\')">' +
         '<div style="margin-bottom:10px;">' +
           '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;margin-bottom:6px;">' +
             '<div class="card-title" style="margin-bottom:0;font-size:16px;flex:1;min-width:0;word-break:break-word;">' + item.name + agentTag + renewTag + '</div>' +
@@ -5429,10 +5416,10 @@ function _renderFamTable(data) {
   // ── Section 標題 ──
   // 各 Section 色系設定
   var sectionColors = {
-  '汽車險':   { bg:'#E6F2F5', border:'#007A87', text:'#004D56' }, // 藍綠色系
-  '機車險':   { bg:'#EBF7F5', border:'#00A480', text:'#005441' }, // 碧綠色系
-  '健康傷害險':{ bg:'#F4F9ED', border:'#8CB83E', text:'#3B5215' }, 
-  '住宅火險': { bg:'#FFF8F0', border:'#F2A134', text:'#663F0C' }
+    '汽車險':   { bg:'#E6F1FB', border:'#85B7EB', text:'#0C447C' },
+    '機車險':   { bg:'#EEEDFE', border:'#AFA9EC', text:'#3C3489' },
+    '健康傷害險':{ bg:'#EAF3DE', border:'#97C459', text:'#27500A' },
+    '住宅火險': { bg:'#FAEEDA', border:'#EF9F27', text:'#633806' }
   };
 
   function sectionTitle(label, count, subtotal) {
