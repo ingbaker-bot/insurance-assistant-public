@@ -1821,7 +1821,7 @@
     } else {
       list.forEach(function(item) {
         // 把資料 encode 傳給推薦函式
-        var encoded = encodeURIComponent(JSON.stringify({ name: item.name, applicant: item.applicant }));
+        var encoded = encodeURIComponent(JSON.stringify({ name: item.name, applicant: item.applicant, idNo: item.idNo || '' }));
         html +=
           '<div class="uncovered-card">' +
             '<div class="uncovered-info">' +
@@ -1831,20 +1831,64 @@
                 (item.applicant && item.applicant !== item.name ? '　要保人：' + item.applicant : '') +
               '</div>' +
             '</div>' +
-            '<button class="uncovered-recommend-btn" onclick="recommendTravel(\'' + encoded + '\')">💬 推薦旅平卡</button>' +
+            '<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">' +
+              '<button class="uncovered-recommend-btn" onclick="recommendTravel(\'' + encoded + '\')">💬 推薦旅平卡</button>' +
+              '<div style="display:flex;gap:4px;">' +
+                '<button onclick="setUncoveredStatus(\'' + encoded + '\',\'已完成\')" ' +
+                  'style="padding:5px 8px;background:#E8F5E9;color:#2E7D32;border:1px solid #A5D6A7;border-radius:6px;font-size:11px;cursor:pointer;">✅ 已完成</button>' +
+                '<button onclick="setUncoveredStatus(\'' + encoded + '\',\'不辦理\')" ' +
+                  'style="padding:5px 8px;background:#F5F5F5;color:#666;border:1px solid #DDD;border-radius:6px;font-size:11px;cursor:pointer;">✗ 不辦理</button>' +
+                '<button onclick="setUncoveredStatus(\'' + encoded + '\',\'刪除\')" ' +
+                  'style="padding:5px 8px;background:#FFEBEE;color:#C62828;border:1px solid #FFCDD2;border-radius:6px;font-size:11px;cursor:pointer;">🗑️</button>' +
+              '</div>' +
+            '</div>' +
           '</div>';
       });
     }
     document.getElementById('uncoveredListBody').innerHTML = html;
   }
 
+  // ★ v7.2 旅平卡推薦 - 加入稱呼輸入
+  var _travelRecommendData = null;
+
   function recommendTravel(encodedData) {
-    var data = JSON.parse(decodeURIComponent(encodedData));
-    // 要保人和被保人不同時，用要保人（通常是付費的那位）
-    var targetName = (data.applicant && data.applicant !== data.name) ? data.applicant : data.name;
+    _travelRecommendData = JSON.parse(decodeURIComponent(encodedData));
+    var targetName = (_travelRecommendData.applicant && _travelRecommendData.applicant !== _travelRecommendData.name)
+      ? _travelRecommendData.applicant : _travelRecommendData.name;
+
+    // 查詢已儲存的稱呼
+    var idNo = _travelRecommendData.idNo || '';
+    if (idNo && _directShellUrl) {
+      directGasCall('getCustomerNickname', { id: idNo }, function(r) {
+        _showTravelNickModal(targetName, r && r.nickname ? r.nickname : '');
+      }, function() { _showTravelNickModal(targetName, ''); });
+    } else if (idNo) {
+      gasCall('getCustomerNickname', { id: idNo }, function(r) {
+        _showTravelNickModal(targetName, r && r.nickname ? r.nickname : '');
+      }, function() { _showTravelNickModal(targetName, ''); });
+    } else {
+      _showTravelNickModal(targetName, '');
+    }
+  }
+
+  function _showTravelNickModal(name, savedNick) {
+    document.getElementById('travelNickName').textContent  = name;
+    document.getElementById('travelNickInput').value       = savedNick;
+    document.getElementById('travelNickModal').style.display = 'flex';
+    setTimeout(function(){ document.getElementById('travelNickInput').focus(); }, 150);
+  }
+
+  function _confirmTravelRecommend() {
+    var data = _travelRecommendData;
+    if (!data) return;
+    var targetName = (data.applicant && data.applicant !== data.name)
+      ? data.applicant : data.name;
+    var nick  = document.getElementById('travelNickInput').value.trim();
+    var greet = nick || targetName;
+
     var msg =
       "🏖️【旅平卡推薦】\n\n" +
-      targetName + " 您好！我們注意到您目前尚未申辦旅平卡保障。\n\n" +
+      greet + " 您好！我們注意到您目前尚未申辦旅平卡保障。\n\n" +
       "富邦人壽及產險均有提供旅平卡，保障內容包含：\n" +
       "✅ 意外身故／失能保障\n" +
       "✅ 海內外旅遊醫療費用\n" +
@@ -1852,7 +1896,81 @@
       "✅ 產險更有不便險\n\n" +
       "有興趣了解詳情，歡迎隨時聯繫 " + ADVISOR_NAME + "！🙌";
     if (ADVISOR_LINE) msg += "\n📲 加入 LINE：https://line.me/ti/p/" + ADVISOR_LINE;
+
+    // 儲存稱呼
+    var idNo = data.idNo || '';
+    if (nick && idNo) {
+      if (_directShellUrl) directGasCall('saveCustomerNickname', { id: idNo, nick: nick }, null, null);
+      else gasCall('saveCustomerNickname', { id: idNo, nick: nick }, null, null);
+    }
+
+    document.getElementById('travelNickModal').style.display = 'none';
+    _travelRecommendData = null;
     shareViaLine(msg);
+  }
+
+  function _cancelTravelRecommend() {
+    document.getElementById('travelNickModal').style.display = 'none';
+    _travelRecommendData = null;
+  }
+
+  function _skipTravelNick() {
+    var data = _travelRecommendData;
+    if (!data) return;
+    var targetName = (data.applicant && data.applicant !== data.name)
+      ? data.applicant : data.name;
+    // 用姓名直接發送
+    var nick = targetName;
+    var msg =
+      "🏖️【旅平卡推薦】\n\n" +
+      nick + " 您好！我們注意到您目前尚未申辦旅平卡保障。\n\n" +
+      "富邦人壽及產險均有提供旅平卡，保障內容包含：\n" +
+      "✅ 意外身故／失能保障\n" +
+      "✅ 海內外旅遊醫療費用\n" +
+      "✅ 海外突發疾病\n" +
+      "✅ 產險更有不便險\n\n" +
+      "有興趣了解詳情，歡迎隨時聯繫 " + ADVISOR_NAME + "！🙌";
+    if (ADVISOR_LINE) msg += "\n📲 加入 LINE：https://line.me/ti/p/" + ADVISOR_LINE;
+    document.getElementById('travelNickModal').style.display = 'none';
+    _travelRecommendData = null;
+    shareViaLine(msg);
+  }
+
+  // ★ v7.2 設定未申辦旅平卡名單狀態（已完成/不辦理/刪除）
+  function setUncoveredStatus(encodedData, status) {
+    var data = JSON.parse(decodeURIComponent(encodedData));
+    var idNo = data.idNo || '';
+    var name = data.name || '';
+
+    if (!idNo) {
+      // 無身分證號：直接從畫面移除（不儲存）
+      _removeUncoveredCard(name);
+      showBdToast('已移除：' + name);
+      return;
+    }
+
+    // 儲存狀態到 GAS
+    var onOk = function() {
+      _removeUncoveredCard(name);
+      showBdToast(status === '刪除' ? '🗑️ 已刪除：' + name :
+                  status === '已完成' ? '✅ 已完成：' + name : '✗ 不辦理：' + name);
+    };
+    var params = { idNo: idNo, name: name, status: status };
+    if (_directShellUrl) directGasCall('updateTravelRecommendStatus', params, onOk, onOk);
+    else                 gasCall('updateTravelRecommendStatus', params, onOk, onOk);
+  }
+
+  function _removeUncoveredCard(name) {
+    // 從畫面上移除該筆卡片
+    var cards = document.querySelectorAll('.uncovered-card');
+    cards.forEach(function(card) {
+      var nameEl = card.querySelector('.uncovered-name');
+      if (nameEl && nameEl.textContent.trim() === name) {
+        card.style.transition = 'opacity 0.3s';
+        card.style.opacity = '0';
+        setTimeout(function(){ card.remove(); }, 300);
+      }
+    });
   }
 
   // ── 旅平卡搜尋 ──
@@ -5295,6 +5413,36 @@
   </div>
 </div>
 
+<!-- ★ v7.2 旅平卡推薦稱呼輸入 Modal -->
+<div id="travelNickModal" style="
+  display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+  background:rgba(0,0,0,0.5); z-index:4000;
+  justify-content:center; align-items:center;">
+  <div style="background:white; border-radius:16px; padding:24px 20px;
+    max-width:340px; width:90%; box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+    <div style="font-size:16px;font-weight:bold;color:#333;margin-bottom:6px;">
+      請輸入 <span id="travelNickName"></span> 的稱呼
+    </div>
+    <div style="font-size:12px;color:#999;margin-bottom:14px;">輸入後會自動儲存，下次不需再填</div>
+    <input type="text" id="travelNickInput" placeholder="例如：建明哥、麗敏姐、大哥..."
+      style="width:100%;padding:12px 14px;border:2px solid #00B900;border-radius:10px;
+             font-size:16px;color:#333;box-sizing:border-box;margin-bottom:12px;outline:none;"
+      onkeydown="if(event.key==='Enter')_confirmTravelRecommend()">
+    <div style="display:flex;gap:10px;">
+      <button onclick="_skipTravelNick()"
+        style="flex:1;padding:12px;background:#F5F5F5;color:#555;border:none;
+               border-radius:10px;font-size:14px;cursor:pointer;">
+        跳過，用姓名
+      </button>
+      <button onclick="_confirmTravelRecommend()"
+        style="flex:2;padding:12px;background:#00B900;color:white;border:none;
+               border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;">
+        確定傳送
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- ★ v6.6 刪除保單確認 Modal -->
 <div id="deletePolicyModal" style="
   display:none; position:fixed; top:0; left:0; width:100%; height:100%;
@@ -6286,5 +6434,8 @@ function _cmpToast(msg) {
   t._t = setTimeout(function(){ t.style.display='none'; }, 2000);
 }
 </script>
+<div style="text-align:center;font-size:11px;color:#bbb;padding:12px 0 16px;letter-spacing:0.5px;">
+  © NBS奈AI工作團隊　版權所有
+</div>
 </body>
 </html>
