@@ -898,22 +898,40 @@
   }
 
   // ── 【直連模式新增：專用 JSONP 輕量化請求】 ──
+  // ★ v7.3 directGasCall：JSONP 優先，Edge/Safari 自動 fallback 到 fetch
+  var _useJsonp = null; // null=未知, true=用JSONP, false=用fetch
+
   function directGasCall(action, params, successFn, failFn) {
+    // 若已確認 fetch 可用（Edge 模式），直接走 fetch
+    if (_useJsonp === false) {
+      _directGasCallFetch(action, params, successFn, failFn);
+      return;
+    }
+    _directGasCallJsonp(action, params, successFn, failFn);
+  }
+
+  // JSONP 方式
+  function _directGasCallJsonp(action, params, successFn, failFn) {
     var cbName = '_dirCb_' + (++_gasCallSeq);
     var done   = false;
     var timer  = setTimeout(function() {
       if (done) return; done = true;
       var el = document.getElementById(cbName); if (el) el.parentNode.removeChild(el);
       delete window[cbName];
-      console.error('[directGasCall timeout] ' + action);
-      if (failFn) failFn(new Error('timeout'));
-    }, 30000);
+      console.warn('[directGasCall jsonp timeout] ' + action + '，嘗試 fetch 模式');
+      // timeout 時嘗試 fetch fallback
+      _directGasCallFetch(action, params, function(data) {
+        _useJsonp = false; // 確認 fetch 有效，之後都用 fetch
+        if (successFn) successFn(data);
+      }, failFn);
+    }, 15000);
 
     window[cbName] = function(data) {
       if (done) return; done = true;
       clearTimeout(timer);
       var el = document.getElementById(cbName); if (el) el.parentNode.removeChild(el);
       delete window[cbName];
+      _useJsonp = true; // 確認 JSONP 有效
       if (successFn) successFn(data);
     };
 
@@ -930,10 +948,31 @@
       clearTimeout(timer);
       var el = document.getElementById(cbName); if (el) el.parentNode.removeChild(el);
       delete window[cbName];
-      console.error('[directGasCall error] ' + action);
-      if (failFn) failFn(new Error('script error'));
+      console.warn('[directGasCall jsonp error] ' + action + '，改用 fetch 模式');
+      // JSONP 失敗（Edge/Safari CSP）→ 立即 fallback 到 fetch
+      _directGasCallFetch(action, params, function(data) {
+        _useJsonp = false; // 記住此瀏覽器要用 fetch
+        if (successFn) successFn(data);
+      }, failFn);
     };
     document.head.appendChild(script);
+  }
+
+  // fetch 方式（Edge/Safari CSP 環境用）
+  function _directGasCallFetch(action, params, successFn, failFn) {
+    var url = _directShellUrl + '?action=' + encodeURIComponent(action);
+    if (params) Object.keys(params).forEach(function(k) {
+      url += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k] !== undefined ? params[k] : '');
+    });
+    fetch(url, { redirect: 'follow' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (successFn) successFn(data);
+      })
+      .catch(function(e) {
+        console.error('[directGasCall fetch error] ' + action, e);
+        if (failFn) failFn(e);
+      });
   }
 
   // 啟動頁面後初始化登入
