@@ -765,19 +765,39 @@
     
     if (tokenUrl) {
       try {
-        var decodedString = atob(decodeURIComponent(tokenUrl)); 
+        // ★ v7.3 Edge 相容性修正：多層解碼 fallback
+        var decodedString = '';
+        // 方法1：標準 decodeURIComponent + atob
+        try {
+          decodedString = atob(decodeURIComponent(tokenUrl));
+        } catch(e1) {
+          // 方法2：直接 atob（有些瀏覽器 tokenUrl 已不需要 decodeURIComponent）
+          try {
+            decodedString = atob(tokenUrl);
+          } catch(e2) {
+            // 方法3：先處理 base64url 格式（+ → +, / → /, padding）
+            try {
+              var b64 = tokenUrl.replace(/-/g,'+').replace(/_/g,'/');
+              while (b64.length % 4) b64 += '=';
+              decodedString = atob(b64);
+            } catch(e3) {
+              console.error('Shell URL 解碼全部失敗', e1, e2, e3);
+            }
+          }
+        }
+
         if (decodedString && decodedString.indexOf('https://script.google.com/') !== -1) {
-          _directShellUrl = decodedString; 
-          
+          _directShellUrl = decodedString;
+
           var overlay = document.getElementById('authOverlay');
           if (overlay) {
-            overlay.style.display = 'none'; 
+            overlay.style.display = 'none';
             overlay.classList.add('hiding');
           }
-          
-          _userEmail = 'direct_token_user'; 
+
+          _userEmail = 'direct_token_user';
           initDirectSystem();
-          return; // 成功直連通關，直接結束函式
+          return;
         }
       } catch(e) {
         console.error('捷徑網址解析失敗，原因：', e);
