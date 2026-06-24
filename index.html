@@ -1184,6 +1184,8 @@
       infoHtml += '<div class="policy-card-info-item">📱 ' + item.insuredPhone + '</div>';
     if (item.applicantName && item.applicantName !== '無' && item.applicantName !== name)
       infoHtml += '<div class="policy-card-info-item">👤 要保人：' + item.applicantName + '</div>';
+    if (item.applicantId && item.applicantId !== '無')
+      infoHtml += '<div class="policy-card-info-item">🪪 ' + item.applicantId + '</div>';
     if (item.applicantPhone && item.applicantPhone !== '無')
       infoHtml += '<div class="policy-card-info-item">📞 ' + item.applicantPhone + '</div>';
 
@@ -1208,6 +1210,7 @@
       plateNo:       item.plateNo       || '',
       expiry:        item.expiry        || '',
       applicantName: item.applicantName || '',
+      applicantId:   item.applicantId   || '',
       applicantPhone:item.applicantPhone|| '',
       address:       item.address       || ''
     }));
@@ -1309,6 +1312,7 @@
             '<div>' +
               '<div class="policy-card-detail-col-title">📞 要保人</div>' +
               (d.applicantName  ? '<div class="policy-card-detail-row">' + d.applicantName  + '</div>' : '') +
+              (d.applicantId && d.applicantId !== '無' ? '<div class="policy-card-detail-row">🪪 ' + d.applicantId + '</div>' : '') +
               (d.applicantPhone ? '<div class="policy-card-detail-row">' + d.applicantPhone + '</div>' : '') +
               (d.address && d.address !== '無' ? '<div class="policy-card-detail-row">🏠 ' + d.address + '</div>' : '') +
             '</div>' +
@@ -2133,6 +2137,12 @@
         '<div><div class="info-label">車牌</div>' + main.plateNo + '</div>' +
         (main.insuredPhone && main.insuredPhone !== '無' && main.insuredPhone !== '' ?
           '<div><div class="info-label">被保人電話</div>📱 ' + main.insuredPhone + '</div>' : '') +
+        (main.applicantName && main.applicantName !== '無' ?
+          '<div><div class="info-label">要保人</div>👤 ' + main.applicantName + '</div>' : '') +
+        (main.applicantId && main.applicantId !== '無' ?
+          '<div><div class="info-label">要保人身分證</div>🪪 ' + main.applicantId + '</div>' : '') +
+        (main.applicantPhone && main.applicantPhone !== '無' ?
+          '<div><div class="info-label">要保人電話</div>📱 ' + main.applicantPhone + '</div>' : '') +
         (main.renewStatus && String(main.renewStatus).startsWith('他家') ?
           '<div style="grid-column:1/-1;background:#FFF8E1;border:1px solid #FFD54F;border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:8px;">' +
           '<span style="color:#E65100;font-size:14px;">⚠️ 他家承保</span>' +
