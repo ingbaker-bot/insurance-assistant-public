@@ -1808,6 +1808,7 @@
           '<div>' +
             '<div style="color:#00A3E0;font-size:12px;font-weight:bold;margin-bottom:4px;">📞 要保人</div>' +
             '<div class="card-info">' + item.applicantName + '</div>' +
+            (item.applicantId && item.applicantId !== '無' ? '<div class="card-info">🪪 ' + item.applicantId + '</div>' : '') +
             '<div class="card-info">' + item.applicantPhone + '</div>' +
             '<div class="card-info" style="word-break:break-all;font-size:12px;">🏠 ' + item.address + '</div>' +
           '</div>' +
