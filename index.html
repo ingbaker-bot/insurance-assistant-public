@@ -436,7 +436,7 @@
 
 <div class="container">
   <!-- ★ v7.4 頂部品牌列 -->
-  <div style="background:var(--surface);padding:14px 20px 12px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;box-shadow:var(--shadow-sm);">
+  <div style="background:var(--surface);padding:14px 20px 12px;display:flex;justify-content:space-between;align-items:center;border:1px solid var(--border);border-radius:var(--radius-lg);margin:14px 16px 0;box-shadow:var(--shadow-sm);">
     <div>
       <div style="font-size:14px;font-weight:700;color:var(--text1);letter-spacing:.2px;">產險保單數位特助</div>
       <div style="font-size:10px;color:var(--text3);margin-top:1px;">NBS 奈AI工作團隊</div>
@@ -447,7 +447,7 @@
   </div>
 
   <!-- ★ 代辦清單面板 -->
-  <div style="margin-bottom:12px;">
+  <div style="margin:10px 16px 0;">
     <button onclick="toggleTaskPanel()" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:13px 16px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--shadow-sm);">
       <div style="display:flex;align-items:center;gap:10px;"><div style="width:30px;height:30px;border-radius:9px;background:#FFF8E6;display:flex;align-items:center;justify-content:center;"><span style="font-size:15px;">📋</span></div><span style="color:var(--text1);font-weight:600;">產險代辦清單</span></div>
       <span style="font-size:11px;color:var(--text3);">點擊展開 ▼</span>
@@ -471,7 +471,7 @@
 
   <!-- 近期到期提醒（頁面載入時自動查詢） -->
   <!-- 近期到期提醒 -->
-  <div id="expiryLoadingHint" style="padding:0 16px;">
+  <div id="expiryLoadingHint" style="padding:0 16px;margin-top:10px;">
     <!-- 5天骨架 -->
     <div class="skeleton-alert skeleton-urgent">
       <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -503,8 +503,8 @@
   <!-- 🎂 今日生日提醒橫幅（自動顯示） -->
   <div id="birthdayBannerArea"></div>
   <!-- ★ v7.4 主功能切換 -->
-  <div style="padding:0 16px 14px;">
-  <div style="font-size:11px;color:var(--text3);letter-spacing:.1em;font-weight:700;margin:14px 0 10px;text-transform:uppercase;">主功能切換</div>
+  <div style="padding:0 16px 14px;margin-top:10px;">
+  <div style="font-size:11px;color:var(--text3);letter-spacing:.1em;font-weight:700;margin:0 0 10px;text-transform:uppercase;">主功能切換</div>
   <div class="tab-bar">
     <button class="tab-btn" id="tabInsurance" onclick="switchTab('insurance')">
       <span style="font-size:22px;line-height:1;">🚗</span>
@@ -518,20 +518,20 @@
   <!-- ══════ 產險保單功能區 ══════ -->
   <div id="insuranceSearch" style="display:none;">
 
-    <!-- 四個工具按鈕 2×2 -->
+    <!-- 四個工具按鈕 2×2（搜尋保單/CALI/機車定檢/定檢日）-->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px 0 4px;">
-      <!-- 第一列 -->
-      <button id="btnCali" onclick="toggleToolPanel('cali')" style="padding:12px 6px;background:linear-gradient(135deg,#00796B,#004D40);color:white;border:none;border-radius:var(--radius-md);font-size:15px;font-weight:bold;cursor:pointer;line-height:1.4;">
-        📋 CALI<br><span style="font-size:12px;font-weight:400;opacity:0.9">強制險查詢</span>
-      </button>
-      <button id="btn2stroke" onclick="toggleToolPanel('2stroke')" style="padding:12px 6px;background:linear-gradient(135deg,#1565C0,#0D47A1);color:white;border:none;border-radius:var(--radius-md);font-size:15px;font-weight:bold;cursor:pointer;line-height:1.4;width:100%;">
-        🏍️ 機車定檢<br><span style="font-size:12px;font-weight:400;opacity:0.9">排氣定期檢驗查詢</span>
-      </button>
-      <!-- 第二列 -->
-      <button id="btnSearch" onclick="toggleToolPanel('search')" style="padding:12px 6px;background:linear-gradient(135deg,#00A3C4,#01579B);color:white;border:none;border-radius:var(--radius-md);font-size:15px;font-weight:bold;cursor:pointer;line-height:1.4;">
+      <!-- 第一列：搜尋保單、CALI -->
+      <button id="btnSearch" onclick="toggleToolPanel('search')" style="padding:14px 6px;background:linear-gradient(135deg,#00A3C4,#0077A3);color:white;border:none;border-radius:var(--radius-md);font-size:15px;font-weight:bold;cursor:pointer;line-height:1.4;width:100%;">
         🔍 搜尋保單<br><span style="font-size:12px;font-weight:400;opacity:0.9">姓名／車牌／電話</span>
       </button>
-      <button id="btnInspection" onclick="toggleToolPanel('inspection')" style="padding:12px 6px;background:linear-gradient(135deg,#6A1B9A,#4A148C);color:white;border:none;border-radius:var(--radius-md);font-size:15px;font-weight:bold;cursor:pointer;line-height:1.4;width:100%;">
+      <button id="btnCali" onclick="toggleToolPanel('cali')" style="padding:14px 6px;background:linear-gradient(135deg,#00796B,#004D40);color:white;border:none;border-radius:var(--radius-md);font-size:15px;font-weight:bold;cursor:pointer;line-height:1.4;width:100%;">
+        📋 CALI<br><span style="font-size:12px;font-weight:400;opacity:0.9">強制險查詢</span>
+      </button>
+      <!-- 第二列：機車定檢、車輛定檢 -->
+      <button id="btn2stroke" onclick="toggleToolPanel('2stroke')" style="padding:14px 6px;background:linear-gradient(135deg,#1565C0,#0D47A1);color:white;border:none;border-radius:var(--radius-md);font-size:15px;font-weight:bold;cursor:pointer;line-height:1.4;width:100%;">
+        🏍️ 機車定檢<br><span style="font-size:12px;font-weight:400;opacity:0.9">排氣定期檢驗查詢</span>
+      </button>
+      <button id="btnInspection" onclick="toggleToolPanel('inspection')" style="padding:14px 6px;background:linear-gradient(135deg,#6A1B9A,#4A148C);color:white;border:none;border-radius:var(--radius-md);font-size:15px;font-weight:bold;cursor:pointer;line-height:1.4;width:100%;">
         🗓️ 定檢日<br><span style="font-size:12px;font-weight:400;opacity:0.9">車輛定檢查詢</span>
       </button>
     </div>
