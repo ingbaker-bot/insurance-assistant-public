@@ -439,7 +439,7 @@
   <!-- ★ v7.4 頂部品牌列 -->
   <div style="background:var(--surface);padding:14px 20px 12px;display:flex;justify-content:space-between;align-items:center;border:1px solid var(--border);border-radius:var(--radius-lg);margin:14px 16px 0;box-shadow:var(--shadow-sm);min-height:64px;">
     <div>
-      <div style="font-size:18px;font-weight:700;color:var(--text1);letter-spacing:.2px;">產險保單數位特助</div>
+      <div style="font-size:14px;font-weight:700;color:var(--text1);letter-spacing:.2px;">產險保單數位特助</div>
       <div style="font-size:10px;color:var(--text3);margin-top:1px;">NBS 奈AI工作團隊</div>
     </div>
     <img src="https://i.ibb.co/FkVkNhhd/NBS-4F3.jpg" alt="NBS"
@@ -797,6 +797,9 @@
   // ══════════════════════════════════════════════════════
   var TEST_EMAIL = ''; // 測試模式：填入 email 可跳過登入，正式使用請保持空字串
 
+  // ★ 短網址用：中央授權名單後端（即 LIBCODE_URL_，需支援 action=getShell&code=xxx）
+  var SHORT_CODE_LOOKUP_URL = 'https://script.google.com/macros/s/AKfycbyr5r4eY1l-HWHV8Nn10GehTiJK4cjJqqPcQWblTUQ/dev'; // ★測試用，正式上線前要換回 Libcode 的 /exec 正式網址
+
   // ══════════════════════════════════════════════════════
   // ★ 授權狀態（Google 登入後取得）
   // ══════════════════════════════════════════════════════
@@ -892,7 +895,31 @@
     // ── 【直連強效檢查：確保 100% 0秒繞過 Google 登入】 ──
     var urlParams = new URLSearchParams(window.location.search);
     var tokenUrl  = urlParams.get('shell');
-    
+
+    // ★ 短網址模式：網址列只有 ?u=短碼，實際 shell 網址向中央後端查詢取得，不會出現在網址列
+    var shortCode = urlParams.get('u');
+    if (shortCode && !tokenUrl) {
+      fetch(SHORT_CODE_LOOKUP_URL + '?action=getShell&code=' + encodeURIComponent(shortCode))
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data && data.success && data.shellUrl) {
+            _directShellUrl = data.shellUrl;
+            var overlay = document.getElementById('authOverlay');
+            if (overlay) { overlay.style.display = 'none'; overlay.classList.add('hiding'); }
+            _userEmail = 'direct_token_user';
+            initDirectSystem();
+          } else {
+            console.error('短碼查無對應帳號，改用一般登入流程', data);
+            startGoogleSignIn();
+          }
+        })
+        .catch(function(err) {
+          console.error('短碼查詢失敗，改用一般登入流程', err);
+          startGoogleSignIn();
+        });
+      return; // 已改用非同步流程處理，等待查詢結果回來
+    }
+
     if (tokenUrl) {
       try {
         // ★ v7.3 Edge 相容性修正：多層解碼 fallback
