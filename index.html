@@ -5152,8 +5152,10 @@
       '</div>';
       
     result.list.forEach(function(item) {
-      var encoded = encodeURIComponent(JSON.stringify({ name: item.name, applicant: item.applicant, address: item.address }));
       var encoded   = encodeURIComponent(JSON.stringify({ name: item.name, applicant: item.applicant, address: item.address }));
+      var fireKey   = item.idNo || item.insuredId || '';
+      var fireName  = item.name || '';
+      var firePhone = item.phone || item.insuredPhone || '';
       html += '<div style="background:var(--surface);border-radius:var(--radius-md);padding:14px 16px;margin-bottom:10px;box-shadow:0 2px 6px rgba(0,0,0,0.06);border-left:5px solid #FF9800;">' +
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
           '<div>' +
