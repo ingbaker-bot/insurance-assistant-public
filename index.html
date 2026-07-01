@@ -314,7 +314,8 @@
 
     /* ── 骨架畫面（v7.1）── */
     .skeleton-alert {
-      border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 8px;
+      border-radius: var(--radius-lg); padding: 14px 16px; min-height: 64px;
+      display: flex; align-items: center; margin-bottom: 0;
     }
     .skeleton-urgent  { background: #FFF8F7; border: 1px solid rgba(220,38,38,.15); }
     .skeleton-warning { background: #F0FAF7; border: 1px solid rgba(0,180,138,.2); }
@@ -436,7 +437,7 @@
 
 <div class="container">
   <!-- ★ v7.4 頂部品牌列 -->
-  <div style="background:var(--surface);padding:14px 20px 12px;display:flex;justify-content:space-between;align-items:center;border:1px solid var(--border);border-radius:var(--radius-lg);margin:14px 16px 0;box-shadow:var(--shadow-sm);">
+  <div style="background:var(--surface);padding:14px 20px 12px;display:flex;justify-content:space-between;align-items:center;border:1px solid var(--border);border-radius:var(--radius-lg);margin:14px 16px 0;box-shadow:var(--shadow-sm);min-height:64px;">
     <div>
       <div style="font-size:14px;font-weight:700;color:var(--text1);letter-spacing:.2px;">產險保單數位特助</div>
       <div style="font-size:10px;color:var(--text3);margin-top:1px;">NBS 奈AI工作團隊</div>
@@ -448,7 +449,7 @@
 
   <!-- ★ 代辦清單面板 -->
   <div style="margin:10px 16px 0;">
-    <button onclick="toggleTaskPanel()" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:13px 16px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--shadow-sm);">
+    <button onclick="toggleTaskPanel()" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;font-size:13px;font-weight:600;min-height:64px;box-sizing:border-box;color:var(--text2);cursor:pointer;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--shadow-sm);">
       <div style="display:flex;align-items:center;gap:10px;"><div style="width:30px;height:30px;border-radius:9px;background:#FFF8E6;display:flex;align-items:center;justify-content:center;"><span style="font-size:15px;">📋</span></div><span style="color:var(--text1);font-weight:600;">產險代辦清單</span></div>
       <span style="font-size:11px;color:var(--text3);">點擊展開 ▼</span>
     </button>
@@ -471,7 +472,7 @@
 
   <!-- 近期到期提醒（頁面載入時自動查詢） -->
   <!-- 近期到期提醒 -->
-  <div id="expiryLoadingHint" style="padding:0 16px;margin-top:10px;">
+  <div id="expiryLoadingHint" style="padding:0 16px;margin-top:10px;display:flex;flex-direction:column;gap:10px;">
     <!-- 5天骨架 -->
     <div class="skeleton-alert skeleton-urgent">
       <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -495,10 +496,10 @@
       </div>
     </div>
   </div>
-  <div id="expiryAlertArea"></div>
+  <div id="expiryAlertArea" style="padding:0 16px;display:flex;flex-direction:column;gap:10px;"></div>
 
   <!-- 45~51 天預警（頁面載入時自動查詢） -->
-  <div id="earlyWarningArea"></div>
+  <div id="earlyWarningArea" style="padding:0 16px;margin-top:10px;"></div>
 
   <!-- 🎂 今日生日提醒橫幅（自動顯示） -->
   <div id="birthdayBannerArea"></div>
