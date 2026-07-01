@@ -7,36 +7,62 @@
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
+    /* ══════════════════════════════════════════
+       新色彩系統 v7.4
+       主色 #00A3C4（富邦青藍）
+       輔色 #00B48A（富邦綠）
+       ══════════════════════════════════════════ */
     :root {
-      --primary-color: #00A3E0;
-      --travel-color:  #FF7043;
-      --bg-color: #F0F4F8;
-      --card-bg: #FFFFFF;
-      --text-main: #333333;
-      --text-muted: #666666;
-      --line-color: #00B900;
-      --ai-color: #FF9800;
+      --primary:      #00A3C4;
+      --primary-dark: #0082A0;
+      --secondary:    #00B48A;
+      --accent:       #4361EE;
+      --danger:       #DC2626;
+      --warning:      #D97706;
+      --bg:           #F0F7FA;
+      --surface:      #FFFFFF;
+      --surface2:     #F7FBFD;
+      --border:       #E2EEF3;
+      --text1:        #0A2540;
+      --text2:        #4A6070;
+      --text3:        #8899AA;
+      --shadow-sm:    0 1px 4px rgba(0,163,196,.08);
+      --shadow-md:    0 4px 16px rgba(0,163,196,.12);
+      --shadow-lg:    0 8px 32px rgba(0,163,196,.16);
+      --radius-sm:    8px;
+      --radius-md:    12px;
+      --radius-lg:    16px;
+      --radius-xl:    20px;
     }
     html { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
-    body { font-family: Arial, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 16px 14px; -webkit-overflow-scrolling: touch; }
-    .container { max-width: 600px; margin: 0 auto; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text1);
+      margin: 0; padding: 0;
+      -webkit-overflow-scrolling: touch;
+    }
+    .container {
+      max-width: 600px; margin: 0 auto;
+      padding: 0 0 24px;
+    }
 
     /* ── 主控 Tab 切換（v5.3 透明粗框）── */
     .tab-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 4px; }
     .tab-btn {
       flex: 1; padding: 12px 8px 9px; font-size: 16px; font-weight: bold;
-      border: 3px solid #CDD3DC; border-radius: 14px; cursor: pointer;
-      background: transparent; color: #999; transition: all 0.2s;
+      border: 1.5px solid var(--border); border-radius: var(--radius-lg); cursor: pointer;
+      background: var(--surface); color: var(--text3); transition: all 0.2s; box-shadow: var(--shadow-sm);
       display: flex; flex-direction: column; align-items: center; gap: 4px; line-height: 1.3;
     }
     .tab-btn .tab-icon { font-size: 26px; line-height: 1; }
     .tab-btn .tab-bar-indicator { height: 3px; width: 36px; border-radius: 2px; background: transparent; margin-top: 5px; }
     .tab-btn.active-insurance {
-      background: transparent; color: var(--primary-color);
-      border: 3px solid var(--primary-color);
+      background: transparent; color: var(--primary);
+      border: 3px solid var(--primary);
       box-shadow: 0 0 0 4px rgba(0,163,224,0.12);
     }
-    .tab-btn.active-insurance .tab-bar-indicator { background: var(--primary-color); }
+    .tab-btn.active-insurance .tab-bar-indicator { background: var(--primary); }
     .tab-btn.active-travel {
       background: transparent; color: var(--travel-color);
       border: 3px solid var(--travel-color);
@@ -46,43 +72,44 @@
 
     /* ── 功能按鈕分組標籤 ── */
     .fn-group-label {
-      font-size: 14px; color: #0288D1; letter-spacing: 1.5px;
-      font-weight: bold; margin: 10px 0 6px; padding-left: 2px;
+      font-size: 11px; color: var(--text3); letter-spacing: .1em;
+      font-weight: 700; margin: 14px 0 8px; padding-left: 2px;
+      text-transform: uppercase;
     }
     /* ── 2×2 功能格子 ── */
-    .fn-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 2px; }
+    .fn-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 2px; }
 
     /* ── 搜尋框 ── */
     .search-box { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; overflow: hidden; box-sizing: border-box; }
     .search-row { display: flex; gap: 8px; overflow: hidden; }
-    input[type="text"] { flex: 1; min-width: 0; padding: 12px 12px; font-size: 15px; border: 1px solid #ddd; border-radius: 8px; background: white; }
-    .search-hint { font-size: 12px; color: #999; padding-left: 4px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; overflow: hidden; }
+    input[type="text"] { flex: 1; min-width: 0; padding: 12px 12px; font-size: 15px; border: 1px solid #ddd; border-radius: 8px; background: var(--surface); }
+    .search-hint { font-size: 12px; color: var(--primary); font-weight: 500; padding-left: 4px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; overflow: hidden; }
     .search-hint span { display: inline-block; background: #f0f0f0; border-radius: 4px; padding: 2px 6px; margin: 0; white-space: nowrap; }
     .btn-search { padding: 12px 14px; font-size: 14px; border: none; color: white; border-radius: 8px; cursor: pointer; font-weight: bold; white-space: nowrap; flex-shrink: 0; }
-    .btn-insurance { background-color: var(--primary-color); }
+    .btn-insurance { background-color: var(--primary); }
     .btn-travel    { background-color: var(--travel-color); }
 
     /* ── 產險卡片 ── */
-    .card { background: var(--card-bg); border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 5px solid var(--primary-color); cursor: pointer; box-sizing: border-box; overflow: hidden; word-break: break-word; }
-    .card-title { font-size: 18px; font-weight: bold; margin-bottom: 8px; color: var(--primary-color); }
+    .card { background: var(--card-bg); border-radius: var(--radius-md); padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 5px solid var(--primary); cursor: pointer; box-sizing: border-box; overflow: hidden; word-break: break-word; }
+    .card-title { font-size: 18px; font-weight: bold; margin-bottom: 8px; color: var(--primary); }
     .card-info { font-size: 14px; color: var(--text-muted); margin-bottom: 4px; }
     .address-wrap { white-space: normal !important; overflow: visible !important; text-overflow: unset !important; overflow-wrap: anywhere; word-break: break-word; line-height: 1.5; }
-    .status-badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 12px; background: #E8F5E9; color: #2E7D32; }
+    .status-badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 12px; background: #E8F5E9; color: #00875A; }
 
     /* ── 旅平卡卡片 ── */
-    .travel-card { background: var(--card-bg); border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 5px solid var(--travel-color); cursor: pointer; }
+    .travel-card { background: var(--card-bg); border-radius: var(--radius-md); padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 5px solid var(--travel-color); cursor: pointer; }
     .travel-card-title { font-size: 17px; font-weight: bold; color: var(--travel-color); margin-bottom: 8px; }
-    .travel-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; background: #FBE9E7; color: #BF360C; font-weight: bold; }
-    .member-count-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; background: #E3F2FD; color: #1565C0; font-weight: bold; margin-left: 6px; }
+    .travel-badge { display: inline-block; padding: 3px 10px; border-radius: var(--radius-md); font-size: 12px; background: #FBE9E7; color: #BF360C; font-weight: bold; }
+    .member-count-badge { display: inline-block; padding: 3px 10px; border-radius: var(--radius-md); font-size: 12px; background: #E3F2FD; color: #1565C0; font-weight: bold; margin-left: 6px; }
 
     #loading { display: none; text-align: center; color: var(--text-muted); margin: 20px 0; }
 
     /* ── Modal 通用 ── */
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: flex-end; z-index: 1000; }
-    .modal-content { background: white; width: 100%; max-width: 600px; border-radius: 20px 20px 0 0; padding: 25px 20px; max-height: 90vh; overflow-y: auto; box-sizing: border-box; }
-    #modalBody { background: white; padding: 10px; border-radius: 10px; }
+    .modal-content { background: var(--surface); width: 100%; max-width: 600px; border-radius: 20px 20px 0 0; padding: 25px 20px; max-height: 90vh; overflow-y: auto; box-sizing: border-box; }
+    #modalBody { background: var(--surface); padding: 10px; border-radius: var(--radius-md); }
     .detail-section { margin-bottom: 20px; }
-    .detail-title { font-size: 16px; font-weight: bold; border-bottom: 2px solid var(--primary-color); padding-bottom: 5px; margin-bottom: 10px; }
+    .detail-title { font-size: 16px; font-weight: bold; border-bottom: 2px solid var(--primary); padding-bottom: 5px; margin-bottom: 10px; }
     .detail-title-travel { border-bottom-color: var(--travel-color); }
     .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 14px; }
     .info-label { color: var(--text-muted); font-size: 11px; }
@@ -93,45 +120,45 @@
     /* ── 按鈕群組 ── */
     .btn-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
     .btn-action { flex: 1 1 45%; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; font-size: 14px; }
-    .bg-img    { background-color: var(--primary-color); }
+    .bg-img    { background-color: var(--primary); }
     .bg-ai     { background-color: var(--ai-color); }
     .bg-line   { background-color: var(--line-color); }
-    .bg-close  { background-color: #f1f1f1; color: #333; }
+    .bg-close  { background-color: #f1f1f1; color: var(--text1); }
     .bg-travel { background-color: var(--travel-color); }
-    #generatedImage { max-width: 100%; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 15px; }
+    #generatedImage { max-width: 100%; border-radius: var(--radius-md); box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 15px; }
 
     /* ── 家庭總覽 ── */
     .family-header { margin-top: 24px; border-top: 3px double #eee; padding-top: 20px; }
     .family-summary-bar { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 16px; }
     .summary-chip  { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
     .chip-urgent   { background: #FFEBEE; color: #C62828; }
-    .chip-warning  { background: #FFF3E0; color: #E65100; }
-    .chip-ok       { background: #E8F5E9; color: #2E7D32; }
+    .chip-warning  { background: #FFF3E0; color: #DC2626; }
+    .chip-ok       { background: #E8F5E9; color: #00875A; }
     .chip-expired  { background: #F5F5F5; color: #9E9E9E; }
-    .member-card   { border: 1px solid #eee; border-radius: 10px; margin-bottom: 12px; overflow: hidden; }
+    .member-card   { border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: 12px; overflow: hidden; }
     .member-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #F8F9FA; border-bottom: 1px solid #eee; }
-    .member-name   { font-weight: bold; font-size: 15px; color: #333; }
-    .member-relation { font-size: 12px; padding: 2px 8px; border-radius: 10px; background: #E3F2FD; color: #1565C0; font-weight: bold; }
+    .member-name   { font-weight: bold; font-size: 15px; color: var(--text1); }
+    .member-relation { font-size: 12px; padding: 2px 8px; border-radius: var(--radius-md); background: #E3F2FD; color: #1565C0; font-weight: bold; }
     .member-share-btn { font-size: 12px; padding: 4px 10px; background: var(--line-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; white-space: nowrap; }
     .policy-row    { display: flex; align-items: center; padding: 9px 14px; gap: 8px; border-bottom: 1px solid #f5f5f5; font-size: 13px; }
     .policy-row:last-child { border-bottom: none; }
     .urgency-dot   { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
     .dot-urgent { background: #E53935; } .dot-warning { background: #FB8C00; }
     .dot-ok     { background: #43A047; } .dot-expired { background: #BDBDBD; }
-    .policy-type   { flex: 1; color: #333; }
-    .policy-plate  { color: #888; font-size: 12px; min-width: 60px; }
+    .policy-type   { flex: 1; color: var(--text1); }
+    .policy-plate  { color: var(--text3); font-size: 12px; min-width: 60px; }
     .policy-expiry { font-size: 12px; min-width: 72px; text-align: right; }
     .expiry-urgent  { color: #C62828; font-weight: bold; }
     .expiry-warning { color: #E65100; font-weight: bold; }
-    .expiry-ok      { color: #2E7D32; }
+    .expiry-ok      { color: #00875A; }
     .expiry-expired { color: #9E9E9E; }
     .days-badge { font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: bold; min-width: 44px; text-align: center; }
     .days-urgent  { background: #FFEBEE; color: #C62828; }
-    .days-warning { background: #FFF3E0; color: #E65100; }
-    .days-ok      { background: #E8F5E9; color: #2E7D32; }
+    .days-warning { background: #FFF3E0; color: #DC2626; }
+    .days-ok      { background: #E8F5E9; color: #00875A; }
     .days-expired { background: #F5F5F5; color: #9E9E9E; }
     .family-share-btn { flex: 1; padding: 12px; background: var(--line-color); color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; margin-top: 8px; word-break: keep-all; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .peilin-note { background-color: #FFF9C4; border-radius: 12px; padding: 15px; margin-top: 16px; border-left: 5px solid #FBC02D; font-style: italic; line-height: 1.6; color: #5D4037; font-size: 14px; position: relative; }
+    .peilin-note { background-color: #FFF9C4; border-radius: var(--radius-md); padding: 15px; margin-top: 16px; border-left: 5px solid #FBC02D; font-style: italic; line-height: 1.6; color: #5D4037; font-size: 14px; position: relative; }
     .peilin-note::before { content: '🌸'; position: absolute; top: -10px; left: -10px; font-size: 20px; }
 
     /* ── 旅平卡被保人名冊表格 ── */
@@ -140,26 +167,26 @@
     .relation-badge { display: inline-block; padding: 1px 7px; border-radius: 8px; font-size: 11px; background: #E3F2FD; color: #1565C0; font-weight: bold; }
 
     /* ── 未申辦名單 ── */
-    .uncovered-card { background: white; border-radius: 10px; padding: 14px; margin-bottom: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); border-left: 5px solid #E65100; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .uncovered-card { background: var(--surface); border-radius: var(--radius-md); padding: 14px; margin-bottom: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); border-left: 5px solid #E65100; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
     .uncovered-info { flex: 1; }
-    .uncovered-name { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 4px; }
-    .uncovered-detail { font-size: 12px; color: #888; }
+    .uncovered-name { font-size: 16px; font-weight: bold; color: var(--text1); margin-bottom: 4px; }
+    .uncovered-detail { font-size: 12px; color: var(--primary); font-weight: 500; }
     .uncovered-recommend-btn { background: #00B900; color: white; border: none; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: bold; cursor: pointer; white-space: nowrap; }
-    .uncovered-header { background: #FBE9E7; border-radius: 10px; padding: 12px 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .uncovered-header { background: #FBE9E7; border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
     .uncovered-search { width: 100%; padding: 10px 14px; font-size: 14px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 12px; box-sizing: border-box; }
 
     /* ── 近期到期提醒 ── */
-    .expiry-alert-bar { border-radius: 10px; margin-bottom: 14px; overflow: hidden; border: 1px solid #FFCCBC; }
-    .expiry-alert-header { display: flex; justify-content: space-between; align-items: center; padding: 11px 16px; background: #FFF3E0; cursor: pointer; user-select: none; }
-    .expiry-alert-title { font-weight: bold; font-size: 14px; color: #E65100; }
-    .expiry-alert-badge { background: #E53935; color: white; border-radius: 12px; padding: 2px 10px; font-size: 12px; font-weight: bold; }
-    .expiry-alert-body { display: none; background: white; }
+    .expiry-alert-bar { border-radius: var(--radius-md); margin-bottom: 14px; overflow: hidden; border: 1px solid rgba(220,38,38,.15); box-shadow: var(--shadow-sm); }
+    .expiry-alert-header { display: flex; justify-content: space-between; align-items: center; padding: 11px 16px; background: #FFF8F7; cursor: pointer; user-select: none; }
+    .expiry-alert-title { font-weight: bold; font-size: 14px; color: #DC2626; }
+    .expiry-alert-badge { background: #E53935; color: white; border-radius: var(--radius-md); padding: 2px 10px; font-size: 12px; font-weight: bold; }
+    .expiry-alert-body { display: none; background: var(--surface); }
     .expiry-alert-body.open { display: block; }
     /* ★ v6.1 統一保單卡片樣式 */
     .policy-card {
-      background: white; border-radius: 12px; padding: 14px;
+      background: var(--surface); border-radius: var(--radius-md); padding: 14px;
       margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-      border: 1px solid #EEE;
+      border: 1px solid var(--border);
     }
     .policy-card-top {
       display: flex; justify-content: space-between; align-items: flex-start;
@@ -170,15 +197,15 @@
     }
     .policy-card-badge {
       font-size: 12px; font-weight: bold; padding: 3px 10px;
-      border-radius: 12px; white-space: nowrap; flex-shrink: 0; margin-left: 8px;
+      border-radius: var(--radius-md); white-space: nowrap; flex-shrink: 0; margin-left: 8px;
     }
     .policy-card-type {
-      font-size: 13px; color: #555; margin-bottom: 6px;
+      font-size: 13px; color: var(--text2); margin-bottom: 6px;
       display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
     }
     .policy-card-info {
       display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px;
-      font-size: 12px; color: #666; margin-bottom: 10px;
+      font-size: 12px; color: var(--text2); margin-bottom: 10px;
       background: #F8F9FA; border-radius: 8px; padding: 8px 10px;
     }
     .policy-card-info-item { display: flex; align-items: center; gap: 4px; }
@@ -202,10 +229,10 @@
       display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
     }
     .policy-card-detail-col-title {
-      color: #00A3E0; font-size: 12px; font-weight: bold; margin-bottom: 5px;
+      color: #00A3C4; font-size: 12px; font-weight: bold; margin-bottom: 5px;
     }
     .policy-card-detail-row {
-      font-size: 12px; color: #555; margin-bottom: 3px; word-break: break-all;
+      font-size: 12px; color: var(--text2); margin-bottom: 3px; word-break: break-all;
     }
     .policy-card-status-panel {
       display: none; margin-top: 8px;
@@ -220,12 +247,12 @@
       border-radius: 7px; font-size: 12px; font-weight: bold; cursor: pointer; text-align: center;
     }
     .policy-card-status-hint {
-      font-size: 11px; color: #999; margin-bottom: 6px;
+      font-size: 11px; color: var(--text3); margin-bottom: 6px;
     }
 
     .expiry-row { padding: 12px 14px; border-top: 1px solid #FFF3E0; }
     .expiry-row-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-    .expiry-name { font-weight: bold; font-size: 15px; color: #333; }
+    .expiry-name { font-weight: bold; font-size: 15px; color: var(--text1); }
     /* ── 鎖定畫面（v7.3）── */
     #lockScreen {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -257,7 +284,7 @@
       border: 2px solid rgba(255,255,255,0.6);
       transition: background 0.15s;
     }
-    .lock-pin-dot.filled { background: white; }
+    .lock-pin-dot.filled { background: var(--surface); }
     .lock-keypad {
       display: grid; grid-template-columns: repeat(3, 72px);
       gap: 14px; margin-bottom: 16px;
@@ -287,10 +314,10 @@
 
     /* ── 骨架畫面（v7.1）── */
     .skeleton-alert {
-      border-radius: 10px; padding: 12px 14px; margin-bottom: 8px;
+      border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 8px;
     }
-    .skeleton-urgent  { background: #FFF3E0; border: 1px solid #FFCC80; }
-    .skeleton-warning { background: #F1F8E9; border: 1px solid #C5E1A5; }
+    .skeleton-urgent  { background: #FFF8F7; border: 1px solid rgba(220,38,38,.15); }
+    .skeleton-warning { background: #F0FAF7; border: 1px solid rgba(0,180,138,.2); }
     .skeleton-bar {
       background: linear-gradient(90deg, #E0E0E0 25%, #F5F5F5 50%, #E0E0E0 75%);
       background-size: 200% 100%;
@@ -302,13 +329,13 @@
       100% { background-position: -200% 0; }
     }
 
-    .expiry-days-badge { font-size: 12px; font-weight: bold; padding: 2px 10px; border-radius: 10px; }
+    .expiry-days-badge { font-size: 12px; font-weight: bold; padding: 2px 10px; border-radius: var(--radius-md); }
     .days-1 { background: #FFEBEE; color: #C62828; }
     .days-2 { background: #FFEBEE; color: #C62828; }
-    .days-3 { background: #FFF3E0; color: #E65100; }
-    .days-4 { background: #FFF3E0; color: #E65100; }
+    .days-3 { background: #FFF3E0; color: #DC2626; }
+    .days-4 { background: #FFF3E0; color: #DC2626; }
     .days-5 { background: #FFF8E1; color: #F57F17; }
-    .expiry-info { font-size: 12px; color: #888; margin-bottom: 8px; }
+    .expiry-info { font-size: 12px; color: var(--primary); font-weight: 500; margin-bottom: 8px; }
     .expiry-status-contacted { font-size: 11px; background: #FFF3E0; color: #E65100; padding: 2px 8px; border-radius: 6px; display: inline-block; margin-bottom: 6px; }
     .expiry-btn-row { display: flex; gap: 6px; flex-wrap: wrap; }
     .expiry-btn { font-size: 12px; padding: 5px 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
@@ -322,12 +349,12 @@
     /* ── 稱呼輸入彈窗 ── */
     .nickname-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:3000; justify-content:center; align-items:center; }
     .nickname-overlay.show { display:flex; }
-    .nickname-box { background:white; border-radius:16px; padding:24px 20px; width:88%; max-width:360px; box-shadow:0 8px 32px rgba(0,0,0,0.18); }
-    .nickname-title { font-size:16px; font-weight:bold; color:#333; margin-bottom:6px; }
-    .nickname-sub { font-size:13px; color:#888; margin-bottom:14px; }
+    .nickname-box { background:var(--surface); border-radius:16px; padding:24px 20px; width:88%; max-width:360px; box-shadow:0 8px 32px rgba(0,0,0,0.18); }
+    .nickname-title { font-size:16px; font-weight:bold; color:var(--text1); margin-bottom:6px; }
+    .nickname-sub { font-size:13px; color:var(--text3); margin-bottom:14px; }
     .nickname-input { width:100%; padding:11px 14px; font-size:16px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box; margin-bottom:14px; }
     .nickname-btn-row { display:flex; gap:10px; }
-    .nickname-btn-skip { flex:1; padding:11px; background:#f5f5f5; color:#666; border:none; border-radius:8px; font-size:14px; font-weight:bold; cursor:pointer; }
+    .nickname-btn-skip { flex:1; padding:11px; background:#f5f5f5; color:var(--text2); border:none; border-radius:8px; font-size:14px; font-weight:bold; cursor:pointer; }
     .nickname-btn-send { flex:2; padding:11px; background:#00B900; color:white; border:none; border-radius:8px; font-size:14px; font-weight:bold; cursor:pointer; }
 
     @media (max-width: 480px) {
@@ -352,7 +379,7 @@
 <body>
 <!-- ★ 授權遮罩 -->
 <div id="authOverlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#1a73e8 0%,#0d47a1 100%);z-index:9999;display:flex;justify-content:center;align-items:center;transition:opacity 0.4s ease;">
-  <div style="background:white;border-radius:20px;padding:40px 32px;max-width:360px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.2);text-align:center;">
+  <div style="background:var(--surface);border-radius:20px;padding:40px 32px;max-width:360px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.2);text-align:center;">
     <!-- 載入中動畫（快取自動登入時顯示）-->
     <div id="autoLoginSpinner" style="display:none;margin-bottom:16px;">
       <div style="width:48px;height:48px;border:4px solid #e3f2fd;border-top:4px solid #1a73e8;border-radius:50%;margin:0 auto 12px;animation:spin 0.8s linear infinite;"></div>
@@ -362,21 +389,22 @@
     <div id="loginPanel">
       <div style="font-size:48px;margin-bottom:12px;">🛡️</div>
       <h2 style="color:#1a73e8;font-size:22px;margin-bottom:4px;font-weight:700;">產險保單數位特助</h2>
-      <p style="color:#888;font-size:13px;margin-bottom:24px;">請使用授權的 Google 帳號登入</p>
+      <p style="color:var(--text3);font-size:13px;margin-bottom:24px;">請使用授權的 Google 帳號登入</p>
       <div id="googleSignInBtn"></div>
     </div>
-    <div id="authStatus" style="margin-top:12px;font-size:13px;color:#E65100;min-height:18px;"></div>
+    <div id="authStatus" style="margin-top:12px;font-size:13px;color:#DC2626;min-height:18px;"></div>
   </div>
 </div>
 <style>
 @keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+@keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(0,180,138,.4)} 60%{box-shadow:0 0 0 6px rgba(0,180,138,0)} }
 #authOverlay.hiding { opacity:0; pointer-events:none; }
 </style>
 
 <!-- ★ v7.3 鎖定畫面 -->
 <div id="lockScreen">
   <div class="lock-logo">
-    <img src="https://i.ibb.co/FkVkNhhd/NBS-4F3.jpg" alt="NBS" onerror="this.style.display='none'">
+    <img src="https://i.ibb.co/Y7cBcbGS/NBS-9A.jpg" alt="NBS" onerror="this.style.display='none'">
   </div>
   <div class="lock-title">產險保單數位特助</div>
   <div class="lock-subtitle" id="lockSubtitle">請輸入 PIN 碼</div>
@@ -407,60 +435,74 @@
 </div>
 
 <div class="container">
-  <!-- ★ 標題列：左側文字 + 右側 NBS LOGO -->
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;">
-    <h2 style="margin:0;white-space:nowrap;">產險保單數位特助</h2>
-    <img src="https://i.ibb.co/FkVkNhhd/NBS-4F3.jpg"
-         alt="NBS Need Basic Services"
-         style="height:44px;width:auto;max-width:45%;object-fit:contain;object-position:right center;flex-shrink:1;"
-         onerror="this.style.display='none'">
+  <!-- ★ v7.4 頂部品牌列 -->
+  <div style="background:var(--surface);padding:14px 20px 12px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;box-shadow:var(--shadow-sm);">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="width:36px;height:36px;border-radius:11px;background:linear-gradient(135deg,#00A3C4,#00B48A);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <span style="font-size:18px;line-height:1;">🛡️</span>
+      </div>
+      <div>
+        <div style="font-size:14px;font-weight:700;color:var(--text1);letter-spacing:.2px;">產險保單數位特助</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:1px;">NBS 奈AI工作團隊</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <img src="https://i.ibb.co/Y7cBcbGS/NBS-9A.jpg" alt="NBS"
+           style="height:36px;width:auto;max-width:120px;object-fit:contain;"
+           onerror="this.style.display='none'">
+      <div style="display:flex;align-items:center;gap:4px;background:#F0FAF8;border:1px solid #B2EAD D;border-radius:20px;padding:4px 8px;">
+        <div style="width:6px;height:6px;border-radius:50%;background:#00B48A;animation:pulse 2s infinite;"></div>
+        <span style="font-size:9px;color:#00875A;font-weight:700;">即時同步</span>
+      </div>
+    </div>
   </div>
 
   <!-- ★ 代辦清單面板 -->
   <div style="margin-bottom:12px;">
-    <button onclick="toggleTaskPanel()" style="width:100%;background:white;border:1px solid #e2e8f0;border-radius:10px;padding:11px 16px;font-size:14px;font-weight:bold;color:#555;cursor:pointer;display:flex;justify-content:space-between;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
-      <span>📋 產險代辦清單</span>
-      <span style="font-size:12px;color:#aaa;">點擊展開 ▼</span>
+    <button onclick="toggleTaskPanel()" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:13px 16px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--shadow-sm);">
+      <div style="display:flex;align-items:center;gap:10px;"><div style="width:30px;height:30px;border-radius:9px;background:#FFF8E6;display:flex;align-items:center;justify-content:center;"><span style="font-size:15px;">📋</span></div><span style="color:var(--text1);font-weight:600;">產險代辦清單</span></div>
+      <span style="font-size:11px;color:var(--text3);">點擊展開 ▼</span>
     </button>
-    <div id="taskPanel" style="display:none;background:white;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 10px 10px;padding:16px;box-shadow:0 4px 8px rgba(0,0,0,0.05);">
+    <div id="taskPanel" style="display:none;background:var(--surface);border:1px solid #e2e8f0;border-top:none;border-radius:0 0 10px 10px;padding:16px;box-shadow:0 4px 8px rgba(0,0,0,0.05);">
       <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
         <input type="date" id="taskDate" style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;flex:0 0 140px;">
         <input type="text" id="taskContent" placeholder="代辦內容..." style="flex:1;min-width:100px;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;">
         <input type="text" id="taskAgentCode" placeholder="業務員" maxlength="5" style="width:64px;padding:8px 6px;border:1px solid #ddd;border-radius:8px;font-size:12px;text-align:center;">
         <button id="taskSubmitBtn" onclick="submitTask()"
-          style="padding:8px 16px;background:#00A3E0;color:white;border:none;border-radius:8px;
+          style="padding:8px 16px;background:var(--primary);color:white;border:none;border-radius:var(--radius-sm);
                  font-size:13px;font-weight:bold;cursor:pointer;white-space:nowrap;flex-shrink:0;">
           ➕ 新增
         </button>
       </div>
       <div id="taskListBody" style="max-height:220px;overflow-y:auto;">
-        <div style="color:#999;font-size:13px;text-align:center;padding:10px;">點擊展開後載入...</div>
+        <div style="color:var(--text3);font-size:13px;text-align:center;padding:10px;">點擊展開後載入...</div>
       </div>
     </div>
   </div>
 
   <!-- 近期到期提醒（頁面載入時自動查詢） -->
-  <!-- ★ v7.1 骨架畫面：保留文字標題，只對數字用佔位條 -->
+  <div style="padding:12px 16px 0;">
+  <!-- ★ v7.4 骨架畫面 -->
   <div id="expiryLoadingHint">
     <!-- 5天骨架 -->
     <div class="skeleton-alert skeleton-urgent">
       <div style="display:flex;justify-content:space-between;align-items:center;">
-        <span style="font-size:14px;font-weight:bold;color:#E65100;">⏰ 5 天內即將到期</span>
+        <span style="font-size:14px;font-weight:bold;color:#DC2626;">⏰ 5 天內即將到期</span>
         <div style="display:flex;gap:8px;align-items:center;">
-          <div class="skeleton-bar" style="width:44px;height:22px;border-radius:12px;"></div>
-          <span style="color:#E65100;font-size:12px;">等待回覆</span>
-          <span style="color:#E65100;font-size:14px;">▼</span>
+          <div class="skeleton-bar" style="width:44px;height:22px;border-radius:var(--radius-md);"></div>
+          <span style="color:#DC2626;font-size:12px;">等待回覆</span>
+          <span style="color:#DC2626;font-size:14px;">▼</span>
         </div>
       </div>
     </div>
     <!-- 45~51天骨架 -->
     <div class="skeleton-alert skeleton-warning">
       <div style="display:flex;justify-content:space-between;align-items:center;">
-        <span style="font-size:14px;font-weight:bold;color:#558B2F;">📅 45～51 天即將到期</span>
+        <span style="font-size:14px;font-weight:bold;color:#00875A;">📅 45～51 天即將到期</span>
         <div style="display:flex;gap:8px;align-items:center;">
-          <div class="skeleton-bar" style="width:44px;height:22px;border-radius:12px;"></div>
-          <span style="color:#558B2F;font-size:12px;">提前預警</span>
-          <span style="color:#558B2F;font-size:14px;">▼</span>
+          <div class="skeleton-bar" style="width:44px;height:22px;border-radius:var(--radius-md);"></div>
+          <span style="color:#00875A;font-size:12px;">提前預警</span>
+          <span style="color:#00875A;font-size:14px;">▼</span>
         </div>
       </div>
     </div>
@@ -473,8 +515,10 @@
   <!-- 🎂 今日生日提醒橫幅（自動顯示） -->
   <div id="birthdayBannerArea"></div>
 
-  <!-- ★ 主控 Tab（v5.2 重設計：大卡片式，凸顯主功能切換）-->
-  <div style="font-size:14px;color:#0288D1;letter-spacing:1.5px;font-weight:bold;margin-bottom:6px;padding-left:2px;">主功能切換</div>
+  </div><!-- 關閉 padding div -->
+  <!-- ★ v7.4 主功能切換 -->
+  <div style="padding:14px 16px 0;">
+  <div style="font-size:11px;color:var(--text3);letter-spacing:.1em;font-weight:700;margin-bottom:10px;text-transform:uppercase;">主功能切換</div>
   <div class="tab-bar">
     <button class="tab-btn" id="tabInsurance" onclick="switchTab('insurance')">
       <span style="font-size:22px;line-height:1;">🚗</span>
@@ -486,88 +530,88 @@
     </button>
   </div>
   <!-- ══════ 產險保單功能區 ══════ -->
-  <div id="insuranceSearch" style="display:none;">
+  <div id="insuranceSearch" style="display:none;padding:0 16px;">
 
     <!-- 四個工具按鈕 2×2 -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px 0 4px;">
       <!-- 第一列 -->
-      <button id="btnCali" onclick="toggleToolPanel('cali')" style="padding:12px 6px;background:linear-gradient(135deg,#00796B,#004D40);color:white;border:none;border-radius:10px;font-size:15px;font-weight:bold;cursor:pointer;line-height:1.4;">
+      <button id="btnCali" onclick="toggleToolPanel('cali')" style="padding:12px 6px;background:linear-gradient(135deg,#00796B,#004D40);color:white;border:none;border-radius:var(--radius-md);font-size:15px;font-weight:bold;cursor:pointer;line-height:1.4;">
         📋 CALI<br><span style="font-size:12px;font-weight:400;opacity:0.9">強制險查詢</span>
       </button>
-      <button id="btn2stroke" onclick="toggleToolPanel('2stroke')" style="padding:12px 6px;background:linear-gradient(135deg,#1565C0,#0D47A1);color:white;border:none;border-radius:10px;font-size:15px;font-weight:bold;cursor:pointer;line-height:1.4;width:100%;">
+      <button id="btn2stroke" onclick="toggleToolPanel('2stroke')" style="padding:12px 6px;background:linear-gradient(135deg,#1565C0,#0D47A1);color:white;border:none;border-radius:var(--radius-md);font-size:15px;font-weight:bold;cursor:pointer;line-height:1.4;width:100%;">
         🏍️ 機車定檢<br><span style="font-size:12px;font-weight:400;opacity:0.9">排氣定期檢驗查詢</span>
       </button>
       <!-- 第二列 -->
-      <button id="btnSearch" onclick="toggleToolPanel('search')" style="padding:12px 6px;background:linear-gradient(135deg,#0284c7,#01579B);color:white;border:none;border-radius:10px;font-size:15px;font-weight:bold;cursor:pointer;line-height:1.4;">
+      <button id="btnSearch" onclick="toggleToolPanel('search')" style="padding:12px 6px;background:linear-gradient(135deg,#00A3C4,#01579B);color:white;border:none;border-radius:var(--radius-md);font-size:15px;font-weight:bold;cursor:pointer;line-height:1.4;">
         🔍 搜尋保單<br><span style="font-size:12px;font-weight:400;opacity:0.9">姓名／車牌／電話</span>
       </button>
-      <button id="btnInspection" onclick="toggleToolPanel('inspection')" style="padding:12px 6px;background:linear-gradient(135deg,#6A1B9A,#4A148C);color:white;border:none;border-radius:10px;font-size:15px;font-weight:bold;cursor:pointer;line-height:1.4;width:100%;">
+      <button id="btnInspection" onclick="toggleToolPanel('inspection')" style="padding:12px 6px;background:linear-gradient(135deg,#6A1B9A,#4A148C);color:white;border:none;border-radius:var(--radius-md);font-size:15px;font-weight:bold;cursor:pointer;line-height:1.4;width:100%;">
         🗓️ 定檢日<br><span style="font-size:12px;font-weight:400;opacity:0.9">車輛定檢查詢</span>
       </button>
     </div>
 
     <!-- CALI 搜尋展開面板 -->
-    <div id="caliQuickPanel" style="display:none;background:white;border-radius:10px;padding:14px;margin-top:4px;box-shadow:0 2px 8px rgba(0,0,0,0.08);border:1.5px solid #00796B;">
+    <div id="caliQuickPanel" style="display:none;background:var(--surface);border-radius:var(--radius-md);padding:14px;margin-top:4px;box-shadow:0 2px 8px rgba(0,0,0,0.08);border:1.5px solid #00796B;">
       <div style="font-size:12px;color:#00796B;font-weight:700;margin-bottom:8px;">📋 CALI 強制險查詢 — 搜尋後複製身分證/車牌前往 CALI</div>
       <div style="display:flex;gap:6px;margin-bottom:10px;">
-        <input type="text" id="caliSearchInput" placeholder="輸入車牌或姓名..." style="flex:1;padding:9px 12px;border:1.5px solid #00796B;border-radius:8px;font-size:14px;outline:none;" oninput="caliQuickSearch(this.value)">
-        <button onclick="toggleToolPanel('cali')" style="padding:9px 12px;background:#F5F5F5;color:#666;border:none;border-radius:8px;font-size:13px;cursor:pointer;">✕ 關閉</button>
+        <input type="text" id="caliSearchInput" placeholder="輸入車牌或姓名..." style="flex:1;padding:9px 12px;border:1.5px solid var(--secondary);border-radius:var(--radius-sm);font-size:14px;outline:none;" oninput="caliQuickSearch(this.value)">
+        <button onclick="toggleToolPanel('cali')" style="padding:9px 12px;background:#F5F5F5;color:var(--text2);border:none;border-radius:8px;font-size:13px;cursor:pointer;">✕ 關閉</button>
       </div>
       <div id="caliSearchResults" style="max-height:260px;overflow-y:auto;"></div>
     </div>
 
     <!-- 二行程排放查詢展開面板 -->
-    <div id="strokePanel" style="display:none;background:white;border-radius:10px;padding:14px;margin-top:4px;box-shadow:0 2px 8px rgba(0,0,0,0.08);border:1.5px solid #1565C0;">
+    <div id="strokePanel" style="display:none;background:var(--surface);border-radius:var(--radius-md);padding:14px;margin-top:4px;box-shadow:0 2px 8px rgba(0,0,0,0.08);border:1.5px solid #1565C0;">
       <div style="font-size:12px;color:#1565C0;font-weight:700;margin-bottom:8px;">🏍️ 機車定檢查詢 — 輸入車牌號碼</div>
       <div style="display:flex;gap:6px;margin-bottom:10px;">
         <input type="text" id="strokeSearchInput" placeholder="輸入車牌或姓名..." style="flex:1;padding:9px 12px;border:1.5px solid #1565C0;border-radius:8px;font-size:14px;outline:none;" oninput="toolQuickSearch(this.value,'stroke')">
-        <button onclick="toggleToolPanel('2stroke')" style="padding:9px 12px;background:#F5F5F5;color:#666;border:none;border-radius:8px;font-size:13px;cursor:pointer;">✕ 關閉</button>
+        <button onclick="toggleToolPanel('2stroke')" style="padding:9px 12px;background:#F5F5F5;color:var(--text2);border:none;border-radius:8px;font-size:13px;cursor:pointer;">✕ 關閉</button>
       </div>
       <div id="strokeSearchResults" style="max-height:260px;overflow-y:auto;"></div>
     </div>
 
     <!-- 定檢日查詢展開面板 -->
-    <div id="inspectionPanel" style="display:none;background:white;border-radius:10px;padding:14px;margin-top:4px;box-shadow:0 2px 8px rgba(0,0,0,0.08);border:1.5px solid #6A1B9A;">
+    <div id="inspectionPanel" style="display:none;background:var(--surface);border-radius:var(--radius-md);padding:14px;margin-top:4px;box-shadow:0 2px 8px rgba(0,0,0,0.08);border:1.5px solid #6A1B9A;">
       <div style="font-size:12px;color:#6A1B9A;font-weight:700;margin-bottom:8px;">🗓️ 定檢日查詢 — 個人：身分證+生日　法人：統編+車牌</div>
       <div style="display:flex;gap:6px;margin-bottom:10px;">
         <input type="text" id="inspectionSearchInput" placeholder="輸入姓名或車牌..." style="flex:1;padding:9px 12px;border:1.5px solid #6A1B9A;border-radius:8px;font-size:14px;outline:none;" oninput="toolQuickSearch(this.value,'inspection')">
-        <button onclick="toggleToolPanel('inspection')" style="padding:9px 12px;background:#F5F5F5;color:#666;border:none;border-radius:8px;font-size:13px;cursor:pointer;">✕ 關閉</button>
+        <button onclick="toggleToolPanel('inspection')" style="padding:9px 12px;background:#F5F5F5;color:var(--text2);border:none;border-radius:8px;font-size:13px;cursor:pointer;">✕ 關閉</button>
       </div>
       <div id="inspectionSearchResults" style="max-height:260px;overflow-y:auto;"></div>
     </div>
 
     <!-- 搜尋保單展開面板 -->
-    <div id="searchPanel" style="display:none;background:white;border-radius:10px;padding:14px;margin-top:4px;box-shadow:0 2px 8px rgba(0,0,0,0.08);border:1.5px solid #0284c7;">
-      <div style="font-size:12px;color:#0284c7;font-weight:700;margin-bottom:8px;">🔍 保單搜尋</div>
+    <div id="searchPanel" style="display:none;background:var(--surface);border-radius:var(--radius-md);padding:14px;margin-top:4px;box-shadow:0 2px 8px rgba(0,0,0,0.08);border:1.5px solid #00A3C4;">
+      <div style="font-size:12px;color:#00A3C4;font-weight:700;margin-bottom:8px;">🔍 保單搜尋</div>
       <div style="display:flex;gap:6px;margin-bottom:6px;">
-        <input type="text" id="smartSearch" placeholder="搜尋姓名、車牌、到期月份、電話、險種..." onkeypress="handleEnterInsurance(event)" style="flex:1;padding:9px 12px;border:1.5px solid #0284c7;border-radius:8px;font-size:13px;outline:none;">
-        <button onclick="handleSearch()" style="padding:9px 14px;background:#0284c7;color:white;border:none;border-radius:8px;font-size:13px;font-weight:bold;cursor:pointer;">搜尋</button>
-        <button onclick="toggleToolPanel('search')" style="padding:9px 10px;background:#F5F5F5;color:#666;border:none;border-radius:8px;font-size:13px;cursor:pointer;">✕</button>
+        <input type="text" id="smartSearch" placeholder="搜尋姓名、車牌、到期月份、電話、險種..." onkeypress="handleEnterInsurance(event)" style="flex:1;padding:9px 12px;border:1.5px solid var(--primary);border-radius:var(--radius-sm);font-size:13px;outline:none;">
+        <button onclick="handleSearch()" style="padding:9px 14px;background:var(--primary);color:white;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:bold;cursor:pointer;">搜尋</button>
+        <button onclick="toggleToolPanel('search')" style="padding:9px 10px;background:#F5F5F5;color:var(--text2);border:none;border-radius:8px;font-size:13px;cursor:pointer;">✕</button>
       </div>
-      <div style="font-size:11px;color:#888;margin-bottom:8px;">💡 可混合輸入：李 11507　機車 115　ABC-1234　0912345678</div>
-      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#888;">
+      <div style="font-size:11px;color:var(--text3);margin-bottom:8px;">💡 可混合輸入：李 11507　機車 115　ABC-1234　0912345678</div>
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--text3);">
         <input type="checkbox" id="showAllToggle" onchange="handleSearch()" style="width:14px;height:14px;cursor:pointer;">
         顯示已報廢／過戶／退保／註銷保單
       </label>
     </div>
 
-    <!-- ★ 產險保單分析 2x2 -->
+    <div style="padding:0 16px;"><!-- ★ 產險保單分析 2x2 -->
     <div class="fn-group-label">產險保單分析</div>
     <div class="fn-grid-2">
       <button onclick="loadMissingCompulsory()"
-        style="padding:12px 6px;background:#FCEBEB;color:#791F1F;border:1.5px solid #F09595;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;line-height:1.4;text-align:center;">
+        style="padding:12px 6px;background:#FCEBEB;color:#791F1F;border:1.5px solid #F09595;border-radius:var(--radius-md);font-size:14px;font-weight:bold;cursor:pointer;line-height:1.4;text-align:center;">
         ⚠️ 法規缺口<br><span style="font-size:12px;font-weight:400;color:#A32D2D">有任意險無強制險</span>
       </button>
       <button onclick="loadMissingVoluntary()"
-        style="padding:12px 6px;background:#E6F1FB;color:#0C447C;border:1.5px solid #85B7EB;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;line-height:1.4;text-align:center;">
+        style="padding:12px 6px;background:#E6F1FB;color:#0C447C;border:1.5px solid #85B7EB;border-radius:var(--radius-md);font-size:14px;font-weight:bold;cursor:pointer;line-height:1.4;text-align:center;">
         💡 缺口提案<br><span style="font-size:12px;font-weight:400;color:#185FA5">有強制險無任意險</span>
       </button>
       <button onclick="loadFireGapList()"
-        style="padding:12px 6px;background:#FAEEDA;color:#633806;border:1.5px solid #EF9F27;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;line-height:1.4;text-align:center;">
+        style="padding:12px 6px;background:#FAEEDA;color:#633806;border:1.5px solid #EF9F27;border-radius:var(--radius-md);font-size:14px;font-weight:bold;cursor:pointer;line-height:1.4;text-align:center;">
         🏠 住宅火險<br><span style="font-size:12px;font-weight:400;color:#854F0B">查看缺口名單</span>
       </button>
       <button onclick="loadBirthdayMonthSummary()"
-        style="padding:12px 6px;background:#FBEAF0;color:#4B1528;border:1.5px solid #ED93B1;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;line-height:1.4;text-align:center;">
+        style="padding:12px 6px;background:#FBEAF0;color:#4B1528;border:1.5px solid #ED93B1;border-radius:var(--radius-md);font-size:14px;font-weight:bold;cursor:pointer;line-height:1.4;text-align:center;">
         🎂 生日名單<br><span style="font-size:12px;font-weight:400;color:#72243E">各月份查詢</span>
       </button>
     </div>
@@ -576,18 +620,18 @@
     <div class="fn-group-label" style="margin-top:8px;">追蹤管理</div>
     <div class="fn-grid-2">
       <button id="btnExpiryTrack" onclick="toggleExpiryPanel()"
-        style="padding:12px 6px;background:#EEEDFE;color:#3C3489;border:1.5px solid #AFA9EC;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;line-height:1.4;text-align:center;">
+        style="padding:12px 6px;background:#EEEDFE;color:#3C3489;border:1.5px solid #AFA9EC;border-radius:var(--radius-md);font-size:14px;font-weight:bold;cursor:pointer;line-height:1.4;text-align:center;">
         📅 即將到期追蹤<br><span style="font-size:12px;font-weight:400;color:#534AB7">點選選擇日期</span>
       </button>
       <button onclick="loadUnrenewed()"
-        style="padding:12px 6px;background:#FCEBEB;color:#791F1F;border:1.5px solid #F09595;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;line-height:1.4;text-align:center;">
+        style="padding:12px 6px;background:#FCEBEB;color:#791F1F;border:1.5px solid #F09595;border-radius:var(--radius-md);font-size:14px;font-weight:bold;cursor:pointer;line-height:1.4;text-align:center;">
         ⚠️ 近30日未續保<br><span style="font-size:12px;font-weight:400;color:#A32D2D">未續保名冊查詢</span>
       </button>
     </div>
 
     <!-- 即將到期追蹤展開面板 -->
-    <div id="expiryTrackPanel" style="display:none;margin-top:6px;background:#F3E5F5;border-radius:10px;padding:14px;border:1.5px solid #CE93D8;">
-      <div style="font-weight:bold;color:#6A1B9A;font-size:13px;margin-bottom:10px;">📅 即將到期保單追蹤 — 選擇查詢區間</div>
+    <div id="expiryTrackPanel" style="display:none;margin-top:6px;background:#F3E5F5;border-radius:var(--radius-md);padding:14px;border:1.5px solid var(--primary);">
+      <div style="font-weight:bold;color:var(--primary-dark);font-size:13px;font-weight:700;margin-bottom:12px;">📅 即將到期保單追蹤 — 選擇查詢區間</div>
 
       <!-- 隱藏的原生 input（供 JS 讀值用）-->
       <input type="date" id="trackStartDate" style="position:absolute;opacity:0;pointer-events:none;width:0;height:0;">
@@ -596,23 +640,23 @@
       <!-- 自訂顯示欄位 -->
       <div style="display:flex;gap:8px;margin-bottom:10px;">
         <div style="flex:1;">
-          <div style="font-size:11px;color:#888;margin-bottom:4px;">開始日期</div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">開始日期</div>
           <div id="trackStartDisplay"
             onclick="openDatePicker('start')"
-            style="width:100%;box-sizing:border-box;padding:9px 12px;border:1.5px solid #CE93D8;
-                   border-radius:8px;font-size:14px;background:white;cursor:pointer;
-                   display:flex;align-items:center;justify-content:space-between;color:#555;">
+            style="width:100%;box-sizing:border-box;padding:9px 12px;border:1.5px solid var(--primary);
+                   border-radius:8px;font-size:14px;background:var(--surface);cursor:pointer;
+                   display:flex;align-items:center;justify-content:space-between;color:var(--text2);">
             <span id="trackStartText">點選選擇</span>
             <span style="color:#CE93D8;font-size:16px;">📅</span>
           </div>
         </div>
         <div style="flex:1;">
-          <div style="font-size:11px;color:#888;margin-bottom:4px;">結束日期</div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">結束日期</div>
           <div id="trackEndDisplay"
             onclick="openDatePicker('end')"
-            style="width:100%;box-sizing:border-box;padding:9px 12px;border:1.5px solid #CE93D8;
-                   border-radius:8px;font-size:14px;background:white;cursor:pointer;
-                   display:flex;align-items:center;justify-content:space-between;color:#555;">
+            style="width:100%;box-sizing:border-box;padding:9px 12px;border:1.5px solid var(--primary);
+                   border-radius:8px;font-size:14px;background:var(--surface);cursor:pointer;
+                   display:flex;align-items:center;justify-content:space-between;color:var(--text2);">
             <span id="trackEndText">點選選擇</span>
             <span style="color:#CE93D8;font-size:16px;">📅</span>
           </div>
@@ -620,7 +664,7 @@
       </div>
 
       <button onclick="loadExpiryRange()" style="width:100%;padding:11px;background:#6A1B9A;color:white;border:none;border-radius:8px;font-size:14px;font-weight:bold;cursor:pointer;">🔍 查詢即將到期保單</button>
-      <div style="font-size:11px;color:#888;margin-top:6px;">💡 查詢後可直接點選每張保單更新續保狀態</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px;">💡 查詢後可直接點選每張保單更新續保狀態</div>
     </div>
 
     <!-- ★ 自訂日期選擇器 -->
@@ -630,7 +674,7 @@
 
     <!-- 面板：手機用 fixed bottom，電腦用 absolute 在按鈕下方 -->
     <div id="datepickerPanel" style="display:none;position:fixed;z-index:3501;">
-      <div id="datepickerInner" style="background:white;border-radius:14px;
+      <div id="datepickerInner" style="background:var(--surface);border-radius:14px;
                   padding:18px 18px 22px;box-sizing:border-box;
                   box-shadow:0 6px 28px rgba(0,0,0,0.18);
                   width:340px;max-width:92vw;">
@@ -638,40 +682,40 @@
           <span style="font-size:16px;font-weight:bold;color:#6A1B9A;" id="dpTitle">選擇開始日期</span>
           <button onclick="closeDatePicker()"
             style="background:#F5F5F5;border:none;border-radius:50%;width:34px;height:34px;
-                   font-size:18px;cursor:pointer;color:#666;line-height:1;">✕</button>
+                   font-size:18px;cursor:pointer;color:var(--text2);line-height:1;">✕</button>
         </div>
         <!-- 快速區間按鈕 -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px;">
-          <button onclick="setDateRange(0,20)"  style="padding:10px 4px;background:#F3E5F5;color:#6A1B9A;border:1.5px solid #CE93D8;border-radius:8px;font-size:13px;font-weight:bold;cursor:pointer;">今天起 20 天</button>
-          <button onclick="setDateRange(0,30)"  style="padding:10px 4px;background:#F3E5F5;color:#6A1B9A;border:1.5px solid #CE93D8;border-radius:8px;font-size:13px;font-weight:bold;cursor:pointer;">今天起 30 天</button>
+          <button onclick="setDateRange(0,20)"  style="padding:10px 4px;background:#F3E5F5;color:#6A1B9A;border:1.5px solid var(--primary);border-radius:8px;font-size:13px;font-weight:bold;cursor:pointer;">今天起 20 天</button>
+          <button onclick="setDateRange(0,30)"  style="padding:10px 4px;background:#F3E5F5;color:#6A1B9A;border:1.5px solid var(--primary);border-radius:8px;font-size:13px;font-weight:bold;cursor:pointer;">今天起 30 天</button>
         </div>
         <!-- 年月日選擇 -->
         <div style="display:flex;gap:8px;margin-bottom:16px;align-items:flex-end;">
           <div style="flex:5;">
-            <div style="font-size:13px;color:#888;margin-bottom:5px;font-weight:bold;">年（民國）</div>
+            <div style="font-size:13px;color:var(--text3);margin-bottom:5px;font-weight:bold;">年（民國）</div>
             <select id="dpYear"
-              style="width:100%;padding:12px 10px;border:1.5px solid #CE93D8;border-radius:8px;
-                     font-size:20px;font-weight:bold;background:white;color:#333;cursor:pointer;">
+              style="width:100%;padding:12px 10px;border:1.5px solid var(--primary);border-radius:8px;
+                     font-size:20px;font-weight:bold;background:var(--surface);color:var(--text1);cursor:pointer;">
             </select>
           </div>
           <div style="flex:3;">
-            <div style="font-size:13px;color:#888;margin-bottom:5px;font-weight:bold;">月</div>
+            <div style="font-size:13px;color:var(--text3);margin-bottom:5px;font-weight:bold;">月</div>
             <select id="dpMonth"
-              style="width:100%;padding:12px 6px;border:1.5px solid #CE93D8;border-radius:8px;
-                     font-size:20px;font-weight:bold;background:white;color:#333;cursor:pointer;">
+              style="width:100%;padding:12px 6px;border:1.5px solid var(--primary);border-radius:8px;
+                     font-size:20px;font-weight:bold;background:var(--surface);color:var(--text1);cursor:pointer;">
             </select>
           </div>
           <div style="flex:3;">
-            <div style="font-size:13px;color:#888;margin-bottom:5px;font-weight:bold;">日</div>
+            <div style="font-size:13px;color:var(--text3);margin-bottom:5px;font-weight:bold;">日</div>
             <select id="dpDay"
-              style="width:100%;padding:12px 6px;border:1.5px solid #CE93D8;border-radius:8px;
-                     font-size:20px;font-weight:bold;background:white;color:#333;cursor:pointer;">
+              style="width:100%;padding:12px 6px;border:1.5px solid var(--primary);border-radius:8px;
+                     font-size:20px;font-weight:bold;background:var(--surface);color:var(--text1);cursor:pointer;">
             </select>
           </div>
         </div>
         <button onclick="confirmDatePicker()"
           style="width:100%;padding:14px;background:#6A1B9A;color:white;border:none;
-                 border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;">
+                 border-radius:var(--radius-md);font-size:16px;font-weight:bold;cursor:pointer;">
           ✓ 確認日期
         </button>
       </div>
@@ -726,12 +770,12 @@
       </div>
     </div>
     <div class="btn-group" id="actionButtons">
-      <button class="btn-action" style="background:linear-gradient(135deg,#1565C0,#00A3E0);color:white;"
+      <button class="btn-action" style="background:linear-gradient(135deg,#1565C0,#00A3C4);color:white;"
   onclick="openCarMapFromModal()">🛡️ 車險保障圖卡</button>
       <button class="btn-action bg-img"   onclick="generateImageCard()">🖼️ 產生精美圖卡</button>
       <button class="btn-action bg-ai"    onclick="copyWarmPitch()">💬 智能話術</button>
       <button class="btn-action bg-line"  onclick="shareToLine()">📄 純文字分享</button>
-      <button class="btn-action" style="background:#1565C0;color:white;" onclick="markVehicleStatus('已過戶')">🔄 標記已過戶</button>
+      <button class="btn-action" style="background:var(--primary);color:white;" onclick="markVehicleStatus('已過戶')">🔄 標記已過戶</button>
       <button class="btn-action" style="background:#4E342E;color:white;" onclick="markVehicleStatus('已報廢')">🗑️ 標記已報廢</button>
       <button class="btn-action" style="background:#B71C1C;color:white;" onclick="confirmDeletePolicy()">🗑️ 刪除此保單</button>
       <button class="btn-action bg-close" onclick="closeModalOrBack()">關閉返回</button>
@@ -1082,14 +1126,14 @@
     if (isWebView()) {
       var btn = document.getElementById('googleSignInBtn');
       btn.innerHTML =
-        '<div style="background:#FFF3E0;border:1px solid #FFB74D;border-radius:10px;padding:16px;text-align:center;">'
+        '<div style="background:#FFF3E0;border:1px solid #FFB74D;border-radius:var(--radius-md);padding:16px;text-align:center;">'
         + '<div style="font-size:24px;margin-bottom:8px;">🌐</div>'
-        + '<div style="font-weight:bold;color:#E65100;margin-bottom:8px;">請用外部瀏覽器開啟</div>'
-        + '<div style="font-size:13px;color:#666;margin-bottom:12px;">LINE / Facebook 內建瀏覽器不支援 Google 登入</div>'
-        + '<div style="font-size:13px;color:#333;background:#fff;border-radius:8px;padding:10px;word-break:break-all;">'
+        + '<div style="font-weight:bold;color:#DC2626;margin-bottom:8px;">請用外部瀏覽器開啟</div>'
+        + '<div style="font-size:13px;color:var(--text2);margin-bottom:12px;">LINE / Facebook 內建瀏覽器不支援 Google 登入</div>'
+        + '<div style="font-size:13px;color:var(--text1);background:#fff;border-radius:8px;padding:10px;word-break:break-all;">'
         + window.location.href
         + '</div>'
-        + '<div style="font-size:12px;color:#888;margin-top:8px;">複製網址後用 Safari 或 Chrome 開啟</div>'
+        + '<div style="font-size:12px;color:var(--text3);margin-top:8px;">複製網址後用 Safari 或 Chrome 開啟</div>'
         + '</div>';
       return;
     }
@@ -1236,7 +1280,7 @@
           '<span class="expiry-alert-title">⏰ 5 天內即將到期</span>' +
           '<span style="display:flex;align-items:center;gap:8px;">' +
             '<span class="expiry-alert-badge">' + list.length + ' 張</span>' +
-            '<span style="font-size:12px;color:#888;">' + badgeText + '　▼</span>' +
+            '<span style="font-size:12px;color:var(--text3);">' + badgeText + '　▼</span>' +
           '</span>' +
         '</div>' +
         '<div class="expiry-alert-body" id="expiryAlertBody">' +
@@ -1328,7 +1372,7 @@
           (item.plateNo && item.plateNo !== '無' ? '<span>🚗 ' + item.plateNo + '</span>' : '') +
           '<span style="color:#d32f2f;font-weight:bold;">到期：' + item.expiry + '</span>' +
           (String(item.renewStatus||'').startsWith('他家')
-            ? '<span style="background:#FFF3E0;color:#E65100;font-size:11px;font-weight:bold;padding:1px 7px;border-radius:8px;">🎯 爭取轉單</span>' : '') +
+            ? '<span style="background:#FFF3E0;color:#DC2626;font-size:11px;font-weight:bold;padding:1px 7px;border-radius:8px;">🎯 爭取轉單</span>' : '') +
         '</div>' +
 
         // 被保人/要保人資訊
@@ -1336,7 +1380,7 @@
 
         // ── 第一層按鈕：保單內容 / 提醒 / 更新狀態 ──
         '<div class="policy-card-btn-row1">' +
-          '<button class="policy-card-btn" style="background:#0284c7;color:white;"' +
+          '<button class="policy-card-btn" style="background:#00A3C4;color:white;"' +
             ' onclick="togglePolicyDetail(\'' + pno + '\')">📋 保單內容</button>' +
           '<button class="policy-card-btn" style="background:#00B900;color:white;"' +
             ' onclick="' + shareFn + '">💬 提醒</button>' +
@@ -1359,7 +1403,7 @@
               ' onclick="pcardSetStatus(\'' + pno + '\',\'已聯繫\',\'' + source + '\')">📞 已聯繫</button>' +
             '<button class="policy-card-status-btn" style="background:#E8F5E9;color:#2E7D32;"' +
               ' onclick="pcardSetStatus(\'' + pno + '\',\'已續保\',\'' + source + '\')">✅ 已續保</button>' +
-            '<button class="policy-card-status-btn" style="background:#FAFAFA;color:#666;border:1px solid #DDD;"' +
+            '<button class="policy-card-status-btn" style="background:#FAFAFA;color:var(--text2);border:1px solid #DDD;"' +
               ' onclick="pcardSetStatus(\'' + pno + '\',\'不續保\',\'' + source + '\')">✗ 不續保</button>' +
             '<button class="policy-card-status-btn" style="background:#E8F5E9;color:#1B5E20;"' +
               ' onclick="pcardSetStatus(\'' + pno + '\',\'已過戶\',\'' + source + '\')">🔄 已過戶</button>' +
@@ -1412,13 +1456,13 @@
           // ★ 保單明細按鈕（進入 Modal 詳情）
           '<div style="margin-top:10px;padding-top:8px;border-top:1px dashed #E0E0E0;">' +
             '<button onclick="openDetailFromExpiry(\'' + pno + '\')" ' +
-              'style="width:100%;padding:10px;background:#F5F5F5;color:#333;border:1px solid #DDD;' +
+              'style="width:100%;padding:10px;background:#F5F5F5;color:var(--text1);border:1px solid #DDD;' +
                      'border-radius:8px;font-size:13px;font-weight:bold;cursor:pointer;">' +
               '🔍 查看保單明細（附加險項目）' +
             '</button>' +
           '</div>';
         inner.innerHTML = html;
-      } catch(e) { inner.innerHTML = '<div style="color:#999;font-size:12px;">資料讀取失敗</div>'; }
+      } catch(e) { inner.innerHTML = '<div style="color:var(--text3);font-size:12px;">資料讀取失敗</div>'; }
     }
 
     panel.classList.add('open');
@@ -1651,7 +1695,7 @@
           '<span class="expiry-alert-title" style="color:#388E3C;">📅 45～51 天即將到期</span>' +
           '<span style="display:flex;align-items:center;gap:8px;">' +
             '<span class="expiry-alert-badge" style="background:#388E3C;">' + list.length + ' 張</span>' +
-            '<span style="font-size:12px;color:#888;">提前預警　▼</span>' +
+            '<span style="font-size:12px;color:var(--text3);">提前預警　▼</span>' +
           '</span>' +
         '</div>' +
         '<div class="expiry-alert-body" id="earlyWarningBody">' +
@@ -1837,7 +1881,7 @@
     var params     = { q: val, showAll: showAll };
     var failFn2    = function() {
       document.getElementById('loading').style.display = 'none';
-      document.getElementById('resultsList').innerHTML = '<p style="text-align:center;color:#888;">搜尋失敗，請稍後再試</p>';
+      document.getElementById('resultsList').innerHTML = '<p style="text-align:center;color:var(--text3);">搜尋失敗，請稍後再試</p>';
     };
     if (_directShellUrl) {
       directGasCall('searchPolicies', params, showResults, failFn2);
@@ -1849,7 +1893,7 @@
   function showResults(data) {
     document.getElementById('loading').style.display = 'none';
     var list = document.getElementById('resultsList');
-    if (!data || data.length === 0) { list.innerHTML = '<p style="text-align:center;color:#888;">查無資料。</p>'; return; }
+    if (!data || data.length === 0) { list.innerHTML = '<p style="text-align:center;color:var(--text3);">查無資料。</p>'; return; }
     var today = new Date(); today.setHours(0,0,0,0);
     var html = '';
     
@@ -1869,8 +1913,8 @@
           var dayColor = daysLeft <= 5 ? '#C62828' : daysLeft <= 30 ? '#E65100' : daysLeft <= 60 ? '#F57F17' : '#2E7D32';
           var dayBg    = daysLeft <= 5 ? '#FFEBEE' : daysLeft <= 30 ? '#FFF3E0' : daysLeft <= 60 ? '#FFF8E1' : '#E8F5E9';
           daysHtml = daysLeft < 0
-            ? '<span style="background:#F5F5F5;color:#9E9E9E;font-size:11px;font-weight:bold;padding:2px 8px;border-radius:10px;">已到期</span>'
-            : '<span style="background:' + dayBg + ';color:' + dayColor + ';font-size:11px;font-weight:bold;padding:2px 8px;border-radius:10px;">剩 ' + daysLeft + ' 天</span>';
+            ? '<span style="background:#F5F5F5;color:#9E9E9E;font-size:11px;font-weight:bold;padding:2px 8px;border-radius:var(--radius-md);">已到期</span>'
+            : '<span style="background:' + dayBg + ';color:' + dayColor + ';font-size:11px;font-weight:bold;padding:2px 8px;border-radius:var(--radius-md);">剩 ' + daysLeft + ' 天</span>';
         }
       }
 
@@ -1886,11 +1930,11 @@
               '<div class="status-badge">' + item.status + '</div>' +
             '</div>' +
           '</div>' +
-          '<div style="font-size:13px;color:#666;">' + item.type + '</div>' +
+          '<div style="font-size:13px;color:var(--text2);">' + item.type + '</div>' +
         '</div>' +
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">' +
           '<div>' +
-            '<div style="color:#00A3E0;font-size:12px;font-weight:bold;margin-bottom:4px;">👤 被保人</div>' +
+            '<div style="color:#00A3C4;font-size:12px;font-weight:bold;margin-bottom:4px;">👤 被保人</div>' +
             '<div class="card-info" style="word-break:break-all;">🆔 ' + item.maskedId + '</div>' +
             '<div class="card-info">🎂 ' + item.birthday + '</div>' +
             (item.insuredPhone && item.insuredPhone !== '無' ? '<div class="card-info">📱 ' + item.insuredPhone + '</div>' : '') +
@@ -1898,7 +1942,7 @@
             '<div class="card-info">📅 ' + item.expiry + '</div>' +
           '</div>' +
           '<div>' +
-            '<div style="color:#00A3E0;font-size:12px;font-weight:bold;margin-bottom:4px;">📞 要保人</div>' +
+            '<div style="color:#00A3C4;font-size:12px;font-weight:bold;margin-bottom:4px;">📞 要保人</div>' +
             '<div class="card-info">' + item.applicantName + '</div>' +
             (item.applicantId && item.applicantId !== '無' ? '<div class="card-info">🪪 ' + item.applicantId + '</div>' : '') +
             '<div class="card-info">' + item.applicantPhone + '</div>' +
@@ -1906,7 +1950,7 @@
           '</div>' +
         '</div>' +
         '<div style="display:flex;gap:8px;padding-top:10px;border-top:1px dashed #eee;">' +
-          '<button onclick="event.stopPropagation();openDetail(\'' + item.policyNo + '\')" style="flex:1;background:#00A3E0;color:white;border:none;padding:10px;border-radius:6px;font-weight:bold;font-size:14px;cursor:pointer;">🔍 查看明細</button>' +
+          '<button onclick="event.stopPropagation();openDetail(\'' + item.policyNo + '\')" style="flex:1;background:#00A3C4;color:white;border:none;padding:10px;border-radius:6px;font-weight:bold;font-size:14px;cursor:pointer;">🔍 查看明細</button>' +
           '<button onclick="event.stopPropagation();quickShare(\'' + item.name + '\',\'' + item.type + '\',\'' + item.policyNo + '\',\'' + item.effectiveDate + '\',\'' + item.expiry + '\',\'' + item.plateNo + '\',\'' + item.premium + '\',\'' + item.maskedId + '\')" style="flex:1;background:#00B900;color:white;border:none;padding:10px;border-radius:6px;font-weight:bold;font-size:14px;cursor:pointer;">💬 傳到期提醒</button>' +
         '</div>' +
       '</div>';
@@ -1940,7 +1984,7 @@
     var list = document.getElementById('resultsList');
 
     if (result.error) {
-      list.innerHTML = '<div style="text-align:center;color:#E65100;padding:20px;background:#FBE9E7;border-radius:10px;">' +
+      list.innerHTML = '<div style="text-align:center;color:#DC2626;padding:20px;background:#FBE9E7;border-radius:var(--radius-md);">' +
         '⚠️ ' + result.error + '<br><br>' +
         '<small>請到 Sheets 選單執行「🔍 比對旅平卡覆蓋率」後再試</small></div>';
       return;
@@ -1954,8 +1998,8 @@
 
     var html =
       '<div class="uncovered-header">' +
-        '<div style="color:#E65100;font-weight:bold;">❌ 未申辦旅平卡：共 ' + result.total + ' 人</div>' +
-        '<div style="font-size:12px;color:#888;">點擊推薦按鈕傳送訊息</div>' +
+        '<div style="color:#DC2626;font-weight:bold;">❌ 未申辦旅平卡：共 ' + result.total + ' 人</div>' +
+        '<div style="font-size:12px;color:var(--text3);">點擊推薦按鈕傳送訊息</div>' +
       '</div>' +
       '<input class="uncovered-search" type="text" placeholder="輸入姓名快速篩選..." ' +
         'oninput="filterUncovered(this.value)" />' +
@@ -1980,7 +2024,7 @@
   function renderUncoveredCards(list) {
     var html = '';
     if (list.length === 0) {
-      html = '<p style="text-align:center;color:#888;">無符合資料</p>';
+      html = '<p style="text-align:center;color:var(--text3);">無符合資料</p>';
     } else {
       list.forEach(function(item) {
         // 把資料 encode 傳給推薦函式
@@ -2000,7 +2044,7 @@
                 '<button onclick="setUncoveredStatus(\'' + encoded + '\',\'已完成\')" ' +
                   'style="padding:5px 8px;background:#E8F5E9;color:#2E7D32;border:1px solid #A5D6A7;border-radius:6px;font-size:11px;cursor:pointer;">✅ 已完成</button>' +
                 '<button onclick="setUncoveredStatus(\'' + encoded + '\',\'不辦理\')" ' +
-                  'style="padding:5px 8px;background:#F5F5F5;color:#666;border:1px solid #DDD;border-radius:6px;font-size:11px;cursor:pointer;">✗ 不辦理</button>' +
+                  'style="padding:5px 8px;background:#F5F5F5;color:var(--text2);border:1px solid #DDD;border-radius:6px;font-size:11px;cursor:pointer;">✗ 不辦理</button>' +
                 '<button onclick="setUncoveredStatus(\'' + encoded + '\',\'刪除\')" ' +
                   'style="padding:5px 8px;background:#FFEBEE;color:#C62828;border:1px solid #FFCDD2;border-radius:6px;font-size:11px;cursor:pointer;">🗑️</button>' +
               '</div>' +
@@ -2151,7 +2195,7 @@
       if (_directShellUrl) {
         directGasCall('searchTravelCards', { q: val }, showTravelResults, function() {
           document.getElementById('loading').style.display = 'none';
-          document.getElementById('resultsList').innerHTML = '<p style="text-align:center;color:#888;">搜尋失敗，請稍後再試</p>';
+          document.getElementById('resultsList').innerHTML = '<p style="text-align:center;color:var(--text3);">搜尋失敗，請稍後再試</p>';
         });
       } else {
         gasCall('searchTravelCards', { q: val }, showTravelResults);
@@ -2161,7 +2205,7 @@
   function showTravelResults(data) {
     document.getElementById('loading').style.display = 'none';
     var list = document.getElementById('resultsList');
-    if (!data || data.length === 0) { list.innerHTML = '<p style="text-align:center;color:#888;">查無資料。</p>'; return; }
+    if (!data || data.length === 0) { list.innerHTML = '<p style="text-align:center;color:var(--text3);">查無資料。</p>'; return; }
     var html = '';
     data.forEach(function(item) {
       var agentTag = item.agentCode ? " <span style='color:#FF9800;font-weight:bold;'>[" + item.agentCode + "]</span>" : "";
@@ -2181,13 +2225,13 @@
             "<span class='member-count-badge'>👥 " + item.memberCount + " 人</span>" +
           "</div>" +
         "</div>" +
-        "<div style='display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;color:#555;'>" +
+        "<div style='display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;color:var(--text2);'>" +
           "<div>🆔 " + item.appId + "</div>" +
           "<div>📱 " + (item.phone1 || '—') + "</div>" +
           "<div>📅 生效：" + fmtDate(item.effDate) + "</div>" +
           "<div>📋 憑證：" + item.certNo + "</div>" +
         "</div>" +
-        "<div style='margin-top:8px;font-size:12px;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>🏠 " + item.address + "</div>" +
+        "<div style='margin-top:8px;font-size:12px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>🏠 " + item.address + "</div>" +
         matchHint +
       "</div>";
     });
@@ -2220,7 +2264,7 @@
     var expStr = (finalExpiry && finalExpiry !== 'undefined') ? finalExpiry : '—';
 
     var html = '<div class="detail-section">' +
-      '<div class="detail-title" style="font-size:20px;color:#00A3E0;">' + main.insuredName + ' 的專屬保障摘要' + agentTag + '</div>' +
+      '<div class="detail-title" style="font-size:20px;color:#00A3C4;">' + main.insuredName + ' 的專屬保障摘要' + agentTag + '</div>' +
       '<div class="info-grid">' +
         '<div><div class="info-label">保單號碼</div><b>' + main.policyNo + '</b></div>' +
         '<div><div class="info-label">險種</div><b>' + main.type + '</b></div>' +
@@ -2238,8 +2282,8 @@
           '<div><div class="info-label">要保人電話</div>📱 ' + main.applicantPhone + '</div>' : '') +
         (main.renewStatus && String(main.renewStatus).startsWith('他家') ?
           '<div style="grid-column:1/-1;background:#FFF8E1;border:1px solid #FFD54F;border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:8px;">' +
-          '<span style="color:#E65100;font-size:14px;">⚠️ 他家承保</span>' +
-          '<span style="color:#333;font-weight:bold;font-size:14px;">' +
+          '<span style="color:#DC2626;font-size:14px;">⚠️ 他家承保</span>' +
+          '<span style="color:var(--text1);font-weight:bold;font-size:14px;">' +
           (function(){ var p = String(main.renewStatus).split('|'); return (p[1]||'不明') + (p[2] ? '　記錄日期：'+p[2] : ''); })() +
           '</span></div>' : '') +
       '</div></div>';
@@ -2249,9 +2293,9 @@
       '<table><tr><th>保障項目</th><th>保額</th><th style="text-align:right;">保費</th></tr>';
     if (data.details && data.details.length > 0) {
       data.details.forEach(function(i) { html += '<tr><td>' + i.name + '</td><td>' + i.amount + '</td><td style="text-align:right;">' + i.premium + '</td></tr>'; });
-    } else { html += '<tr><td colspan="3" style="text-align:center;color:#888;">無明細資料</td></tr>'; }
+    } else { html += '<tr><td colspan="3" style="text-align:center;color:var(--text3);">無明細資料</td></tr>'; }
     html += '</table></div>';
-    html += '<div style="text-align:center;margin-top:20px;font-size:12px;color:#888;">由專屬顧問 ' + ADVISOR_NAME + ' 為您整理</div>';
+    html += '<div style="text-align:center;margin-top:20px;font-size:12px;color:var(--text3);">由專屬顧問 ' + ADVISOR_NAME + ' 為您整理</div>';
 
     document.getElementById('modalBody').innerHTML = html;
     document.getElementById('modalBody').style.display = 'block';
@@ -2262,7 +2306,7 @@
     document.getElementById('travelStatusArea').innerHTML =
       '<div style="margin-top:16px;border-top:2px dashed #FFE0B2;padding-top:14px;">' +
         '<div style="font-size:13px;color:#FF9800;font-weight:bold;">🏖️ 旅平卡狀態</div>' +
-        '<div style="font-size:12px;color:#aaa;margin-top:4px;">查詢中...</div>' +
+        '<div style="font-size:12px;color:var(--text3);margin-top:4px;">查詢中...</div>' +
       '</div>';
       
     // 【核心修正】移入函式內部！改用真實身分證 ID (realId) 繞過中央阻斷
@@ -2278,13 +2322,13 @@
       document.getElementById('familyReportArea').innerHTML =
         '<div style="margin-top:20px;border-top:3px double #eee;padding-top:16px;">' +
           '<div style="display:flex;justify-content:space-between;align-items:center;">' +
-            '<div><span style="font-weight:bold;color:#333;">👨‍👩‍👧‍👦 家庭保障</span>' +
-            '<span style="font-size:12px;color:#888;margin-left:8px;">(' + main.familyId + ')</span></div>' +
+            '<div><span style="font-weight:bold;color:var(--text1);">👨‍👩‍👧‍👦 家庭保障</span>' +
+            '<span style="font-size:12px;color:var(--text3);margin-left:8px;">(' + main.familyId + ')</span></div>' +
             '<button onclick="loadFamilyReport(\'' + main.familyId + '\')" ' +
-              'style="background:#00A3E0;color:white;border:none;padding:8px 16px;border-radius:6px;font-weight:bold;cursor:pointer;font-size:13px;margin-right:8px;">' +
+              'style="background:#00A3C4;color:white;border:none;padding:8px 16px;border-radius:6px;font-weight:bold;cursor:pointer;font-size:13px;margin-right:8px;">' +
               '展開家庭總覽 ↓</button>' +
             '<button onclick="openFamilyTableReport(\'' + main.familyId + '\')" ' +
-              'style="background:#1565C0;color:white;border:none;padding:8px 16px;border-radius:6px;font-weight:bold;cursor:pointer;font-size:13px;">' +
+              'style="background:var(--primary);color:white;border:none;padding:8px 16px;border-radius:6px;font-weight:bold;cursor:pointer;font-size:13px;">' +
               '📋 家庭保障報表</button>' +
           '</div>' +
         '</div>';
@@ -2305,19 +2349,19 @@
       html +=
         '<div style="background:#E8F5E9;border-radius:8px;padding:10px 14px;border-left:4px solid #43A047;">' +
           '<div style="color:#2E7D32;font-weight:bold;font-size:14px;">✅ 已持有旅平卡</div>' +
-          '<div style="font-size:13px;color:#333;margin-top:6px;display:grid;grid-template-columns:1fr 1fr;gap:6px;">' +
-            '<div><span style="color:#888;font-size:11px;">卡片類別</span><br>' + info.cardType + '</div>' +
-            '<div><span style="color:#888;font-size:11px;">身份</span><br>' + info.role + '</div>' +
-            '<div><span style="color:#888;font-size:11px;">要保人</span><br>' + info.appName + '</div>' +
-            '<div><span style="color:#888;font-size:11px;">憑證號碼</span><br><span style="font-size:11px;">' + info.certNo + '</span></div>' +
+          '<div style="font-size:13px;color:var(--text1);margin-top:6px;display:grid;grid-template-columns:1fr 1fr;gap:6px;">' +
+            '<div><span style="color:var(--text3);font-size:11px;">卡片類別</span><br>' + info.cardType + '</div>' +
+            '<div><span style="color:var(--text3);font-size:11px;">身份</span><br>' + info.role + '</div>' +
+            '<div><span style="color:var(--text3);font-size:11px;">要保人</span><br>' + info.appName + '</div>' +
+            '<div><span style="color:var(--text3);font-size:11px;">憑證號碼</span><br><span style="font-size:11px;">' + info.certNo + '</span></div>' +
           '</div>' +
         '</div>';
     } else {
       // ❌ 無旅平卡
       html +=
         '<div style="background:#FFF8E1;border-radius:8px;padding:10px 14px;border-left:4px solid #FFB300;">' +
-          '<div style="color:#E65100;font-weight:bold;font-size:14px;">❌ 尚無旅平卡保障</div>' +
-          '<div style="font-size:12px;color:#666;margin-top:6px;">可向客戶介紹旅平卡，提供意外及旅遊保障 🌏</div>' +
+          '<div style="color:#DC2626;font-weight:bold;font-size:14px;">❌ 尚無旅平卡保障</div>' +
+          '<div style="font-size:12px;color:var(--text2);margin-top:6px;">可向客戶介紹旅平卡，提供意外及旅遊保障 🌏</div>' +
         '</div>';
     }
 
@@ -2378,7 +2422,7 @@
           '<div><div class="info-label">Email</div>' + (m.email || '—') + '</div>' +
         '</div>' +
         '<div class="info-label" style="margin-top:8px;">🏠 通訊地址</div>' +
-        '<div style="font-size:13px;color:#333;margin-top:4px;">' + (m.address || '—') + '</div>' +
+        '<div style="font-size:13px;color:var(--text1);margin-top:4px;">' + (m.address || '—') + '</div>' +
       '</div>';
 
     // 被保人名冊表格
@@ -2397,7 +2441,7 @@
       '</tr>';
     });
     html += '</table></div>';
-    html += '<div style="text-align:center;margin-top:16px;font-size:12px;color:#888;">由專屬顧問 ' + ADVISOR_NAME + ' 為您整理</div>';
+    html += '<div style="text-align:center;margin-top:16px;font-size:12px;color:var(--text3);">由專屬顧問 ' + ADVISOR_NAME + ' 為您整理</div>';
 
     document.getElementById('travelModalBody').innerHTML = html;
     document.getElementById('travelActionButtons').style.display = 'flex';
@@ -2469,12 +2513,12 @@
       }
       overlay._imgSrc = imgSrc;
       overlay.innerHTML =
-        '<div style="background:white;width:100%;max-width:600px;border-radius:20px 20px 0 0;padding:20px;max-height:85vh;overflow-y:auto;box-sizing:border-box;">' +
+        '<div style="background:var(--surface);width:100%;max-width:600px;border-radius:20px 20px 0 0;padding:20px;max-height:85vh;overflow-y:auto;box-sizing:border-box;">' +
           '<div style="color:var(--travel-color);font-weight:bold;font-size:14px;margin-bottom:10px;text-align:center;">📸 旅平卡圖卡已生成！</div>' +
-          '<img id="travelCardImg" style="width:100%;border-radius:10px;margin-bottom:15px;" />' +
+          '<img id="travelCardImg" style="width:100%;border-radius:var(--radius-md);margin-bottom:15px;" />' +
           '<div style="display:flex;gap:10px;">' +
             '<button onclick="downloadTravelImage()" style="flex:1;padding:12px;background:#FF7043;color:white;border:none;border-radius:8px;font-weight:bold;cursor:pointer;">📥 下載圖卡</button>' +
-            '<button onclick="document.getElementById(\'travelImageOverlay\').style.display=\'none\'" style="flex:1;padding:12px;background:#f1f1f1;color:#333;border:none;border-radius:8px;font-weight:bold;cursor:pointer;">關閉返回</button>' +
+            '<button onclick="document.getElementById(\'travelImageOverlay\').style.display=\'none\'" style="flex:1;padding:12px;background:#f1f1f1;color:var(--text1);border:none;border-radius:8px;font-weight:bold;cursor:pointer;">關閉返回</button>' +
           '</div>' +
         '</div>';
       document.getElementById('travelCardImg').src = imgSrc;
@@ -2553,13 +2597,13 @@
     var familyShareBtn    =
       '<div style="display:flex;gap:10px;margin-top:8px;">' +
         '<button class="family-share-btn" style="flex:1;font-size:13px;" onclick="shareFamilyAll(\'' + encodedFamilyData + '\')">💬 傳送整個家庭到期提醒</button>' +
-        '<button class="family-share-btn" style="flex:1;font-size:13px;background:#00A3E0;" onclick="generateFamilyImageCard()">📸 製作家庭圖卡</button>' +
+        '<button class="family-share-btn" style="flex:1;font-size:13px;background:#00A3C4;" onclick="generateFamilyImageCard()">📸 製作家庭圖卡</button>' +
       '</div>';
 
     area.innerHTML =
       '<div class="family-header">' +
         '<div id="familyCardContent">' +
-          '<div class="detail-title">👨‍👩‍👧‍👦 家庭保障總覽 <span style="font-size:13px;color:#888;font-weight:normal;">(' + familyData.id + ')</span></div>' +
+          '<div class="detail-title">👨‍👩‍👧‍👦 家庭保障總覽 <span style="font-size:13px;color:var(--text3);font-weight:normal;">(' + familyData.id + ')</span></div>' +
           summaryHtml + membersHtml + peilinHtml +
         '</div>' +
         familyShareBtn +
@@ -2757,12 +2801,12 @@
       }
       overlay._imgSrc = imgSrc;
       overlay.innerHTML =
-        '<div style="background:white;width:100%;max-width:600px;border-radius:20px 20px 0 0;padding:20px;max-height:85vh;overflow-y:auto;box-sizing:border-box;">' +
+        '<div style="background:var(--surface);width:100%;max-width:600px;border-radius:20px 20px 0 0;padding:20px;max-height:85vh;overflow-y:auto;box-sizing:border-box;">' +
           '<div style="color:#d32f2f;font-weight:bold;font-size:14px;margin-bottom:10px;text-align:center;">📸 家庭圖卡已生成！</div>' +
-          '<img id="familyCardImg" style="width:100%;border-radius:10px;box-shadow:0 4px 15px rgba(0,0,0,0.1);margin-bottom:15px;" />' +
+          '<img id="familyCardImg" style="width:100%;border-radius:var(--radius-md);box-shadow:0 4px 15px rgba(0,0,0,0.1);margin-bottom:15px;" />' +
           '<div style="display:flex;gap:10px;">' +
-            '<button onclick="downloadFamilyImage()" style="flex:1;padding:12px;background:#00A3E0;color:white;border:none;border-radius:8px;font-weight:bold;font-size:14px;cursor:pointer;">📥 下載圖卡</button>' +
-            '<button onclick="document.getElementById(\'familyImageOverlay\').style.display=\'none\'" style="flex:1;padding:12px;background:#f1f1f1;color:#333;border:none;border-radius:8px;font-weight:bold;font-size:14px;cursor:pointer;">關閉返回</button>' +
+            '<button onclick="downloadFamilyImage()" style="flex:1;padding:12px;background:var(--primary);color:white;border:none;border-radius:var(--radius-sm);font-weight:bold;font-size:14px;cursor:pointer;">📥 下載圖卡</button>' +
+            '<button onclick="document.getElementById(\'familyImageOverlay\').style.display=\'none\'" style="flex:1;padding:12px;background:#f1f1f1;color:var(--text1);border:none;border-radius:8px;font-weight:bold;font-size:14px;cursor:pointer;">關閉返回</button>' +
           '</div>' +
         '</div>';
       document.getElementById('familyCardImg').src = imgSrc;
@@ -2924,7 +2968,7 @@
         renderTasks();
       }, function() {
         document.getElementById('taskListBody').innerHTML =
-          '<div style="color:#999;font-size:13px;text-align:center;padding:10px;">載入失敗，請稍後再試</div>';
+          '<div style="color:var(--text3);font-size:13px;text-align:center;padding:10px;">載入失敗，請稍後再試</div>';
       });
     } else {
       gasCall('getTasks', {}, function(result) {
@@ -2932,7 +2976,7 @@
         renderTasks();
       }, function() {
         document.getElementById('taskListBody').innerHTML =
-          '<div style="color:#999;font-size:13px;text-align:center;padding:10px;">載入失敗，請稍後再試</div>';
+          '<div style="color:var(--text3);font-size:13px;text-align:center;padding:10px;">載入失敗，請稍後再試</div>';
       });
     }
   }
@@ -2942,7 +2986,7 @@
   function renderTasks() {
     var body = document.getElementById('taskListBody');
     if (!_tasks || _tasks.length === 0) {
-      body.innerHTML = '<div style="color:#999;font-size:13px;text-align:center;padding:10px;">目前沒有代辦事項</div>';
+      body.innerHTML = '<div style="color:var(--text3);font-size:13px;text-align:center;padding:10px;">目前沒有代辦事項</div>';
       return;
     }
 
@@ -2953,11 +2997,11 @@
     var html = '';
     if (!_showDoneTasks && hiddenDone.length > 0) {
       html += '<div onclick="_showDoneTasks=true;renderTasks()" ' +
-        'style="cursor:pointer;text-align:center;color:#aaa;font-size:12px;padding:7px;background:#f9f9f9;border-radius:8px;margin-bottom:6px;">' +
+        'style="cursor:pointer;text-align:center;color:var(--text3);font-size:12px;padding:7px;background:#f9f9f9;border-radius:8px;margin-bottom:6px;">' +
         '📂 已完成並隱藏 ' + hiddenDone.length + ' 筆　▼ 點擊展開</div>';
     } else if (_showDoneTasks && hiddenDone.length > 0) {
       html += '<div onclick="_showDoneTasks=false;renderTasks()" ' +
-        'style="cursor:pointer;text-align:center;color:#aaa;font-size:12px;padding:7px;background:#f9f9f9;border-radius:8px;margin-bottom:6px;">' +
+        'style="cursor:pointer;text-align:center;color:var(--text3);font-size:12px;padding:7px;background:#f9f9f9;border-radius:8px;margin-bottom:6px;">' +
         '📂 收起已完成記錄　▲</div>';
     }
 
@@ -2967,25 +3011,25 @@
       var badgeBg  = t.isToday ? '#FFF3E0' : (t.isPast && !isDone) ? '#FFEBEE' : '#E8F5E9';
       var badgeClr = t.isToday ? '#E65100' : (t.isPast && !isDone) ? '#C62828' : '#2E7D32';
       var badgeTxt = t.isToday ? '📌 今日' : (t.isPast && !isDone) ? '⚠️ 已過期' : '📅 ' + t.date;
-      var statusBadge = isDone ? '<span style="background:#E8F5E9;color:#2E7D32;font-size:11px;font-weight:bold;padding:2px 8px;border-radius:10px;">✅ 已完成</span>'
-                      : isWip  ? '<span style="background:#FFF8E1;color:#F57F17;font-size:11px;font-weight:bold;padding:2px 8px;border-radius:10px;">🔄 處理中</span>' : '';
+      var statusBadge = isDone ? '<span style="background:#E8F5E9;color:#2E7D32;font-size:11px;font-weight:bold;padding:2px 8px;border-radius:var(--radius-md);">✅ 已完成</span>'
+                      : isWip  ? '<span style="background:#FFF8E1;color:#F57F17;font-size:11px;font-weight:bold;padding:2px 8px;border-radius:var(--radius-md);">🔄 處理中</span>' : '';
       var cardOp  = isDone ? 'opacity:0.6;' : '';
-      var contSt  = isDone ? 'text-decoration:line-through;color:#aaa;' : 'color:#333;font-weight:bold;';
+      var contSt  = isDone ? 'text-decoration:line-through;color:var(--text3);' : 'color:var(--text1);font-weight:bold;';
       var safeId  = t.taskId.replace(/'/g,'');
       var safeNote = (t.note || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
 
       html += '<div style="padding:10px 0;border-bottom:1px solid #f5f5f5;' + cardOp + '">' +
         '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap;">' +
-          '<span style="background:' + badgeBg + ';color:' + badgeClr + ';font-size:11px;font-weight:bold;padding:2px 8px;border-radius:10px;">' + badgeTxt + '</span>' +
+          '<span style="background:' + badgeBg + ';color:' + badgeClr + ';font-size:11px;font-weight:bold;padding:2px 8px;border-radius:var(--radius-md);">' + badgeTxt + '</span>' +
           statusBadge +
-          (t.author ? '<span style="font-size:11px;color:#aaa;">' + t.author + '</span>' : '') +
+          (t.author ? '<span style="font-size:11px;color:var(--text3);">' + t.author + '</span>' : '') +
           '<button onclick="deleteTaskItem(\'' + safeId + '\')" style="margin-left:auto;background:#FFEBEE;color:#C62828;border:none;border-radius:6px;font-size:12px;font-weight:bold;cursor:pointer;padding:3px 8px;">🗑️ 刪除</button>' +
         '</div>' +
         '<div style="font-size:14px;' + contSt + 'margin-bottom:6px;">' + t.content + '</div>' +
-        (t.note ? '<div style="font-size:12px;color:#888;background:#f8f8f8;border-radius:6px;padding:4px 8px;margin-bottom:6px;">📝 ' + t.note + '</div>' : '') +
+        (t.note ? '<div style="font-size:12px;color:var(--text3);background:#f8f8f8;border-radius:6px;padding:4px 8px;margin-bottom:6px;">📝 ' + t.note + '</div>' : '') +
         '<div data-task-id="' + safeId + '" style="display:flex;gap:6px;">' +
-          (!isDone ? '<button onclick="openTaskUpdate(\'' + safeId + '\',\'' + (t.status||'') + '\',\'' + safeNote + '\')" style="font-size:12px;padding:4px 10px;background:#f5f5f5;color:#555;border:1px solid #ddd;border-radius:6px;cursor:pointer;font-weight:bold;">✏️ 更新進度</button>' : '') +
-          (isDone ? '<button onclick="clearTaskDone(\'' + safeId + '\')" style="font-size:12px;padding:4px 10px;background:#f5f5f5;color:#aaa;border:1px solid #ddd;border-radius:6px;cursor:pointer;">↩ 重設</button>' : '') +
+          (!isDone ? '<button onclick="openTaskUpdate(\'' + safeId + '\',\'' + (t.status||'') + '\',\'' + safeNote + '\')" style="font-size:12px;padding:4px 10px;background:#f5f5f5;color:var(--text2);border:1px solid #ddd;border-radius:6px;cursor:pointer;font-weight:bold;">✏️ 更新進度</button>' : '') +
+          (isDone ? '<button onclick="clearTaskDone(\'' + safeId + '\')" style="font-size:12px;padding:4px 10px;background:#f5f5f5;color:var(--text3);border:1px solid #ddd;border-radius:6px;cursor:pointer;">↩ 重設</button>' : '') +
         '</div>' +
       '</div>';
     });
@@ -3004,7 +3048,7 @@
     panel.style.cssText = 'margin-top:8px;background:#f8f9fa;border-radius:8px;padding:12px;border:1px solid #e0e0e0;';
     // 標題
     var title = document.createElement('div');
-    title.style.cssText = 'font-size:12px;color:#888;margin-bottom:8px;font-weight:bold;';
+    title.style.cssText = 'font-size:12px;color:var(--text3);margin-bottom:8px;font-weight:bold;';
     title.textContent = '更新處理進度';
     panel.appendChild(title);
     // 狀態按鈕
@@ -3028,7 +3072,7 @@
     resetBtn.textContent = '↩ 重設';
     var isReset = (panel._selectedStatus === '');
     resetBtn.style.cssText = 'flex:1;min-width:70px;padding:7px 4px;border-radius:6px;font-size:13px;font-weight:bold;cursor:pointer;' +
-      (isReset ? 'background:#e0e0e0;color:#333;border:2px solid #9E9E9E;' : 'background:#f5f5f5;color:#888;border:1px solid #ddd;');
+      (isReset ? 'background:#e0e0e0;color:var(--text1);border:2px solid #9E9E9E;' : 'background:#f5f5f5;color:var(--text3);border:1px solid #ddd;');
     resetBtn.onclick = function() { selectTaskStatus(taskId, ''); };
     btnRow2.appendChild(resetBtn);
     panel.appendChild(btnRow2);
@@ -3043,12 +3087,12 @@
     actionRow.style.cssText = 'display:flex;gap:8px;';
     var saveBtn = document.createElement('button');
     saveBtn.id = 'taskSaveBtn_' + taskId; saveBtn.textContent = '💾 儲存';
-    saveBtn.style.cssText = 'flex:2;padding:10px;background:#00A3E0;color:white;border:none;border-radius:6px;font-size:14px;font-weight:bold;cursor:pointer;';
+    saveBtn.style.cssText = 'flex:2;padding:10px;background:#00A3C4;color:white;border:none;border-radius:6px;font-size:14px;font-weight:bold;cursor:pointer;';
     saveBtn.onclick = function() { saveTaskUpdate(taskId, containerId); };
     actionRow.appendChild(saveBtn);
     var cancelBtn = document.createElement('button');
     cancelBtn.textContent = '取消';
-    cancelBtn.style.cssText = 'flex:1;padding:10px;background:#f5f5f5;color:#666;border:none;border-radius:6px;font-size:14px;cursor:pointer;';
+    cancelBtn.style.cssText = 'flex:1;padding:10px;background:#f5f5f5;color:var(--text2);border:none;border-radius:6px;font-size:14px;cursor:pointer;';
     cancelBtn.onclick = function() { panel.style.display = 'none'; };
     actionRow.appendChild(cancelBtn);
     panel.appendChild(actionRow);
@@ -3228,13 +3272,13 @@
     document.getElementById('loading').style.display = 'none';
     var list = document.getElementById('resultsList');
     if (!result || result.total === 0) {
-      list.innerHTML = '<div style="background:#E8F5E9;border:1px solid #A5D6A7;border-radius:10px;padding:14px 16px;font-weight:bold;color:#2E7D32;text-align:center;">🎉 ' + promptText + '</div>';
+      list.innerHTML = '<div style="background:#E8F5E9;border:1px solid #A5D6A7;border-radius:var(--radius-md);padding:14px 16px;font-weight:bold;color:#2E7D32;text-align:center;">🎉 ' + promptText + '</div>';
       return;
     }
 
-    var html = '<div style="background:' + badgeBg + ';border:1px solid ' + badgeClr + ';border-radius:10px;padding:14px 16px;margin-bottom:16px;">' +
+    var html = '<div style="background:' + badgeBg + ';border:1px solid ' + badgeClr + ';border-radius:var(--radius-md);padding:14px 16px;margin-bottom:16px;">' +
       '<div style="color:' + titleColor + ';font-weight:bold;font-size:15px;">' + title + '：共 ' + result.total + ' 台</div>' +
-      '<div style="font-size:12px;color:#888;margin-top:4px;">比對方式：以車牌號碼為基準，僅計算有效保單</div>' +
+      '<div style="font-size:12px;color:var(--text3);margin-top:4px;">比對方式：以車牌號碼為基準，僅計算有效保單</div>' +
       '</div>';
 
     result.list.forEach(function(item) {
@@ -3246,21 +3290,21 @@
       var agentTag = (item.agentCode && item.agentCode !== '無' && item.agentCode !== '')
         ? ' <span style="color:#FF9800;font-weight:bold;font-size:14px;">[' + item.agentCode + ']</span>' : '';
 
-      html += '<div style="background:white;border-radius:10px;padding:14px 16px;margin-bottom:10px;' +
+      html += '<div style="background:var(--surface);border-radius:var(--radius-md);padding:14px 16px;margin-bottom:10px;' +
         'box-shadow:0 2px 6px rgba(0,0,0,0.06);border-left:5px solid ' + titleColor + ';">' +
         // 車牌 + 業務員代號 + 狀態 badge
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
-          '<div style="font-weight:bold;font-size:17px;color:#333;letter-spacing:1px;">🚗 ' + plateDisplay + agentTag + '</div>' +
+          '<div style="font-weight:bold;font-size:17px;color:var(--text1);letter-spacing:1px;">🚗 ' + plateDisplay + agentTag + '</div>' +
           '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">' +
             '<div style="background:' + badgeBg + ';color:' + titleColor + ';font-size:11px;font-weight:bold;' +
-              'padding:3px 10px;border-radius:10px;border:1px solid ' + titleColor + ';">' + badgeText + '</div>' +
+              'padding:3px 10px;border-radius:var(--radius-md);border:1px solid ' + titleColor + ';">' + badgeText + '</div>' +
             (item.trackStatus ? '<div style="font-size:10px;padding:2px 8px;border-radius:8px;font-weight:bold;' +
               'background:' + _trackStatusStyle(item.trackStatus).bg + ';color:' + _trackStatusStyle(item.trackStatus).clr + ';">' +
               _trackStatusStyle(item.trackStatus).icon + ' ' + item.trackStatus + '</div>' : '') +
           '</div>' +
         '</div>' +
         // 客戶資訊
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:10px;font-size:13px;color:#555;">' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:10px;font-size:13px;color:var(--text2);">' +
           '<div>👤 ' + displayName + '</div>' +
           '<div>📞 ' + (displayPhone || '—') + '</div>' +
           '<div>🆔 ' + (displayId    || '—') + '</div>' +
@@ -3275,7 +3319,7 @@
       if (item.policyNo) {
         var safePno = item.policyNo.replace(/'/g, '');
         html += '<button onclick="openDetailFromGap(\'' + safePno + '\')" ' +
-          'style="flex:1;min-width:80px;background:#0284c7;color:white;border:none;padding:9px 6px;border-radius:6px;' +
+          'style="flex:1;min-width:80px;background:#00A3C4;color:white;border:none;padding:9px 6px;border-radius:6px;' +
           'font-size:13px;font-weight:bold;cursor:pointer;">🔍 查看明細</button>';
       }
       // 追蹤記錄按鈕（提案商機用）—— 用 data-* 屬性傳資料，避免引號問題
@@ -3358,27 +3402,27 @@
     overlay.id = 'caliHintOverlay';
     overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:8000;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;overflow-y:auto;';
     overlay.innerHTML =
-      '<div style="background:white;border-radius:16px;padding:24px;max-width:380px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.2);">' +
+      '<div style="background:var(--surface);border-radius:16px;padding:24px;max-width:380px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.2);">' +
         '<div style="font-size:18px;font-weight:bold;color:#00796B;margin-bottom:16px;text-align:center;">📋 CALI 強制險查詢</div>' +
 
         // 客戶資訊
         '<div style="background:#E0F2F1;border-radius:8px;padding:10px 12px;margin-bottom:10px;">' +
-          '<div style="font-size:12px;color:#555;margin-bottom:2px;">客戶：' + name + '　車牌：' + plateF + '</div>' +
+          '<div style="font-size:12px;color:var(--text2);margin-bottom:2px;">客戶：' + name + '　車牌：' + plateF + '</div>' +
         '</div>' +
 
         // 複製區
         '<div style="background:#E8F5E9;border-radius:8px;padding:12px;margin-bottom:6px;">' +
-          '<div style="font-size:12px;color:#555;margin-bottom:4px;">① 複製身分證字號</div>' +
+          '<div style="font-size:12px;color:var(--text2);margin-bottom:4px;">① 複製身分證字號</div>' +
           '<div style="display:flex;align-items:center;gap:8px;">' +
             '<div style="font-size:17px;font-weight:bold;color:#1565C0;flex:1;letter-spacing:1px;">' + idNo + '</div>' +
-            '<button onclick="copyText(\'' + idNo + '\',this)" style="background:#1565C0;color:white;border:none;padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;">複製</button>' +
+            '<button onclick="copyText(\'' + idNo + '\',this)" style="background:var(--primary);color:white;border:none;padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;">複製</button>' +
           '</div>' +
         '</div>' +
         '<div style="background:#E8F5E9;border-radius:8px;padding:12px;margin-bottom:12px;">' +
-          '<div style="font-size:12px;color:#555;margin-bottom:4px;">② 複製車牌號碼</div>' +
+          '<div style="font-size:12px;color:var(--text2);margin-bottom:4px;">② 複製車牌號碼</div>' +
           '<div style="display:flex;align-items:center;gap:8px;">' +
             '<div style="font-size:17px;font-weight:bold;color:#1565C0;flex:1;letter-spacing:2px;">' + plateF + '</div>' +
-            '<button onclick="copyText(\'' + plateF + '\',this)" style="background:#1565C0;color:white;border:none;padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;">複製</button>' +
+            '<button onclick="copyText(\'' + plateF + '\',this)" style="background:var(--primary);color:white;border:none;padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;">複製</button>' +
           '</div>' +
         '</div>' +
 
@@ -3387,12 +3431,12 @@
           '<div style="font-size:13px;font-weight:bold;color:#00796B;margin-bottom:10px;">📝 記錄強制險資訊（查詢後填入）</div>' +
           '<div style="display:flex;flex-direction:column;gap:8px;">' +
             '<div>' +
-              '<div style="font-size:11px;color:#555;margin-bottom:3px;">承保公司</div>' +
+              '<div style="font-size:11px;color:var(--text2);margin-bottom:3px;">承保公司</div>' +
               '<input id="caliCompany" type="text" placeholder="例：富邦、新光、旺旺友聯..." ' +
                 'style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:14px;">' +
             '</div>' +
             '<div>' +
-              '<div style="font-size:11px;color:#555;margin-bottom:3px;">強制險到期日</div>' +
+              '<div style="font-size:11px;color:var(--text2);margin-bottom:3px;">強制險到期日</div>' +
               '<input id="caliExpiry" type="date" ' +
                 'style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:14px;">' +
             '</div>' +
@@ -3407,9 +3451,9 @@
           '<button onclick="window.open(\'https://ecard.cali.org.tw/PPCP_QRY/\',\'_blank\')" ' +
             'style="flex:2;background:#00796B;color:white;border:none;padding:11px;border-radius:8px;font-size:14px;font-weight:bold;cursor:pointer;">前往 CALI 查詢 →</button>' +
           '<button onclick="document.body.removeChild(document.getElementById(\'caliHintOverlay\'))" ' +
-            'style="flex:1;background:#f5f5f5;color:#666;border:none;padding:11px;border-radius:8px;font-size:14px;cursor:pointer;">關閉</button>' +
+            'style="flex:1;background:#f5f5f5;color:var(--text2);border:none;padding:11px;border-radius:8px;font-size:14px;cursor:pointer;">關閉</button>' +
         '</div>' +
-        '<div style="font-size:11px;color:#aaa;text-align:center;margin-top:8px;">複製後前往 CALI 貼上，填驗證碼後查詢結果，再回填上方記錄</div>' +
+        '<div style="font-size:11px;color:var(--text3);text-align:center;margin-top:8px;">複製後前往 CALI 貼上，填驗證碼後查詢結果，再回填上方記錄</div>' +
       '</div>';
     document.body.appendChild(overlay);
     overlay.addEventListener('click', function(e) {
@@ -3600,18 +3644,18 @@
     }).join('');
 
     overlay.innerHTML =
-      '<div style="background:white;border-radius:16px;padding:24px;max-width:400px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.2);">' +
+      '<div style="background:var(--surface);border-radius:16px;padding:24px;max-width:400px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.2);">' +
         '<div style="font-size:17px;font-weight:bold;color:#6A1B9A;margin-bottom:4px;">📋 提案追蹤記錄</div>' +
-        '<div style="font-size:13px;color:#888;margin-bottom:16px;">' + name + '　🚗 ' + plate + '</div>' +
+        '<div style="font-size:13px;color:var(--text3);margin-bottom:16px;">' + name + '　🚗 ' + plate + '</div>' +
 
         // 狀態選擇
-        '<div style="font-size:12px;color:#555;font-weight:bold;margin-bottom:8px;">追蹤狀態</div>' +
+        '<div style="font-size:12px;color:var(--text2);font-weight:bold;margin-bottom:8px;">追蹤狀態</div>' +
         '<div id="proposalStatusBtns" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">' +
           statusBtns +
         '</div>' +
 
         // 備註
-        '<div style="font-size:12px;color:#555;font-weight:bold;margin-bottom:6px;">備註</div>' +
+        '<div style="font-size:12px;color:var(--text2);font-weight:bold;margin-bottom:6px;">備註</div>' +
         '<textarea id="proposalNote" rows="3" placeholder="例：已傳訊息、等待回覆；報價 NT$1,500；已拒絕..." ' +
           'style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #DDD;border-radius:8px;font-size:14px;resize:vertical;margin-bottom:14px;">' + (currentNote||'') + '</textarea>' +
 
@@ -3620,7 +3664,7 @@
           '<button id="proposalSaveBtn" onclick="saveProposalTrack(\'' + plate.replace(/'/g,"'") + '\',\'' + name.replace(/'/g,"'") + '\',\'' + insuredId.replace(/'/g,"'") + '\',\'' + insType.replace(/'/g,"'") + '\',\'' + expiry.replace(/'/g,"'") + '\')" ' +
             'style="flex:2;padding:11px;background:#6A1B9A;color:white;border:none;border-radius:8px;font-size:14px;font-weight:bold;cursor:pointer;">💾 儲存記錄</button>' +
           '<button onclick="document.body.removeChild(document.getElementById(\'proposalOverlay\'))" ' +
-            'style="flex:1;padding:11px;background:#f5f5f5;color:#666;border:none;border-radius:8px;font-size:14px;cursor:pointer;">關閉</button>' +
+            'style="flex:1;padding:11px;background:#f5f5f5;color:var(--text2);border:none;border-radius:8px;font-size:14px;cursor:pointer;">關閉</button>' +
         '</div>' +
       '</div>';
 
@@ -3705,7 +3749,7 @@
     var bar = document.createElement('div');
     bar.id = ovId;
     bar.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9300;' +
-      'background:#1565C0;border-radius:12px;padding:14px 20px;box-shadow:0 4px 20px rgba(0,0,0,0.3);' +
+      'background:#1565C0;border-radius:var(--radius-md);padding:14px 20px;box-shadow:0 4px 20px rgba(0,0,0,0.3);' +
       'display:flex;flex-direction:column;align-items:center;gap:10px;min-width:260px;max-width:320px;';
 
     var lbl = document.createElement('div');
@@ -3718,7 +3762,7 @@
     link.href   = url;
     link.target = '_blank';
     link.rel    = 'noopener noreferrer';
-    link.style.cssText = 'display:block;background:white;color:#1565C0;border-radius:8px;' +
+    link.style.cssText = 'display:block;background:var(--surface);color:#1565C0;border-radius:8px;' +
       'padding:10px 20px;font-size:14px;font-weight:900;text-decoration:none;text-align:center;width:100%;box-sizing:border-box;';
     link.textContent = '🚀 開新分頁前往查詢';
     link.addEventListener('click', function() {
@@ -3748,15 +3792,15 @@
     // 用 innerHTML 的 <a> 標籤讓使用者直接點擊，iOS Safari 才能新開分頁
     // ★ 用 DOM API 建構 <a> 確保 iOS Safari 識別為可點擊連結
     var box = document.createElement('div');
-    box.style.cssText = 'background:white;border-radius:16px;padding:24px;max-width:360px;width:100%;box-shadow:0 8px 30px rgba(0,0,0,0.25);';
+    box.style.cssText = 'background:var(--surface);border-radius:16px;padding:24px;max-width:360px;width:100%;box-shadow:0 8px 30px rgba(0,0,0,0.25);';
 
     var titleEl = document.createElement('div');
-    titleEl.style.cssText = 'font-size:17px;font-weight:700;color:#333;margin-bottom:4px;';
+    titleEl.style.cssText = 'font-size:17px;font-weight:700;color:var(--text1);margin-bottom:4px;';
     titleEl.textContent = '🔗 ' + label;
     box.appendChild(titleEl);
 
     var hintEl = document.createElement('div');
-    hintEl.style.cssText = 'font-size:12px;color:#888;margin-bottom:16px;line-height:1.6;';
+    hintEl.style.cssText = 'font-size:12px;color:var(--text3);margin-bottom:16px;line-height:1.6;';
     hintEl.textContent = hint;
     box.appendChild(hintEl);
 
@@ -3765,7 +3809,7 @@
     link.href   = url;
     link.target = '_blank';
     link.rel    = 'noopener noreferrer';
-    link.style.cssText = 'display:block;text-align:center;padding:14px;background:linear-gradient(135deg,#1565C0,#0D47A1);color:white;border-radius:10px;font-size:15px;font-weight:700;text-decoration:none;margin-bottom:10px;';
+    link.style.cssText = 'display:block;text-align:center;padding:14px;background:linear-gradient(135deg,#1565C0,#0D47A1);color:white;border-radius:var(--radius-md);font-size:15px;font-weight:700;text-decoration:none;margin-bottom:10px;';
     link.textContent = '🚀 前往查詢（開新分頁）';
     link.addEventListener('click', function() {
       var o = document.getElementById('extLinkOverlay');
@@ -3774,7 +3818,7 @@
     box.appendChild(link);
 
     var closeBtn = document.createElement('button');
-    closeBtn.style.cssText = 'width:100%;padding:11px;background:#F5F5F5;color:#666;border:none;border-radius:10px;font-size:14px;cursor:pointer;';
+    closeBtn.style.cssText = 'width:100%;padding:11px;background:#F5F5F5;color:var(--text2);border:none;border-radius:var(--radius-md);font-size:14px;cursor:pointer;';
     closeBtn.textContent = '關閉';
     closeBtn.onclick = function() { document.body.removeChild(ov); };
     box.appendChild(closeBtn);
@@ -3876,8 +3920,8 @@
 
         html += '<div style="border:1px solid #E0E0E0;border-radius:8px;padding:10px 12px;margin-bottom:8px;background:#FAFAFA;">';
         html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">';
-        html += '<div style="font-size:14px;font-weight:700;color:#333;">' + name + '</div>';
-        html += '<div style="font-size:11px;color:#666;">' + item.type + '</div>';
+        html += '<div style="font-size:14px;font-weight:700;color:var(--text1);">' + name + '</div>';
+        html += '<div style="font-size:11px;color:var(--text2);">' + item.type + '</div>';
         html += '</div>';
 
         if (toolType === 'stroke') {
@@ -3887,12 +3931,12 @@
             'style="flex:1;padding:8px 6px;background:#E3F2FD;color:#1565C0;border:1px solid #90CAF9;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">' +
             '🚗 複製車牌<br><span style="font-size:11px;font-weight:400;">' + plate + '</span></button>';
           html += '<a href="https://mobile.moenv.gov.tw/Motor/query/Query_Check.aspx" target="_blank" rel="noopener noreferrer" ' +
-            'style="flex:1;display:block;padding:8px 6px;background:#1565C0;color:white;border-radius:6px;font-size:12px;font-weight:700;text-decoration:none;text-align:center;">' +
+            'style="flex:1;display:block;padding:8px 6px;background:var(--primary);color:white;border-radius:6px;font-size:12px;font-weight:700;text-decoration:none;text-align:center;">' +
             '🏍️ 前往<br><span style="font-size:11px;font-weight:400;opacity:0.9">機車定檢查詢</span></a>';
           html += '</div>';
         } else {
           // 定檢日
-          html += '<div style="font-size:11px;color:#888;margin-bottom:6px;">' + (isCompany ? '🏢 法人　統編：' + idNo : '👤 個人　身分證：' + idNo + (bday ? '　生日：' + bday : '')) + '</div>';
+          html += '<div style="font-size:11px;color:var(--text3);margin-bottom:6px;">' + (isCompany ? '🏢 法人　統編：' + idNo : '👤 個人　身分證：' + idNo + (bday ? '　生日：' + bday : '')) + '</div>';
           html += '<div style="display:flex;gap:5px;flex-wrap:wrap;">';
           if (isCompany) {
             // 法人：複製統編 + 複製車牌 + 前往
@@ -3901,7 +3945,7 @@
           } else {
             // 個人：複製身分證 + 複製生日 + 前往
             html += '<button onclick="toolCopyItem(\''+ idNo +'\',\'id'+ '\')" style="flex:1;min-width:80px;padding:7px 4px;background:#E3F2FD;color:#1565C0;border:1px solid #90CAF9;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">🆔 複製身分證<br><span style="font-size:10px;font-weight:400;">' + idNo + '</span></button>';
-            if (bday) html += '<button onclick="toolCopyItem(\''+ bday +'\',\'bday\')" style="flex:1;min-width:80px;padding:7px 4px;background:#FFF3E0;color:#E65100;border:1px solid #FFCC80;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">🎂 複製生日<br><span style="font-size:10px;font-weight:400;">' + bday + '</span></button>';
+            if (bday) html += '<button onclick="toolCopyItem(\''+ bday +'\',\'bday\')" style="flex:1;min-width:80px;padding:7px 4px;background:#FFF3E0;color:#DC2626;border:1px solid #FFCC80;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">🎂 複製生日<br><span style="font-size:10px;font-weight:400;">' + bday + '</span></button>';
           }
           html += '<a href="https://www.mvdis.gov.tw/m3-emv-car/car/checkQuery#anchor&gsc.tab=0" target="_blank" rel="noopener noreferrer" ' +
             'style="flex:1;min-width:80px;display:block;padding:7px 4px;background:#6A1B9A;color:white;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;text-align:center;">' +
@@ -3954,8 +3998,8 @@
         html +=
           '<div style="border:1px solid #E0E0E0;border-radius:8px;padding:10px 12px;margin-bottom:8px;background:#FAFAFA;">' +
             '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' +
-              '<div style="font-size:14px;font-weight:700;color:#333;">' + (item.name||item.applicantName||'—') + '</div>' +
-              '<div style="font-size:12px;color:#666;">' + item.type + '</div>' +
+              '<div style="font-size:14px;font-weight:700;color:var(--text1);">' + (item.name||item.applicantName||'—') + '</div>' +
+              '<div style="font-size:12px;color:var(--text2);">' + item.type + '</div>' +
             '</div>' +
             '<div style="display:flex;gap:6px;flex-wrap:wrap;">' +
               (safeId ?
@@ -4054,7 +4098,7 @@
     area.innerHTML =
       '<div onclick="toggleBirthdayPanel()" style="' +
         'background:linear-gradient(135deg,#FF6B6B,#FF8E53);' +
-        'border-radius:12px;padding:13px 16px;margin-bottom:8px;' +
+        'border-radius:var(--radius-md);padding:13px 16px;margin-bottom:8px;' +
         'display:flex;align-items:center;justify-content:space-between;' +
         'cursor:pointer;box-shadow:0 3px 10px rgba(255,107,107,0.3);">' +
         '<div style="display:flex;align-items:center;gap:12px;">' +
@@ -4067,7 +4111,7 @@
             '</div>' +
           '</div>' +
         '</div>' +
-        '<div style="background:white;color:#FF6B6B;font-size:20px;font-weight:900;' +
+        '<div style="background:var(--surface);color:#FF6B6B;font-size:20px;font-weight:900;' +
           'width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;">' +
           list.length +
         '</div>' +
@@ -4099,7 +4143,7 @@
       var safeKey = (p.id+'_'+p.birthMonth+'_'+p.birthDay).replace(/'/g,"'");
 
       html +=
-        '<div style="background:white;border-radius:12px;padding:13px 15px;margin-bottom:8px;' +
+        '<div style="background:var(--surface);border-radius:var(--radius-md);padding:13px 15px;margin-bottom:8px;' +
           'box-shadow:0 2px 8px rgba(0,0,0,0.07);border-left:4px solid ' + (sent?'#4CAF50':'#FF6B6B') + ';' +
           (sent?'opacity:0.7':'') + '">' +
           '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' +
@@ -4122,9 +4166,9 @@
               'style="flex:2;min-width:100px;padding:9px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">' +
               (sent ? '🔄 重新發送' : '✨ 生成祝福語') + '</button>' +
             '<button onclick="openBdPolicySummary(\''+safeId+'\',\''+safeName+'\')" ' +
-              'style="flex:1;min-width:55px;padding:9px;background:#0284c7;color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">📋 保單</button>' +
+              'style="flex:1;min-width:55px;padding:9px;background:var(--primary);color:white;border:none;border-radius:var(--radius-sm);font-size:12px;font-weight:700;cursor:pointer;">📋 保單</button>' +
             (sent ? '' : '<button onclick="markBirthdaySent(\''+safeKey+'\')" ' +
-              'style="flex:1;min-width:50px;padding:9px;background:#F5F5F5;color:#888;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">✓ 已發</button>') +
+              'style="flex:1;min-width:50px;padding:9px;background:#F5F5F5;color:var(--text3);border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">✓ 已發</button>') +
           '</div>' +
         '</div>';
     });
@@ -4195,7 +4239,7 @@
     }).join('');
 
     ov.innerHTML =
-      '<div style="background:white;border-radius:16px;max-width:420px;margin:0 auto;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,0.2);">' +
+      '<div style="background:var(--surface);border-radius:16px;max-width:420px;margin:0 auto;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,0.2);">' +
         // 頭部
         '<div style="background:linear-gradient(135deg,#FF6B6B,#FF8E53);padding:16px;color:white;">' +
           '<div style="font-size:16px;font-weight:700;">🎂 生日祝福 — '+name+'</div>' +
@@ -4204,31 +4248,31 @@
         '<div style="padding:16px;">' +
 
           // 步驟一：稱呼
-          '<div style="font-size:12px;font-weight:700;color:#555;margin-bottom:8px;">① 稱呼方式</div>' +
+          '<div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;">① 稱呼方式</div>' +
           '<div id="bdSaluteChips" style="margin-bottom:6px;flex-wrap:wrap;display:flex;">' + saluteChips + '</div>' +
           '<input id="bdSaluteCustom" placeholder="自訂稱呼（如：峰哥、正峰大哥）" ' +
             'oninput="setBdSaluteCustom(this.value)" ' +
             'style="width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid #E0E0E0;border-radius:8px;font-size:13px;margin-bottom:14px;outline:none;">' +
 
           // 步驟二：風格 + 祝福語
-          '<div style="font-size:12px;font-weight:700;color:#555;margin-bottom:8px;">② 祝福語風格</div>' +
+          '<div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;">② 祝福語風格</div>' +
           '<div style="display:flex;gap:6px;margin-bottom:10px;">' +
             '<button onclick="setBdStyle(this,\'warm\')" data-style="warm" ' +
               'style="flex:1;padding:8px;border-radius:8px;border:1.5px solid #FF6B6B;background:#FFF0F0;color:#C62828;font-size:12px;font-weight:700;cursor:pointer;">💝 溫馨</button>' +
             '<button onclick="setBdStyle(this,\'fun\')" data-style="fun" ' +
-              'style="flex:1;padding:8px;border-radius:8px;border:1.5px solid #DDD;background:#F9F9F9;color:#888;font-size:12px;font-weight:700;cursor:pointer;">😄 輕鬆</button>' +
+              'style="flex:1;padding:8px;border-radius:8px;border:1.5px solid #DDD;background:#F9F9F9;color:var(--text3);font-size:12px;font-weight:700;cursor:pointer;">😄 輕鬆</button>' +
             '<button onclick="setBdStyle(this,\'short\')" data-style="short" ' +
-              'style="flex:1;padding:8px;border-radius:8px;border:1.5px solid #DDD;background:#F9F9F9;color:#888;font-size:12px;font-weight:700;cursor:pointer;">✍️ 簡潔</button>' +
+              'style="flex:1;padding:8px;border-radius:8px;border:1.5px solid #DDD;background:#F9F9F9;color:var(--text3);font-size:12px;font-weight:700;cursor:pointer;">✍️ 簡潔</button>' +
           '</div>' +
-          '<div id="bdMsgBox" style="background:#F8F8FF;border:1.5px solid #E8E0FF;border-radius:10px;padding:12px 14px;' +
-            'font-size:13px;line-height:1.9;color:#333;margin-bottom:8px;white-space:pre-line;min-height:100px;"></div>' +
+          '<div id="bdMsgBox" style="background:#F8F8FF;border:1.5px solid #E8E0FF;border-radius:var(--radius-md);padding:12px 14px;' +
+            'font-size:13px;line-height:1.9;color:var(--text1);margin-bottom:8px;white-space:pre-line;min-height:100px;"></div>' +
           '<div style="display:flex;gap:6px;margin-bottom:14px;">' +
             '<button onclick="cycleBdMsg()" ' +
-              'style="flex:1;padding:9px;background:#F5F5F5;color:#666;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">🔄 換一則（'+_bdCurrentMsgIdx+'/3）</button>' +
+              'style="flex:1;padding:9px;background:#F5F5F5;color:var(--text2);border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">🔄 換一則（'+_bdCurrentMsgIdx+'/3）</button>' +
           '</div>' +
 
           // 步驟三：711
-          '<div style="background:#E8F5E9;border-radius:10px;padding:12px 14px;margin-bottom:10px;">' +
+          '<div style="background:#E8F5E9;border-radius:var(--radius-md);padding:12px 14px;margin-bottom:10px;">' +
             '<div style="font-size:12px;font-weight:700;color:#1B5E20;margin-bottom:10px;">③ ☕ 傳送 711 咖啡券</div>' +
             '<div style="display:flex;gap:8px;margin-bottom:8px;">' +
               '<button onclick="bdCopyPhone()" ' +
@@ -4238,17 +4282,17 @@
                 'style="flex:1;padding:10px 6px;background:#FF5722;color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">' +
                 '🚀 開啟<br><span style="font-size:11px;font-weight:400;opacity:0.9">OPENPOINT APP</span></button>' +
             '</div>' +
-            '<div style="font-size:11px;color:#388E3C;background:white;border-radius:8px;padding:8px 10px;line-height:1.7;">' +
+            '<div style="font-size:11px;color:#388E3C;background:var(--surface);border-radius:8px;padding:8px 10px;line-height:1.7;">' +
               '路徑：<b>行動隨時取 → 提貨券 → 轉贈/兌換籃 → 轉贈給好友</b><br>→ 貼上手機號碼 → 選咖啡券 → 發送' +
             '</div>' +
           '</div>' +
 
           // 步驟四：LINE
-          '<div style="background:#E3F2FD;border-radius:10px;padding:12px 14px;margin-bottom:14px;">' +
+          '<div style="background:#E3F2FD;border-radius:var(--radius-md);padding:12px 14px;margin-bottom:14px;">' +
             '<div style="font-size:12px;font-weight:700;color:#0D47A1;margin-bottom:10px;">④ 💬 傳送 LINE 祝福訊息</div>' +
             '<div style="display:flex;gap:8px;">' +
               '<button onclick="bdCopyMsg()" ' +
-                'style="flex:1;padding:10px;background:#1565C0;color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">📋 複製祝福語</button>' +
+                'style="flex:1;padding:10px;background:var(--primary);color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">📋 複製祝福語</button>' +
               '<button onclick="bdOpenLine()" ' +
                 'style="flex:1;padding:10px;background:#00B900;color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">💬 開啟 LINE</button>' +
             '</div>' +
@@ -4257,9 +4301,9 @@
           // 完成 + 關閉
           '<div style="display:flex;gap:8px;">' +
             '<button onclick="bdDone()" ' +
-              'style="flex:2;padding:12px;background:#4CAF50;color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;">✅ 標記已發送完成</button>' +
+              'style="flex:2;padding:12px;background:#4CAF50;color:white;border:none;border-radius:var(--radius-md);font-size:14px;font-weight:700;cursor:pointer;">✅ 標記已發送完成</button>' +
             '<button onclick="closeBdOverlay()" ' +
-              'style="flex:1;padding:12px;background:#F5F5F5;color:#666;border:none;border-radius:10px;font-size:14px;cursor:pointer;">關閉</button>' +
+              'style="flex:1;padding:12px;background:#F5F5F5;color:var(--text2);border:none;border-radius:var(--radius-md);font-size:14px;cursor:pointer;">關閉</button>' +
           '</div>' +
 
         '</div>' +
@@ -4441,20 +4485,20 @@
         var statusTag = (p.renewStatus==='已報廢'||p.renewStatus==='已過戶') ?
           ' <span style="background:#BDBDBD;color:#fff;font-size:10px;padding:1px 6px;border-radius:8px;">'+p.renewStatus+'</span>' : '';
 
-        h += '<div style="background:white;border-radius:8px;padding:10px 12px;margin-bottom:6px;' +
+        h += '<div style="background:var(--surface);border-radius:8px;padding:10px 12px;margin-bottom:6px;' +
           'border:1px solid #E8E8E8;box-shadow:0 1px 4px rgba(0,0,0,0.05);">' +
           '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">' +
-            '<div style="font-size:13px;font-weight:700;color:#333;">'+p.type+statusTag+'</div>' +
+            '<div style="font-size:13px;font-weight:700;color:var(--text1);">'+p.type+statusTag+'</div>' +
             '<div style="font-size:12px;font-weight:700;color:'+expColor+';">' +
               (daysLeft===null?'—':daysLeft<0?'已到期 '+Math.abs(daysLeft)+'天':daysLeft===0?'今日到期':'剩 '+daysLeft+' 天') +
             '</div>' +
           '</div>' +
-          '<div style="font-size:11px;color:#888;margin-bottom:6px;">'+
+          '<div style="font-size:11px;color:var(--text3);margin-bottom:6px;">'+
             '到期：'+(p.expiry||'—')+'　保單：'+p.policyNo +
             (p.plateNo&&p.plateNo!=='無'?'　🚗 '+p.plateNo:'') +
           '</div>' +
           '<button onclick="openDetailFromSummary(\''+safePno+'\')" ' +
-            'style="width:100%;padding:7px;background:#E8F4FD;color:#0284c7;border:1px solid #BAE6FD;' +
+            'style="width:100%;padding:7px;background:#E8F4FD;color:#00A3C4;border:1px solid #BAE6FD;' +
             'border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">🔍 查看保單明細</button>' +
         '</div>';
       });
@@ -4462,8 +4506,8 @@
     }
 
     var html =
-      '<div style="background:white;border-radius:16px;max-width:420px;margin:0 auto;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,0.2);">' +
-        '<div style="background:linear-gradient(135deg,#0284c7,#0369a1);padding:16px;color:white;">' +
+      '<div style="background:var(--surface);border-radius:16px;max-width:420px;margin:0 auto;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,0.2);">' +
+        '<div style="background:linear-gradient(135deg,#00A3C4,#0369a1);padding:16px;color:white;">' +
           '<div style="font-size:16px;font-weight:700;">📋 ' + name + ' 的保障摘要</div>' +
           '<div style="font-size:12px;opacity:0.85;margin-top:3px;">共 '+policies.length+' 張保單　點擊各保單可查看明細</div>' +
         '</div>' +
@@ -4474,7 +4518,7 @@
           renderGroup('旅平險/新種險', '✈️', '#6A1B9A', travel) +
           renderGroup('其他', '📋', '#555', other) +
           '<button onclick="document.body.removeChild(document.getElementById(\'bdSummaryOverlay\'))" ' +
-            'style="width:100%;padding:12px;background:#F5F5F5;color:#666;border:none;border-radius:10px;font-size:14px;cursor:pointer;margin-top:4px;">關閉</button>' +
+            'style="width:100%;padding:12px;background:#F5F5F5;color:var(--text2);border:none;border-radius:var(--radius-md);font-size:14px;cursor:pointer;margin-top:4px;">關閉</button>' +
         '</div>' +
       '</div>';
 
@@ -4505,7 +4549,7 @@
         var backBtn = document.createElement('button');
         backBtn.id = 'backToSummaryBtn';
         backBtn.textContent = '← 返回保障摘要';
-        backBtn.style.cssText = 'position:sticky;top:0;width:100%;padding:10px;background:#E3F2FD;color:#0284c7;border:none;font-size:13px;font-weight:700;cursor:pointer;z-index:10;margin-bottom:8px;';
+        backBtn.style.cssText = 'position:sticky;top:0;width:100%;padding:10px;background:#E3F2FD;color:#00A3C4;border:none;font-size:13px;font-weight:700;cursor:pointer;z-index:10;margin-bottom:8px;';
         backBtn.onclick = function() {
           // 關閉明細 overlay，重新顯示保障摘要
           var detailOv = document.getElementById('policyModalOverlay') || modal.parentElement;
@@ -4564,15 +4608,15 @@
     var area  = document.getElementById('resultsList');
     if (!area) return;
     var html =
-      '<div style="background:white;border-radius:12px;padding:14px 16px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">' +
-        '<div style="font-size:14px;font-weight:700;color:#333;margin-bottom:12px;">📅 各月生日人數</div>' +
+      '<div style="background:var(--surface);border-radius:var(--radius-md);padding:14px 16px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">' +
+        '<div style="font-size:14px;font-weight:700;color:var(--text1);margin-bottom:12px;">📅 各月生日人數</div>' +
         '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">';
     var mNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
     counts.forEach(function(cnt, i) {
       var isCur = (i === curM);
       var hasPpl= cnt > 0;
       html +=
-        '<div onclick="loadBirthdayByMonth('+(i+1)+')" style="cursor:pointer;padding:10px 6px;border-radius:10px;text-align:center;' +
+        '<div onclick="loadBirthdayByMonth('+(i+1)+')" style="cursor:pointer;padding:10px 6px;border-radius:var(--radius-md);text-align:center;' +
           'border:1.5px solid '+(isCur?'#FF6B6B':hasPpl?'#FF8E53':'#E0E0E0')+';' +
           'background:'+(isCur?'#FFF0F0':hasPpl?'#FFF8F0':'#F9F9F9')+';' +
           'transition:all 0.15s;">' +
@@ -4591,11 +4635,11 @@
       document.getElementById('loading').style.display = 'none';
       var area = document.getElementById('resultsList');
       if (!result || !result.list || result.list.length === 0) {
-        area.innerHTML = '<p style="text-align:center;color:#888;">本月無生日客戶</p>';
+        area.innerHTML = '<p style="text-align:center;color:var(--text3);">本月無生日客戶</p>';
         loadBirthdayMonthSummary(); return;
       }
       var mNames = ['','一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
-      var html = '<div style="background:#FFF0F0;border-radius:10px;padding:12px 14px;margin-bottom:10px;">' +
+      var html = '<div style="background:#FFF0F0;border-radius:var(--radius-md);padding:12px 14px;margin-bottom:10px;">' +
         '<div style="color:#C62828;font-weight:700;">🎂 '+mNames[month]+'生日名單：共 '+result.total+' 人</div>' +
         '</div>';
       result.list.forEach(function(p) {
@@ -4605,7 +4649,7 @@
         var safeType=(p.insType||'').replace(/'/g,"'");
         var safeKey=(p.id+'_'+p.birthMonth+'_'+p.birthDay).replace(/'/g,"'");
         html +=
-          '<div style="background:white;border-radius:10px;padding:12px 14px;margin-bottom:8px;' +
+          '<div style="background:var(--surface);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:8px;' +
             'box-shadow:0 2px 6px rgba(0,0,0,0.06);border-left:4px solid #FF8E53;">' +
             '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">' +
               '<div style="font-weight:700;font-size:15px;">' + p.name +
@@ -4620,11 +4664,11 @@
               '<button onclick="openBirthdayGreeting(\''+safeName+'\',\''+safeId+'\',\''+safePhone+'\',\''+safeType+'\',\''+safeKey+'\')" ' +
                 'style="flex:2;padding:9px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">✨ 生日祝福</button>' +
               '<button onclick="openBdPolicySummary(\''+safeId+'\',\''+safeName+'\')" ' +
-                'style="flex:1;padding:9px;background:#0284c7;color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">📋 保單</button>' +
+                'style="flex:1;padding:9px;background:var(--primary);color:white;border:none;border-radius:var(--radius-sm);font-size:12px;font-weight:700;cursor:pointer;">📋 保單</button>' +
             '</div>' +
           '</div>';
       });
-      html += '<button onclick="loadBirthdayMonthSummary()" style="width:100%;padding:10px;background:#F5F5F5;color:#666;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-top:4px;">← 返回月份總覽</button>';
+      html += '<button onclick="loadBirthdayMonthSummary()" style="width:100%;padding:10px;background:#F5F5F5;color:var(--text2);border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-top:4px;">← 返回月份總覽</button>';
       area.innerHTML = html;
     };
     if (_directShellUrl) directGasCall('getBirthdayList', { month: month, day: 0 }, fn, function(){ document.getElementById('loading').style.display='none'; });
@@ -4894,18 +4938,18 @@
       return;
     }
     if (!result.list || result.list.length === 0) {
-      list.innerHTML = '<div style="background:#E8F5E9;border-radius:10px;padding:16px;text-align:center;color:#2E7D32;font-weight:bold;">🎉 ' +
+      list.innerHTML = '<div style="background:#E8F5E9;border-radius:var(--radius-md);padding:16px;text-align:center;color:#2E7D32;font-weight:bold;">🎉 ' +
         (isUnrenewed ? '近30天內到期的保單都已續保，無未追蹤記錄！' : '此區間無到期保單') + '</div>';
       return;
     }
 
     var titleBg  = isUnrenewed ? '#FFEBEE' : '#EDE7F6';
     var titleClr = isUnrenewed ? '#C62828' : '#6A1B9A';
-    var html = '<div style="background:' + titleBg + ';border-radius:10px;padding:14px 16px;margin-bottom:16px;">' +
+    var html = '<div style="background:' + titleBg + ';border-radius:var(--radius-md);padding:14px 16px;margin-bottom:16px;">' +
       '<div style="color:' + titleClr + ';font-weight:bold;font-size:15px;">' +
       (isUnrenewed ? '⚠️' : '📅') + ' ' + title + '：共 ' + result.total + ' 張</div>' +
-      (isUnrenewed ? '<div style="font-size:12px;color:#888;margin-top:4px;">已排除「已續保」和「他家承保」</div>' :
-                     '<div style="font-size:12px;color:#888;margin-top:4px;">點擊保單可更新續保狀態</div>') +
+      (isUnrenewed ? '<div style="font-size:12px;color:var(--text3);margin-top:4px;">已排除「已續保」和「他家承保」</div>' :
+                     '<div style="font-size:12px;color:var(--text3);margin-top:4px;">點擊保單可更新續保狀態</div>') +
       '</div>';
 
     // ★ v6.1 改用統一保單卡片格式
@@ -4934,15 +4978,15 @@
     }).join('');
 
     ov.innerHTML =
-      '<div style="background:white;border-radius:16px;padding:24px;max-width:360px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.2);">' +
+      '<div style="background:var(--surface);border-radius:16px;padding:24px;max-width:360px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.2);">' +
         '<div style="font-size:17px;font-weight:bold;color:#6A1B9A;margin-bottom:4px;">✏️ 更新續保狀態</div>' +
-        '<div style="font-size:13px;color:#888;margin-bottom:16px;">' + name + '</div>' +
+        '<div style="font-size:13px;color:var(--text3);margin-bottom:16px;">' + name + '</div>' +
         '<div id="renewStatusBtns" style="display:flex;gap:8px;margin-bottom:16px;">' + btns + '</div>' +
         '<div style="display:flex;gap:8px;">' +
           '<button id="renewSaveBtn" onclick="saveRenewStatus(\'' + policyNo + '\')" ' +
             'style="flex:2;padding:12px;background:#6A1B9A;color:white;border:none;border-radius:8px;font-size:14px;font-weight:bold;cursor:pointer;">💾 儲存</button>' +
           '<button onclick="document.body.removeChild(document.getElementById(\'renewTrackOverlay\'))" ' +
-            'style="flex:1;padding:12px;background:#f5f5f5;color:#666;border:none;border-radius:8px;font-size:14px;cursor:pointer;">關閉</button>' +
+            'style="flex:1;padding:12px;background:#f5f5f5;color:var(--text2);border:none;border-radius:8px;font-size:14px;cursor:pointer;">關閉</button>' +
         '</div>' +
       '</div>';
 
@@ -5098,25 +5142,25 @@
     
     // 【 Baker 老師提議優化】當完全沒有資料（total 等於 0 或 list 為空）時，給予溫馨通知
     if (!result.list || result.list.length === 0 || result.total === 0) {
-      list.innerHTML = '<div style="text-align:center; padding:30px 20px; background:#E8F5E9; border:1px solid #A5D6A7; border-radius:10px; color:#2E7D32; font-weight:bold; margin-top:15px;">' +
+      list.innerHTML = '<div style="text-align:center; padding:30px 20px; background:#E8F5E9; border:1px solid #A5D6A7; border-radius:var(--radius-md); color:#2E7D32; font-weight:bold; margin-top:15px;">' +
         '🎉 恭喜！目前您名下的所有客戶都已經擁有住宅火險保障，暫無缺口名單。' +
         '</div>';
       return;
     }
     
     // 以下保留您原本有資料時的渲染邏輯
-    var html = '<div style="background:#FFF3E0;border:1px solid #FFB74D;border-radius:10px;padding:14px 16px;margin-bottom:16px;">' +
-      '<div style="color:#E65100;font-weight:bold;font-size:15px;">🏠 尚無住宅火險：共 ' + result.total + ' 人</div>' +
-      '<div style="font-size:12px;color:#888;margin-top:4px;">比對方式：身分證 + 地址雙重比對</div>' +
+    var html = '<div style="background:#FFF3E0;border:1px solid #FFB74D;border-radius:var(--radius-md);padding:14px 16px;margin-bottom:16px;">' +
+      '<div style="color:#DC2626;font-weight:bold;font-size:15px;">🏠 尚無住宅火險：共 ' + result.total + ' 人</div>' +
+      '<div style="font-size:12px;color:var(--text3);margin-top:4px;">比對方式：身分證 + 地址雙重比對</div>' +
       '</div>';
       
     result.list.forEach(function(item) {
       var encoded = encodeURIComponent(JSON.stringify({ name: item.name, applicant: item.applicant, address: item.address }));
       var encoded   = encodeURIComponent(JSON.stringify({ name: item.name, applicant: item.applicant, address: item.address }));
-      html += '<div style="background:white;border-radius:10px;padding:14px 16px;margin-bottom:10px;box-shadow:0 2px 6px rgba(0,0,0,0.06);border-left:5px solid #FF9800;">' +
+      html += '<div style="background:var(--surface);border-radius:var(--radius-md);padding:14px 16px;margin-bottom:10px;box-shadow:0 2px 6px rgba(0,0,0,0.06);border-left:5px solid #FF9800;">' +
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
           '<div>' +
-            '<div style="font-weight:bold;font-size:15px;color:#333;">' + item.name + '</div>' +
+            '<div style="font-weight:bold;font-size:15px;color:var(--text1);">' + item.name + '</div>' +
             (item.trackStatus ? '<div style="margin-top:3px;font-size:11px;font-weight:bold;display:inline-block;padding:2px 8px;border-radius:8px;background:' + _trackStatusStyle(item.trackStatus).bg + ';color:' + _trackStatusStyle(item.trackStatus).clr + ';">' + _trackStatusStyle(item.trackStatus).icon + ' ' + item.trackStatus + '</div>' : '') +
           '</div>' +
           '<div style="display:flex;gap:6px;align-items:center;">' +
@@ -5124,9 +5168,9 @@
             '<button onclick="recommendFire(\'' + encoded + '\')" style="background:#FF9800;color:white;border:none;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:bold;cursor:pointer;">🏠 推薦住火</button>' +
           '</div>' +
         '</div>' +
-        '<div style="font-size:12px;color:#888;">' + item.insType + ' 到期：' + item.expiry +
+        '<div style="font-size:12px;color:var(--text3);">' + item.insType + ' 到期：' + item.expiry +
           (item.applicant && item.applicant !== item.name ? ' 要保人：' + item.applicant : '') + '</div>' +
-        (item.address && item.address !== '無' ? '<div style="font-size:11px;color:#aaa;margin-top:4px;word-break:break-all;">🏠 ' + item.address + '</div>' : '') +
+        (item.address && item.address !== '無' ? '<div style="font-size:11px;color:var(--text3);margin-top:4px;word-break:break-all;">🏠 ' + item.address + '</div>' : '') +
       '</div>';
     });
     list.innerHTML = html;
@@ -5161,19 +5205,19 @@
     }).join('');
 
     overlay.innerHTML =
-      '<div style="background:white;border-radius:16px;padding:24px;max-width:400px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.2);">' +
-        '<div style="font-size:17px;font-weight:bold;color:#E65100;margin-bottom:4px;">🏠 住火追蹤記錄</div>' +
-        '<div style="font-size:13px;color:#888;margin-bottom:16px;">' + name + (phone ? '　📞 ' + phone : '') + '</div>' +
-        '<div style="font-size:12px;color:#555;font-weight:bold;margin-bottom:8px;">追蹤狀態</div>' +
+      '<div style="background:var(--surface);border-radius:16px;padding:24px;max-width:400px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.2);">' +
+        '<div style="font-size:17px;font-weight:bold;color:#DC2626;margin-bottom:4px;">🏠 住火追蹤記錄</div>' +
+        '<div style="font-size:13px;color:var(--text3);margin-bottom:16px;">' + name + (phone ? '　📞 ' + phone : '') + '</div>' +
+        '<div style="font-size:12px;color:var(--text2);font-weight:bold;margin-bottom:8px;">追蹤狀態</div>' +
         '<div id="fireStatusBtns" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">' + statusBtns + '</div>' +
-        '<div style="font-size:12px;color:#555;font-weight:bold;margin-bottom:6px;">備註</div>' +
+        '<div style="font-size:12px;color:var(--text2);font-weight:bold;margin-bottom:6px;">備註</div>' +
         '<textarea id="fireTrackNote" rows="3" placeholder="例：已傳訊息、等待回覆；報價 NT$3,000；需要先了解保費..." ' +
           'style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #DDD;border-radius:8px;font-size:14px;resize:vertical;margin-bottom:14px;">' + (currentNote||'') + '</textarea>' +
         '<div style="display:flex;gap:8px;">' +
           '<button id="fireSaveBtn" onclick="saveFireTrack(\'' + insuredId.replace(/'/g,"'") + '\',\'' + name.replace(/'/g,"'") + '\',\'' + (phone||'').replace(/'/g,"'") + '\')" ' +
             'style="flex:2;padding:11px;background:#E65100;color:white;border:none;border-radius:8px;font-size:14px;font-weight:bold;cursor:pointer;">💾 儲存記錄</button>' +
           '<button onclick="document.body.removeChild(document.getElementById(\'fireTrackOverlay\'))" ' +
-            'style="flex:1;padding:11px;background:#f5f5f5;color:#666;border:none;border-radius:8px;font-size:14px;cursor:pointer;">關閉</button>' +
+            'style="flex:1;padding:11px;background:#f5f5f5;color:var(--text2);border:none;border-radius:8px;font-size:14px;cursor:pointer;">關閉</button>' +
         '</div>' +
       '</div>';
 
@@ -5289,14 +5333,14 @@
 }
 #carMapOverlay.open { display:flex; }
 #carMapPanel {
-  background:#F0F4F8; width:100%; max-width:600px;
+  background:var(--bg); width:100%; max-width:600px;
   border-radius:20px 20px 0 0; max-height:92vh;
   overflow-y:auto; padding:0 0 24px; box-sizing:border-box;
 }
 .cmp-header {
   display:flex; align-items:center; justify-content:space-between;
   padding:16px 18px 12px;
-  background:linear-gradient(135deg,#1A237E 0%,#1565C0 60%,#00A3E0 100%);
+  background:linear-gradient(135deg,#1A237E 0%,#1565C0 60%,#00A3C4 100%);
   border-radius:20px 20px 0 0; position:sticky; top:0; z-index:10;
 }
 .cmp-header-title { color:white; font-size:17px; font-weight:bold; letter-spacing:1px; }
@@ -5307,19 +5351,19 @@
 }
 .cmp-car-selector {
   display:flex; gap:8px; padding:10px 16px;
-  overflow-x:auto; background:white; border-bottom:1px solid #E0E0E0;
+  overflow-x:auto; background:var(--surface); border-bottom:1px solid #E0E0E0;
 }
 .cmp-car-chip {
   flex-shrink:0; padding:6px 14px; border-radius:20px; font-size:13px;
-  font-weight:bold; border:2px solid #DDD; background:white; color:#666; cursor:pointer;
+  font-weight:bold; border:2px solid #DDD; background:var(--surface); color:var(--text2); cursor:pointer;
 }
 .cmp-car-chip.active { background:#1565C0; border-color:#1565C0; color:white; }
 #carMapCard {
-  margin:14px 14px 0; background:white; border-radius:14px;
+  margin:14px 14px 0; background:var(--surface); border-radius:14px;
   overflow:hidden; box-shadow:0 3px 16px rgba(0,0,0,0.10);
 }
 .card-info-bar {
-  background:linear-gradient(135deg,#1A237E 0%,#1565C0 60%,#00A3E0 100%);
+  background:linear-gradient(135deg,#1A237E 0%,#1565C0 60%,#00A3C4 100%);
   padding:10px 14px; display:flex; justify-content:space-between;
   align-items:flex-end; flex-wrap:wrap; gap:6px;
 }
@@ -5331,7 +5375,7 @@
 .card-expiry-label { font-size:10px; color:rgba(255,255,255,0.6); margin-bottom:2px; }
 .card-expiry-val {
   font-size:14px; font-weight:bold; color:white;
-  background:rgba(255,255,255,0.2); padding:3px 10px; border-radius:10px;
+  background:rgba(255,255,255,0.2); padding:3px 10px; border-radius:var(--radius-md);
 }
 .card-expiry-val.expiring { background:#FF5722; }
 .card-expiry-val.cmp-empty { background:rgba(255,255,255,0.10); color:rgba(255,255,255,0.5); font-size:11px; cursor:pointer; }
@@ -5339,10 +5383,10 @@
 .matrix-table { width:100%; border-collapse:collapse; font-size:11px; table-layout:fixed; }
 .matrix-table th { padding:6px 4px; text-align:center; font-size:11px; font-weight:bold; }
 .th-group { background:#E3F2FD; color:#1565C0; }
-.th-group.orange { background:#FFF3E0; color:#E65100; }
-.th-item { color:#666; font-weight:normal; font-size:10px; padding:3px 2px 6px; }
-.td-label { text-align:left !important; font-size:12px; font-weight:bold; color:#333; padding:0 6px 0 2px !important; white-space:nowrap; }
-.col-group-sep { width:6px; background:#F0F4F8; }
+.th-group.orange { background:#FFF3E0; color:#DC2626; }
+.th-item { color:var(--text2); font-weight:normal; font-size:10px; padding:3px 2px 6px; }
+.td-label { text-align:left !important; font-size:12px; font-weight:bold; color:var(--text1); padding:0 6px 0 2px !important; white-space:nowrap; }
+.col-group-sep { width:6px; background:var(--bg); }
 .cell-wrap { padding:2px; }
 .cell {
   border-radius:6px; height:46px; display:flex; align-items:center;
@@ -5357,8 +5401,8 @@
 .cell.na { background:#FAFAFA; border:1px solid #EEEEEE; color:#E0E0E0; }
 .matrix-row-sep td { padding:2px 0 !important; }
 .sep-line { height:1px; background:#F0F0F0; }
-.addon-section { margin:0 12px 12px; background:#FAFAFA; border-radius:10px; border:1px solid #EEE; overflow:hidden; }
-.addon-title { background:#F5F5F5; padding:8px 12px; font-size:12px; font-weight:bold; color:#666; border-bottom:1px solid #EEE; }
+.addon-section { margin:0 12px 12px; background:#FAFAFA; border-radius:var(--radius-md); border:1px solid #EEE; overflow:hidden; }
+.addon-title { background:#F5F5F5; padding:8px 12px; font-size:12px; font-weight:bold; color:var(--text2); border-bottom:1px solid #EEE; }
 .addon-list { display:flex; }
 .addon-item {
   flex:1; display:flex; align-items:center; gap:8px; padding:10px 12px;
@@ -5369,31 +5413,31 @@
 .addon-cell.ok     { background:#E8F5E9; border:2px solid #66BB6A; }
 .addon-cell.miss   { background:#FFF8F8; border:2px dashed #FFCDD2; }
 .addon-cell.manual { background:#E3F2FD; border:2px solid #42A5F5; }
-.addon-name { font-size:13px; font-weight:bold; color:#333; }
-.addon-status { font-size:11px; color:#999; }
+.addon-name { font-size:13px; font-weight:bold; color:var(--text1); }
+.addon-status { font-size:11px; color:var(--text3); }
 .legend-bar { display:flex; gap:10px; padding:6px 10px 10px; flex-wrap:wrap; }
-.legend-item { display:flex; align-items:center; gap:4px; font-size:11px; color:#666; }
+.legend-item { display:flex; align-items:center; gap:4px; font-size:11px; color:var(--text2); }
 .legend-dot { width:14px; height:14px; border-radius:3px; flex-shrink:0; }
 .legend-dot.ok     { background:#E8F5E9; border:2px solid #66BB6A; }
 .legend-dot.miss   { background:#FFF8F8; border:2px dashed #FFCDD2; }
 .legend-dot.manual { background:#E3F2FD; border:2px solid #42A5F5; }
 .legend-dot.na     { background:#FAFAFA; border:1px solid #EEE; }
 .card-footer {
-  background:#F0F4F8; padding:8px 14px; display:flex;
+  background:var(--bg); padding:8px 14px; display:flex;
   justify-content:space-between; align-items:center; border-top:1px solid #EEE;
 }
-.card-footer-advisor { font-size:11px; color:#999; }
-.card-footer-advisor strong { color:#555; font-size:12px; }
+.card-footer-advisor { font-size:11px; color:var(--text3); }
+.card-footer-advisor strong { color:var(--text2); font-size:12px; }
 .card-footer-date { font-size:10px; color:#BBB; }
 .cmp-action-bar { display:flex; gap:10px; padding:14px 14px 0; }
 .cmp-btn {
-  flex:1; padding:13px; border:none; border-radius:10px;
+  flex:1; padding:13px; border:none; border-radius:var(--radius-md);
   font-size:14px; font-weight:bold; cursor:pointer;
   display:flex; align-items:center; justify-content:center; gap:6px;
 }
-.cmp-btn-download { background:#00A3E0; color:white; }
+.cmp-btn-download { background:#00A3C4; color:white; }
 .cmp-btn-line     { background:#00B900; color:white; }
-.cmp-btn-reset    { background:#F5F5F5; color:#666; flex:0 0 auto; width:48px; padding:13px 0; }
+.cmp-btn-reset    { background:#F5F5F5; color:var(--text2); flex:0 0 auto; width:48px; padding:13px 0; }
 .cmp-hint { text-align:center; font-size:11px; color:#AAA; padding:10px 14px 0; }
 #cmpToast {
   position:fixed; bottom:120px; left:50%; transform:translateX(-50%);
@@ -5406,25 +5450,25 @@
 <!-- ★ 到期日手動輸入面板（獨立彈出，不影響圖卡截圖）-->
 <div id="cmpExpiryEditPanel" style="
   display:none; position:fixed; bottom:0; left:0; width:100%; z-index:3000;">
-  <div style="max-width:600px; margin:0 auto; background:white; border-radius:18px 18px 0 0;
+  <div style="max-width:600px; margin:0 auto; background:var(--surface); border-radius:18px 18px 0 0;
     box-shadow:0 -4px 20px rgba(0,0,0,0.18); padding:20px 20px 32px; box-sizing:border-box;">
-    <div style="font-size:14px; font-weight:bold; color:#333; margin-bottom:14px;" id="cmpEditPanelTitle">
+    <div style="font-size:14px; font-weight:bold; color:var(--text1); margin-bottom:14px;" id="cmpEditPanelTitle">
       ✏️ 輸入到期日
     </div>
     <input type="text" id="cmpExpiryEditInput"
       placeholder="例：115/06/09"
-      style="width:100%; padding:12px 14px; border:2px solid #00A3E0; border-radius:10px;
-             font-size:16px; font-weight:bold; color:#333; box-sizing:border-box;
+      style="width:100%; padding:12px 14px; border:2px solid #00A3C4; border-radius:var(--radius-md);
+             font-size:16px; font-weight:bold; color:var(--text1); box-sizing:border-box;
              margin-bottom:12px; outline:none;">
     <div style="display:flex; gap:10px;">
       <button onclick="_cmpConfirmExpiry()"
-        style="flex:2; padding:13px; background:#00A3E0; color:white; border:none;
-               border-radius:10px; font-size:15px; font-weight:bold; cursor:pointer;">
+        style="flex:2; padding:13px; background:#00A3C4; color:white; border:none;
+               border-radius:var(--radius-md); font-size:15px; font-weight:bold; cursor:pointer;">
         ✓ 確認
       </button>
       <button onclick="_cmpCancelExpiry()"
-        style="flex:1; padding:13px; background:#F5F5F5; color:#666; border:none;
-               border-radius:10px; font-size:15px; cursor:pointer;">
+        style="flex:1; padding:13px; background:#F5F5F5; color:var(--text2); border:none;
+               border-radius:var(--radius-md); font-size:15px; cursor:pointer;">
         取消
       </button>
     </div>
@@ -5437,26 +5481,26 @@
 <!-- ★ 手動勾選保額輸入面板 -->
 <div id="cmpManualInputPanel" style="
   display:none; position:fixed; bottom:0; left:0; width:100%; z-index:3000;">
-  <div style="max-width:600px; margin:0 auto; background:white; border-radius:18px 18px 0 0;
+  <div style="max-width:600px; margin:0 auto; background:var(--surface); border-radius:18px 18px 0 0;
     box-shadow:0 -4px 20px rgba(0,0,0,0.18); padding:20px 20px 32px; box-sizing:border-box;">
-    <div style="font-size:14px; font-weight:bold; color:#333; margin-bottom:14px;" id="cmpManualInputTitle">
+    <div style="font-size:14px; font-weight:bold; color:var(--text1); margin-bottom:14px;" id="cmpManualInputTitle">
       ✏️ 勾選並輸入保額
     </div>
     <input type="text" id="cmpManualAmtInput"
       placeholder="例：300萬、3000000（可空白）"
-      style="width:100%; padding:12px 14px; border:2px solid #42A5F5; border-radius:10px;
-             font-size:16px; font-weight:bold; color:#333; box-sizing:border-box;
+      style="width:100%; padding:12px 14px; border:2px solid #42A5F5; border-radius:var(--radius-md);
+             font-size:16px; font-weight:bold; color:var(--text1); box-sizing:border-box;
              margin-bottom:12px; outline:none;"
       onkeydown="if(event.key==='Enter')_cmpConfirmManualInput()">
     <div style="display:flex; gap:10px;">
       <button onclick="_cmpConfirmManualInput()"
         style="flex:2; padding:13px; background:#1565C0; color:white; border:none;
-               border-radius:10px; font-size:15px; font-weight:bold; cursor:pointer;">
+               border-radius:var(--radius-md); font-size:15px; font-weight:bold; cursor:pointer;">
         ✓ 確認勾選
       </button>
       <button id="cmpManualCancelBtn" onclick="_cmpCancelManualMark()"
-        style="flex:1; padding:13px; background:#F5F5F5; color:#666; border:none;
-               border-radius:10px; font-size:15px; cursor:pointer;">
+        style="flex:1; padding:13px; background:#F5F5F5; color:var(--text2); border:none;
+               border-radius:var(--radius-md); font-size:15px; cursor:pointer;">
         關閉
       </button>
     </div>
@@ -5543,7 +5587,7 @@
 <div id="famTableModal" style="
   display:none; position:fixed; top:0; left:0; width:100%; height:100%;
   background:rgba(0,0,0,0.6); z-index:3000; overflow-y:auto;">
-  <div style="max-width:700px; margin:20px auto; background:white;
+  <div style="max-width:700px; margin:20px auto; background:var(--surface);
     border-radius:14px; overflow:hidden; box-shadow:0 8px 32px rgba(0,0,0,0.2);">
 
     <!-- 頂部標題列 -->
@@ -5560,24 +5604,24 @@
 
     <!-- 報表內容 -->
     <div id="famTableBody" style="padding:16px 20px 8px;">
-      <div style="text-align:center;color:#999;padding:30px;">載入中...</div>
+      <div style="text-align:center;color:var(--text3);padding:30px;">載入中...</div>
     </div>
 
     <!-- 底部操作 -->
     <div style="padding:12px 20px 20px;display:flex;gap:10px;">
       <button onclick="downloadFamTable()"
-        style="flex:1;padding:12px;background:#00A3E0;color:white;border:none;
-          border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;">
+        style="flex:1;padding:12px;background:#00A3C4;color:white;border:none;
+          border-radius:var(--radius-md);font-size:14px;font-weight:bold;cursor:pointer;">
         📥 下載圖片
       </button>
       <button onclick="shareFamTableLine()"
         style="flex:1;padding:12px;background:#00B900;color:white;border:none;
-          border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;">
+          border-radius:var(--radius-md);font-size:14px;font-weight:bold;cursor:pointer;">
         💬 LINE 分享
       </button>
       <button onclick="closeFamTableModal()"
-        style="flex:0 0 48px;padding:12px;background:#F5F5F5;color:#666;border:none;
-          border-radius:10px;font-size:14px;cursor:pointer;">✕</button>
+        style="flex:0 0 48px;padding:12px;background:#F5F5F5;color:var(--text2);border:none;
+          border-radius:var(--radius-md);font-size:14px;cursor:pointer;">✕</button>
     </div>
   </div>
 </div>
@@ -5587,25 +5631,25 @@
   display:none; position:fixed; top:0; left:0; width:100%; height:100%;
   background:rgba(0,0,0,0.5); z-index:4000;
   justify-content:center; align-items:center;">
-  <div style="background:white; border-radius:16px; padding:24px 20px;
+  <div style="background:var(--surface); border-radius:16px; padding:24px 20px;
     max-width:340px; width:90%; box-shadow:0 8px 32px rgba(0,0,0,0.2);">
-    <div style="font-size:16px;font-weight:bold;color:#333;margin-bottom:6px;">
+    <div style="font-size:16px;font-weight:bold;color:var(--text1);margin-bottom:6px;">
       請輸入 <span id="travelNickName"></span> 的稱呼
     </div>
-    <div style="font-size:12px;color:#999;margin-bottom:14px;">輸入後會自動儲存，下次不需再填</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:14px;">輸入後會自動儲存，下次不需再填</div>
     <input type="text" id="travelNickInput" placeholder="例如：建明哥、麗敏姐、大哥..."
-      style="width:100%;padding:12px 14px;border:2px solid #00B900;border-radius:10px;
-             font-size:16px;color:#333;box-sizing:border-box;margin-bottom:12px;outline:none;"
+      style="width:100%;padding:12px 14px;border:2px solid #00B900;border-radius:var(--radius-md);
+             font-size:16px;color:var(--text1);box-sizing:border-box;margin-bottom:12px;outline:none;"
       onkeydown="if(event.key==='Enter')_confirmTravelRecommend()">
     <div style="display:flex;gap:10px;">
       <button onclick="_skipTravelNick()"
-        style="flex:1;padding:12px;background:#F5F5F5;color:#555;border:none;
-               border-radius:10px;font-size:14px;cursor:pointer;">
+        style="flex:1;padding:12px;background:#F5F5F5;color:var(--text2);border:none;
+               border-radius:var(--radius-md);font-size:14px;cursor:pointer;">
         跳過，用姓名
       </button>
       <button onclick="_confirmTravelRecommend()"
         style="flex:2;padding:12px;background:#00B900;color:white;border:none;
-               border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;">
+               border-radius:var(--radius-md);font-size:14px;font-weight:bold;cursor:pointer;">
         確定傳送
       </button>
     </div>
@@ -5617,20 +5661,20 @@
   display:none; position:fixed; top:0; left:0; width:100%; height:100%;
   background:rgba(0,0,0,0.6); z-index:4000;
   justify-content:center; align-items:center;">
-  <div style="background:white; border-radius:16px; padding:24px 20px;
+  <div style="background:var(--surface); border-radius:16px; padding:24px 20px;
     max-width:320px; width:90%; box-shadow:0 8px 32px rgba(0,0,0,0.2);">
     <div style="font-size:36px; text-align:center; margin-bottom:12px;">⚠️</div>
     <div style="font-size:16px; font-weight:bold; color:#B71C1C; text-align:center; margin-bottom:8px;">
       確認刪除保單？
     </div>
-    <div style="font-size:13px; color:#555; text-align:center; margin-bottom:6px;" id="delModalPolicyNo">
+    <div style="font-size:13px; color:var(--text2); text-align:center; margin-bottom:6px;" id="delModalPolicyNo">
       保單號碼：—
     </div>
-    <div style="font-size:12px; color:#999; text-align:center; margin-bottom:20px;" id="delModalPolicyInfo">
+    <div style="font-size:12px; color:var(--text3); text-align:center; margin-bottom:20px;" id="delModalPolicyInfo">
     </div>
     <div style="background:#FFF3E0; border-radius:8px; padding:10px 12px; margin-bottom:18px;">
-      <div style="font-size:12px; color:#E65100; font-weight:bold;">⚠️ 注意事項</div>
-      <div style="font-size:11px; color:#E65100; margin-top:4px; line-height:1.6;">
+      <div style="font-size:12px; color:#DC2626; font-weight:bold;">⚠️ 注意事項</div>
+      <div style="font-size:11px; color:#DC2626; margin-top:4px; line-height:1.6;">
         • 同時刪除保單主表及險種明細表<br>
         • 此操作無法復原，請確認後再刪除<br>
         • 建議僅刪除測試或明確錯誤的資料
@@ -5638,13 +5682,13 @@
     </div>
     <div style="display:flex; gap:10px;">
       <button onclick="cancelDeletePolicy()"
-        style="flex:1; padding:12px; background:#F5F5F5; color:#666;
-               border:none; border-radius:10px; font-size:14px; cursor:pointer;">
+        style="flex:1; padding:12px; background:#F5F5F5; color:var(--text2);
+               border:none; border-radius:var(--radius-md); font-size:14px; cursor:pointer;">
         取消
       </button>
       <button onclick="executeDeletePolicy()"
         style="flex:1; padding:12px; background:#B71C1C; color:white;
-               border:none; border-radius:10px; font-size:14px; font-weight:bold; cursor:pointer;">
+               border:none; border-radius:var(--radius-md); font-size:14px; font-weight:bold; cursor:pointer;">
         確認刪除
       </button>
     </div>
@@ -5660,7 +5704,7 @@ function openFamilyTableReport(familyId) {
   if (!familyId || familyId === '無') { alert('此保戶無家庭編號'); return; }
   document.getElementById('famTableTitle').textContent = familyId;
   document.getElementById('famTableBody').innerHTML =
-    '<div style="text-align:center;color:#999;padding:30px;">載入中...</div>';
+    '<div style="text-align:center;color:var(--text3);padding:30px;">載入中...</div>';
   document.getElementById('famTableModal').style.display = 'block';
   document.body.style.overflow = 'hidden';
 
@@ -5680,7 +5724,7 @@ function closeFamTableModal() {
 function _renderFamTable(data) {
   if (!data || !data.memberGroups) {
     document.getElementById('famTableBody').innerHTML =
-      '<div style="text-align:center;color:#999;padding:30px;">此家庭暫無保單資料</div>';
+      '<div style="text-align:center;color:var(--text3);padding:30px;">此家庭暫無保單資料</div>';
     return;
   }
 
@@ -5752,16 +5796,16 @@ function _renderFamTable(data) {
 
   // ── 到期日樣式（60天內標紅）──
   function expiryStyle(p) {
-    if (isOtherCompany(p)) return 'color:#888;';
+    if (isOtherCompany(p)) return 'color:var(--text3);';
     if (!p.expiry || p.urgency === 'expired') return 'color:#bbb;';
     if (p.daysLeft !== null && p.daysLeft <= 60)
       return 'color:#A32D2D;font-weight:500;';
-    return 'color:#555;';
+    return 'color:var(--text2);';
   }
 
   // ── 險種標籤 ──
   function typeTag(t, isOther) {
-    if (isOther) return '<span style="background:#F5F5F5;color:#888;font-size:11px;padding:2px 7px;border-radius:4px;border:1px solid #DDD;">'+t+'</span>';
+    if (isOther) return '<span style="background:#F5F5F5;color:var(--text3);font-size:11px;padding:2px 7px;border-radius:4px;border:1px solid #DDD;">'+t+'</span>';
     if (t.includes('強制')) return '<span style="background:#F1EFE8;color:#5F5E5A;font-size:11px;padding:2px 7px;border-radius:4px;">強制</span>';
     if (t.includes('汽車')) return '<span style="background:#E6F1FB;color:#0C447C;font-size:11px;padding:2px 7px;border-radius:4px;">任意</span>';
     if (t.includes('機車')) return '<span style="background:#EEEDFE;color:#3C3489;font-size:11px;padding:2px 7px;border-radius:4px;">任意</span>';
@@ -5773,7 +5817,7 @@ function _renderFamTable(data) {
   function otherBadge(p) {
     if (!isOtherCompany(p)) return '';
     var note = p.renewStatus.replace('他家', '').trim() || '他家';
-    return '<span style="background:#FFF3E0;color:#E65100;font-size:10px;padding:1px 6px;border-radius:4px;margin-left:4px;border:1px solid #FFB74D;">'+note+'</span>';
+    return '<span style="background:#FFF3E0;color:#DC2626;font-size:10px;padding:1px 6px;border-radius:4px;margin-left:4px;border:1px solid #FFB74D;">'+note+'</span>';
   }
 
   // ── 表格共用 thead ──
@@ -5781,7 +5825,7 @@ function _renderFamTable(data) {
     return '<thead><tr style="background:#F8F9FA;">' +
       cols.map(function(c) {
         return '<th style="padding:7px 10px;text-align:' + (c.right?'right':'left') +
-          ';font-size:12px;font-weight:500;color:#555;border-bottom:1px solid #DDD;white-space:nowrap;' +
+          ';font-size:12px;font-weight:500;color:var(--text2);border-bottom:1px solid #DDD;white-space:nowrap;' +
           (c.w?'width:'+c.w:'')+'">' + c.label + '</th>';
       }).join('') + '</tr></thead>';
   }
@@ -5815,7 +5859,7 @@ function _renderFamTable(data) {
     }, 0);
   }
 
-  var html = '<div id="famTableContent" style="color:#333;">';
+  var html = '<div id="famTableContent" style="color:var(--text1);">';
 
   // ── 1. 汽車險 ──
   if (carPolicies.length > 0) {
@@ -5839,18 +5883,18 @@ function _renderFamTable(data) {
         'font-size:12px;font-weight:500;color:#185FA5;border-bottom:0.5px solid #C8DDEF;' +
         'border-left:3px solid #378ADD;">' +
         '<span style="font-family:monospace;letter-spacing:1px;font-size:13px;">' + plate + '</span>' +
-        '<span style="margin-left:10px;color:#555;font-weight:400;">' + members + '</span></td></tr>';
+        '<span style="margin-left:10px;color:var(--text2);font-weight:400;">' + members + '</span></td></tr>';
       rows.forEach(function(p) {
         var isOther = isOtherCompany(p);
         html += '<tr style="' + (isOther?'opacity:0.7;':'') + '">' +
-          '<td style="padding:7px 10px;color:#888;font-size:12px;font-weight:500;">' + carSeq++ + '</td>' +
+          '<td style="padding:7px 10px;color:var(--text3);font-size:12px;font-weight:500;">' + carSeq++ + '</td>' +
           '<td style="padding:7px 10px;">' + typeTag(p.type, isOther) + otherBadge(p) + '</td>' +
-          '<td style="padding:7px 10px;font-family:monospace;font-size:12px;color:#333;font-weight:500;">' + (p.plate||'—') + '</td>' +
-          '<td style="padding:7px 10px;font-size:12px;color:#333;font-weight:500;">' + p.memberName + '</td>' +
-          '<td style="padding:7px 10px;font-size:12px;color:#666;font-family:monospace;font-weight:500;">' + p.policyNo + '</td>' +
-          '<td style="padding:7px 10px;font-size:12px;color:#555;font-weight:500;">' + (p.effectiveDate||'—') + '</td>' +
+          '<td style="padding:7px 10px;font-family:monospace;font-size:12px;color:var(--text1);font-weight:500;">' + (p.plate||'—') + '</td>' +
+          '<td style="padding:7px 10px;font-size:12px;color:var(--text1);font-weight:500;">' + p.memberName + '</td>' +
+          '<td style="padding:7px 10px;font-size:12px;color:var(--text2);font-family:monospace;font-weight:500;">' + p.policyNo + '</td>' +
+          '<td style="padding:7px 10px;font-size:12px;color:var(--text2);font-weight:500;">' + (p.effectiveDate||'—') + '</td>' +
           '<td style="padding:7px 10px;font-size:12px;font-weight:500;' + expiryStyle(p) + '">' + (p.expiry||'—') + '</td>' +
-          '<td style="padding:7px 10px;text-align:right;font-size:12px;color:#333;font-weight:500;">' +
+          '<td style="padding:7px 10px;text-align:right;font-size:12px;color:var(--text1);font-weight:500;">' +
             (isOther ? '<span style="color:#bbb;">—</span>' :
              (parseInt(String(p.premium).replace(/,/g,''))||0).toLocaleString()) + '</td>' +
           '</tr>';
@@ -5880,18 +5924,18 @@ function _renderFamTable(data) {
         'font-size:12px;font-weight:500;color:#3C3489;border-bottom:0.5px solid #C5C2EA;' +
         'border-left:3px solid #7F77DD;">' +
         '<span style="font-family:monospace;letter-spacing:1px;font-size:13px;">' + plate + '</span>' +
-        '<span style="margin-left:10px;color:#555;font-weight:400;">' + members + '</span></td></tr>';
+        '<span style="margin-left:10px;color:var(--text2);font-weight:400;">' + members + '</span></td></tr>';
       rows.forEach(function(p) {
         var isOther = isOtherCompany(p);
         html += '<tr style="' + (isOther?'opacity:0.7;':'') + '">' +
-          '<td style="padding:7px 10px;color:#888;font-size:12px;font-weight:500;">' + motoSeq++ + '</td>' +
+          '<td style="padding:7px 10px;color:var(--text3);font-size:12px;font-weight:500;">' + motoSeq++ + '</td>' +
           '<td style="padding:7px 10px;">' + typeTag(p.type, isOther) + otherBadge(p) + '</td>' +
-          '<td style="padding:7px 10px;font-family:monospace;font-size:12px;color:#333;font-weight:500;">' + (p.plate||'—') + '</td>' +
-          '<td style="padding:7px 10px;font-size:12px;color:#333;font-weight:500;">' + p.memberName + '</td>' +
-          '<td style="padding:7px 10px;font-size:12px;color:#666;font-family:monospace;font-weight:500;">' + p.policyNo + '</td>' +
-          '<td style="padding:7px 10px;font-size:12px;color:#555;font-weight:500;">' + (p.effectiveDate||'—') + '</td>' +
+          '<td style="padding:7px 10px;font-family:monospace;font-size:12px;color:var(--text1);font-weight:500;">' + (p.plate||'—') + '</td>' +
+          '<td style="padding:7px 10px;font-size:12px;color:var(--text1);font-weight:500;">' + p.memberName + '</td>' +
+          '<td style="padding:7px 10px;font-size:12px;color:var(--text2);font-family:monospace;font-weight:500;">' + p.policyNo + '</td>' +
+          '<td style="padding:7px 10px;font-size:12px;color:var(--text2);font-weight:500;">' + (p.effectiveDate||'—') + '</td>' +
           '<td style="padding:7px 10px;font-size:12px;font-weight:500;' + expiryStyle(p) + '">' + (p.expiry||'—') + '</td>' +
-          '<td style="padding:7px 10px;text-align:right;font-size:12px;color:#333;font-weight:500;">' +
+          '<td style="padding:7px 10px;text-align:right;font-size:12px;color:var(--text1);font-weight:500;">' +
             (isOther ? '<span style="color:#bbb;">—</span>' :
              (parseInt(String(p.premium).replace(/,/g,''))||0).toLocaleString()) + '</td>' +
           '</tr>';
@@ -5914,12 +5958,12 @@ function _renderFamTable(data) {
     healthPolicies.forEach(function(p, i) {
       var isOther = isOtherCompany(p);
       html += '<tr>' +
-        '<td style="padding:7px 10px;color:#888;font-size:12px;font-weight:500;">' + (i+1) + '</td>' +
-        '<td style="padding:7px 10px;font-size:12px;color:#333;font-weight:500;">' + p.memberName + otherBadge(p) + '</td>' +
-        '<td style="padding:7px 10px;font-size:12px;color:#666;font-family:monospace;font-weight:500;">' + p.policyNo + '</td>' +
-        '<td style="padding:7px 10px;font-size:12px;color:#555;font-weight:500;">' + (p.effectiveDate||'—') + '</td>' +
+        '<td style="padding:7px 10px;color:var(--text3);font-size:12px;font-weight:500;">' + (i+1) + '</td>' +
+        '<td style="padding:7px 10px;font-size:12px;color:var(--text1);font-weight:500;">' + p.memberName + otherBadge(p) + '</td>' +
+        '<td style="padding:7px 10px;font-size:12px;color:var(--text2);font-family:monospace;font-weight:500;">' + p.policyNo + '</td>' +
+        '<td style="padding:7px 10px;font-size:12px;color:var(--text2);font-weight:500;">' + (p.effectiveDate||'—') + '</td>' +
         '<td style="padding:7px 10px;font-size:12px;font-weight:500;' + expiryStyle(p) + '">' + (p.expiry||'—') + '</td>' +
-        '<td style="padding:7px 10px;text-align:right;font-size:12px;color:#333;">' +
+        '<td style="padding:7px 10px;text-align:right;font-size:12px;color:var(--text1);">' +
           (isOther ? '<span style="color:#bbb;">—</span>' :
            (parseInt(String(p.premium).replace(/,/g,''))||0).toLocaleString()) + '</td>' +
         '</tr>';
@@ -5941,12 +5985,12 @@ function _renderFamTable(data) {
     firePolicies.forEach(function(p, i) {
       var isOther = isOtherCompany(p);
       html += '<tr>' +
-        '<td style="padding:7px 10px;color:#888;font-size:12px;font-weight:500;">' + (i+1) + '</td>' +
-        '<td style="padding:7px 10px;font-size:12px;color:#333;font-weight:500;">' + p.memberName + otherBadge(p) + '</td>' +
-        '<td style="padding:7px 10px;font-size:12px;color:#666;font-family:monospace;font-weight:500;">' + p.policyNo + '</td>' +
-        '<td style="padding:7px 10px;font-size:12px;color:#555;font-weight:500;">' + (p.effectiveDate||'—') + '</td>' +
+        '<td style="padding:7px 10px;color:var(--text3);font-size:12px;font-weight:500;">' + (i+1) + '</td>' +
+        '<td style="padding:7px 10px;font-size:12px;color:var(--text1);font-weight:500;">' + p.memberName + otherBadge(p) + '</td>' +
+        '<td style="padding:7px 10px;font-size:12px;color:var(--text2);font-family:monospace;font-weight:500;">' + p.policyNo + '</td>' +
+        '<td style="padding:7px 10px;font-size:12px;color:var(--text2);font-weight:500;">' + (p.effectiveDate||'—') + '</td>' +
         '<td style="padding:7px 10px;font-size:12px;font-weight:500;' + expiryStyle(p) + '">' + (p.expiry||'—') + '</td>' +
-        '<td style="padding:7px 10px;text-align:right;font-size:12px;color:#333;">' +
+        '<td style="padding:7px 10px;text-align:right;font-size:12px;color:var(--text1);">' +
           (isOther ? '<span style="color:#bbb;">—</span>' :
            (parseInt(String(p.premium).replace(/,/g,''))||0).toLocaleString()) + '</td>' +
         '</tr>';
@@ -5957,9 +6001,9 @@ function _renderFamTable(data) {
   // ── 合計列 ──
   html += '<div style="border-top:2px solid #EEE;padding:10px 0 4px;' +
     'display:flex;justify-content:space-between;align-items:center;">' +
-    '<span style="font-size:13px;color:#555;font-weight:500;">顧問：' + (data.advisorName||'—') + '</span>' +
+    '<span style="font-size:13px;color:var(--text2);font-weight:500;">顧問：' + (data.advisorName||'—') + '</span>' +
     '<div style="text-align:right;">' +
-    '<span style="font-size:13px;color:#555;font-weight:500;margin-right:8px;">有效保費合計</span>' +
+    '<span style="font-size:13px;color:var(--text2);font-weight:500;margin-right:8px;">有效保費合計</span>' +
     '<span style="font-size:16px;font-weight:500;color:#1565C0;">NT$' +
     totalPremium.toLocaleString() + '</span></div></div>';
 
@@ -6846,7 +6890,7 @@ function _cmpToast(msg) {
   t._t = setTimeout(function(){ t.style.display='none'; }, 2000);
 }
 </script>
-<div style="text-align:center;font-size:11px;color:#bbb;padding:12px 0 16px;letter-spacing:0.5px;">
+<div style="text-align:center;font-size:11px;color:var(--text3);padding:20px 0 24px;letter-spacing:0.5px;border-top:1px solid var(--border);margin-top:16px;">
   © NBS奈AI工作團隊　版權所有
 </div>
 </body>
