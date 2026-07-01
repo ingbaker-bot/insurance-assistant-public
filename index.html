@@ -481,9 +481,8 @@
   </div>
 
   <!-- 近期到期提醒（頁面載入時自動查詢） -->
-  <div style="padding:12px 16px 0;">
-  <!-- ★ v7.4 骨架畫面 -->
-  <div id="expiryLoadingHint">
+  <!-- 近期到期提醒 -->
+  <div id="expiryLoadingHint" style="padding:0 16px;">
     <!-- 5天骨架 -->
     <div class="skeleton-alert skeleton-urgent">
       <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -514,11 +513,9 @@
 
   <!-- 🎂 今日生日提醒橫幅（自動顯示） -->
   <div id="birthdayBannerArea"></div>
-
-  </div><!-- 關閉 padding div -->
   <!-- ★ v7.4 主功能切換 -->
-  <div style="padding:14px 16px 0;">
-  <div style="font-size:11px;color:var(--text3);letter-spacing:.1em;font-weight:700;margin-bottom:10px;text-transform:uppercase;">主功能切換</div>
+  <div style="padding:0 16px 14px;">
+  <div style="font-size:11px;color:var(--text3);letter-spacing:.1em;font-weight:700;margin:14px 0 10px;text-transform:uppercase;">主功能切換</div>
   <div class="tab-bar">
     <button class="tab-btn" id="tabInsurance" onclick="switchTab('insurance')">
       <span style="font-size:22px;line-height:1;">🚗</span>
@@ -530,7 +527,7 @@
     </button>
   </div>
   <!-- ══════ 產險保單功能區 ══════ -->
-  <div id="insuranceSearch" style="display:none;padding:0 16px;">
+  <div id="insuranceSearch" style="display:none;">
 
     <!-- 四個工具按鈕 2×2 -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px 0 4px;">
@@ -595,7 +592,7 @@
       </label>
     </div>
 
-    <div style="padding:0 16px;"><!-- ★ 產險保單分析 2x2 -->
+    <!-- ★ 產險保單分析 2x2 -->
     <div class="fn-group-label">產險保單分析</div>
     <div class="fn-grid-2">
       <button onclick="loadMissingCompulsory()"
