@@ -259,17 +259,20 @@
       background: #ffffff;
       z-index: 9999; display: flex; flex-direction: column;
       justify-content: center; align-items: center;
+      box-sizing: border-box;
       font-family: inherit;
+      --lock-key-size: clamp(52px, 9vh, 72px);
+      --lock-key-gap:  clamp(8px, 2vh, 14px);
     }
     .lock-logo {
-      margin-bottom: 20px; text-align: center;
+      margin-bottom: clamp(10px, 3vh, 20px); text-align: center;
     }
     .lock-logo img {
-      height: 44px; width: auto;
+      height: clamp(30px, 5.5vh, 44px); width: auto;
       display: block;
     }
     .lock-title {
-      font-size: 22px; font-weight: bold;
+      font-size: clamp(17px, 2.8vh, 22px); font-weight: bold;
       margin-bottom: 6px; letter-spacing: 1px;
       background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
       -webkit-background-clip: text; background-clip: text;
@@ -277,10 +280,10 @@
     }
     .lock-subtitle {
       color: var(--text3); font-size: 13px;
-      margin-bottom: 32px;
+      margin-bottom: clamp(14px, 4vh, 32px);
     }
     .lock-pin-display {
-      display: flex; gap: 16px; margin-bottom: 28px;
+      display: flex; gap: 16px; margin-bottom: clamp(14px, 3.5vh, 28px);
     }
     .lock-pin-dot {
       width: 16px; height: 16px; border-radius: 50%;
@@ -290,14 +293,14 @@
     }
     .lock-pin-dot.filled { background: var(--primary); border-color: var(--primary); }
     .lock-keypad {
-      display: grid; grid-template-columns: repeat(3, 72px);
-      gap: 14px; margin-bottom: 16px;
+      display: grid; grid-template-columns: repeat(3, var(--lock-key-size));
+      gap: var(--lock-key-gap); margin-bottom: 16px;
     }
     .lock-key {
-      width: 72px; height: 72px; border-radius: 50%;
+      width: var(--lock-key-size); height: var(--lock-key-size); border-radius: 50%;
       background: var(--surface2);
       border: 2px solid #B7C6D6;
-      color: #1a1a1a; font-size: 22px; font-weight: 600;
+      color: #1a1a1a; font-size: clamp(18px, 2.6vh, 22px); font-weight: 600;
       cursor: pointer; display: flex; align-items: center;
       justify-content: center; transition: background 0.1s;
       -webkit-tap-highlight-color: transparent;
