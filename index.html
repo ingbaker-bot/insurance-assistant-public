@@ -463,8 +463,8 @@
 
   <!-- ★ 代辦清單面板 -->
   <div style="margin:10px 16px 0;">
-    <button onclick="toggleTaskPanel()" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;font-size:13px;font-weight:600;min-height:64px;box-sizing:border-box;outline:none;color:var(--text2);cursor:pointer;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--shadow-sm);">
-      <div style="display:flex;align-items:center;gap:10px;"><div style="width:30px;height:30px;border-radius:9px;background:#FFF8E6;display:flex;align-items:center;justify-content:center;"><span style="font-size:15px;">📋</span></div><span style="color:var(--text1);font-weight:600;">產險代辦清單</span></div>
+    <button onclick="toggleTaskPanel()" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:11px 16px;font-size:13px;font-weight:600;box-sizing:border-box;outline:none;color:var(--text2);cursor:pointer;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--shadow-sm);">
+      <div style="display:flex;align-items:center;gap:10px;"><div style="width:26px;height:26px;border-radius:8px;background:#FFF8E6;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="font-size:13px;">📋</span></div><span style="color:var(--text1);font-weight:600;">產險代辦清單</span></div>
       <span style="font-size:11px;color:var(--text3);">點擊展開 ▼</span>
     </button>
     <div id="taskPanel" style="display:none;background:var(--surface);border:1px solid #e2e8f0;border-top:none;border-radius:0 0 10px 10px;padding:16px;box-shadow:0 4px 8px rgba(0,0,0,0.05);">
@@ -1877,15 +1877,29 @@
 
   // ── Tab 切換 ──
   function switchTab(tab) {
-    currentTab = tab;
-    document.getElementById('resultsList').innerHTML = '';
-    document.getElementById('tabInsurance').className = 'tab-btn' + (tab === 'insurance' ? ' active-insurance' : '');
-    document.getElementById('tabTravel').className    = 'tab-btn' + (tab === 'travel'    ? ' active-travel'    : '');
-    // ★ v6.2：預設收合，點Tab才展開
     var insEl = document.getElementById('insuranceSearch');
     var trvEl = document.getElementById('travelSearch');
-    if (insEl) insEl.style.display = (tab === 'insurance') ? 'block' : 'none';
-    if (trvEl) trvEl.style.display = (tab === 'travel')    ? 'block' : 'none';
+    var alreadyOpen = (tab === 'insurance' && insEl && insEl.style.display === 'block') ||
+                       (tab === 'travel'    && trvEl && trvEl.style.display === 'block');
+
+    document.getElementById('resultsList').innerHTML = '';
+
+    if (alreadyOpen) {
+      // ★ 再點一次已展開的頁籤 → 收回
+      currentTab = null;
+      document.getElementById('tabInsurance').className = 'tab-btn';
+      document.getElementById('tabTravel').className    = 'tab-btn';
+      if (insEl) insEl.style.display = 'none';
+      if (trvEl) trvEl.style.display = 'none';
+    } else {
+      currentTab = tab;
+      document.getElementById('tabInsurance').className = 'tab-btn' + (tab === 'insurance' ? ' active-insurance' : '');
+      document.getElementById('tabTravel').className    = 'tab-btn' + (tab === 'travel'    ? ' active-travel'    : '');
+      // ★ v6.2：預設收合，點Tab才展開
+      if (insEl) insEl.style.display = (tab === 'insurance') ? 'block' : 'none';
+      if (trvEl) trvEl.style.display = (tab === 'travel')    ? 'block' : 'none';
+    }
+
     // 切換 Tab 時關閉所有展開面板
     ['caliQuickPanel','strokePanel','inspectionPanel','searchPanel'].forEach(function(id) {
       var el = document.getElementById(id); if (el) el.style.display = 'none';
