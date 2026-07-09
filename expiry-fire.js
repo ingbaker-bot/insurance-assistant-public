@@ -635,20 +635,10 @@
   // ══════════════════════════════════════════════════════
   // ★ 旅平卡推薦話術
   // ══════════════════════════════════════════════════════
-  function shareTravelRecommend() {
-    if (!currentTravelData) return;
-    var m = currentTravelData.main;
-    var insuredId = m.appId || '';
-    withNickname(insuredId, m.appName || '您好', function(salutation) {
-      var msg = '🏖️【旅平卡推薦】\n\n' + salutation + ' 您好！\n\n';
-      msg += '富邦旅平卡保障內容包含：\n✅ 意外身故／失能保障\n✅ 海內外旅遊醫療費用\n';
-      msg += '✅ 海外突發疾病\n✅ (產險)不便險（班機延誤、行李遺失等）\n\n';
-      msg += '旅平卡自動續卡、保障全家，一張搞定！🌏\n\n';
-      msg += '當然有興趣了解詳情，歡迎隨時聯繫 ' + ADVISOR_NAME + '！🙌';
-      if (ADVISOR_LINE) msg += '\n📲 加入 LINE：https://line.me/ti/p/' + ADVISOR_LINE;
-      shareViaLine(msg);
-    });
-  }
+  // ★ shareTravelRecommend 已移除（2026/07）：邏輯上不合理——
+  //   使用者當時是在「查看已存在的旅平卡明細」，對已經持有
+  //   旅平卡的保戶推薦旅平卡沒有意義，故直接拿掉這個功能，
+  //   而不是修復它。如果之後想找回，可從 git 歷史還原這段程式碼。
 
 
 // ══════════════════════════════════════════════════════
@@ -670,7 +660,6 @@ window.loadFireGapList       = loadFireGapList;
 window.selectFireStatus      = selectFireStatus;
 window.saveFireTrack         = saveFireTrack;
 window.recommendFire         = recommendFire;
-window.shareTravelRecommend  = shareTravelRecommend;
 window._renewStatusStyle     = _renewStatusStyle;
 window.initTrackDates        = initTrackDates;
 window.quickShareFromTrack   = quickShareFromTrack;
