@@ -443,3 +443,4 @@ window.copyWarmPitch           = copyWarmPitch;
 window.shareToLine             = shareToLine;
 window.downloadImage           = downloadImage;
 window.buildPolicyMsg          = buildPolicyMsg;
+window.renderFamilyReport      = renderFamilyReport;

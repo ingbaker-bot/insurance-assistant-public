@@ -654,3 +654,4 @@ window.closeBdOverlay           = closeBdOverlay;
 window.loadBirthdayMonthSummary = loadBirthdayMonthSummary;
 window.loadBirthdayByMonth      = loadBirthdayByMonth;
 window.showBdToast              = showBdToast;
+window.loadTodayBirthdays        = loadTodayBirthdays;
