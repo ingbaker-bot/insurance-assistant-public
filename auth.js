@@ -1,6 +1,6 @@
 // ══════════════════════════════════════════════════════
 // auth.js — 登入、GAS 連線（ES Module）★ 全站核心基礎設施 ★
-// 原本位於 index.html 第 800–1253 行，拆分示範
+// 原本位於 index.html 第 801–1253 行，拆分示範
 // 這是全站耦合度最高的模組：gasCall／directGasCall 被其他 9 個
 // 模組全部呼叫，是最後、也是風險最高的一個，請務必依照下方測試
 // 重點完整測試一輪。
@@ -8,11 +8,10 @@
 // ★ 重要：以下 6 個變數原本用 var 宣告，但因為被其他模組或尚未拆分
 //   的程式碼直接讀寫，改成明確的 window.X 屬性，避免模組化後
 //   變成「只有這個模組自己看得到」而跟其他地方的狀態脫鉤：
-//   _prefetchedTasks, currentPolicyData, currentTravelData,
+//   _directShellUrl, _prefetchedTasks, currentPolicyData, currentTravelData,
 //   ADVISOR_NAME, ADVISOR_LINE, currentTab
 // ══════════════════════════════════════════════════════
 
-<script>
   // ══════════════════════════════════════════════════════
   // ★ GAS API 設定
   // 填入 Libcode GAS 專案的部署 URL（只需要填一次，永久不變）
