@@ -166,7 +166,10 @@
   // ── 從缺口清單查看明細（查完後可返回）──
   function openDetailFromGap(policyNo) {
     // 儲存目前結果列表，查完後可返回
-    _gapListBackup = document.getElementById('resultsList').innerHTML;
+    // 注意：window._gapListBackup 是跨模組共用狀態，family.js 的
+    // closeModalOrBack 會讀取並清空它，因此明確用 window. 前綴，
+    // 不能用模組內部的 var（否則兩邊會變成互不相通的獨立變數）
+    window._gapListBackup = document.getElementById('resultsList').innerHTML;
     document.getElementById('loading').style.display = 'block';
     document.getElementById('resultsList').innerHTML = '';
     var fetchFn = function(data) { renderModal(data, true); }; // true = 顯示返回按鈕
@@ -175,12 +178,11 @@
     } else {
       gasCall('getPolicyDetails', { no: policyNo }, fetchFn, function() {
         document.getElementById('loading').style.display = 'none';
-        document.getElementById('resultsList').innerHTML = _gapListBackup || '';
+        document.getElementById('resultsList').innerHTML = window._gapListBackup || '';
         alert('讀取保單詳情失敗');
       });
     }
   }
-  var _gapListBackup = '';
 
   // ── CALI 查詢提示框（顯示身分證+車牌讓業務員複製）──
   function showCaliHint(idNo, plate, name) {
@@ -327,7 +329,7 @@
   // ── 傳提醒（帶稱呼 withNickname）──
   function shareVehicleReminder(insuredId, name, insType, expiry, plate) {
     // 設定身分證以便儲存稱呼
-    _nicknameInsuredId = insuredId;
+    window._nicknameInsuredId = insuredId;
 
     withNickname(insuredId, name, function(salutation) {
       var isMissingCompulsory = (insType.includes('任意險'));

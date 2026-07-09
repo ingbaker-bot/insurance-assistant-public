@@ -380,7 +380,7 @@
   }
 
   function quickShareFromTrack(name, type, policyNo, expiry) {
-    _nicknameInsuredId = '';
+    window._nicknameInsuredId = '';
     withNickname('', name, function(salutation) {
       var msg = salutation + ' 您好！\n\n';
       msg += '您的【' + type + '】保單\n';
@@ -609,7 +609,7 @@
     function recommendFire(encodedData) {
     var data = JSON.parse(decodeURIComponent(encodedData));
     var targetName = (data.applicant && data.applicant !== data.name) ? data.applicant : data.name;
-    _nicknameInsuredId = '';
+    window._nicknameInsuredId = '';
     withNickname('', targetName, function(salutation) {
       var msg = salutation + ' 您好！\n\n';
       msg += '🏠【住宅火險保障提醒】\n\n';

@@ -108,7 +108,7 @@
 
   function quickShare(name, type, policyNo, effectiveDate, expiry, plateNo, premium, maskedId) {
     // 記錄目前的身分證號供稱呼管理快取使用
-    _nicknameInsuredId = maskedId || '';
+    window._nicknameInsuredId = maskedId || '';
 
     withNickname(maskedId || '', name, function(salutation) {
       document.getElementById('loading').style.display = 'block';
@@ -333,9 +333,9 @@
     document.getElementById('detailModal').style.display = 'none';
     document.getElementById('travelStatusArea').innerHTML = '';
     currentPolicyData = null;
-    if (_gapListBackup) {
-      document.getElementById('resultsList').innerHTML = _gapListBackup;
-      _gapListBackup = '';
+    if (window._gapListBackup) {
+      document.getElementById('resultsList').innerHTML = window._gapListBackup;
+      window._gapListBackup = '';
     }
   }
 
@@ -381,7 +381,7 @@
     var maskedId      = main.maskedId      || "";
 
     // 記錄身分證號並查詢稱呼
-    _nicknameInsuredId = maskedId;
+    window._nicknameInsuredId = maskedId;
     withNickname(maskedId, insuredName, function(salutation) {
       var msg = "✨【保單內容提醒】✨\n\n";
       msg += salutation + " 您好！\n\n";
