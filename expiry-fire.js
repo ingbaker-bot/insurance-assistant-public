@@ -638,13 +638,16 @@
   function shareTravelRecommend() {
     if (!currentTravelData) return;
     var m = currentTravelData.main;
-    var msg = '🏖️【旅平卡推薦】\n\n' + (m.appName || '您好') + ' 您好！\n\n';
-    msg += '富邦旅平卡保障內容包含：\n✅ 意外身故／失能保障\n✅ 海內外旅遊醫療費用\n';
-    msg += '✅ 海外突發疾病\n✅ (產險)不便險（班機延誤、行李遺失等）\n\n';
-    msg += '旅平卡自動續卡、保障全家，一張搞定！🌏\n\n';
-    msg += '當然有興趣了解詳情，歡迎隨時聯繫 ' + ADVISOR_NAME + '！🙌';
-    if (ADVISOR_LINE) msg += '\n📲 加入 LINE：https://line.me/ti/p/' + ADVISOR_LINE;
-    shareViaLine(msg);
+    var insuredId = m.appId || '';
+    withNickname(insuredId, m.appName || '您好', function(salutation) {
+      var msg = '🏖️【旅平卡推薦】\n\n' + salutation + ' 您好！\n\n';
+      msg += '富邦旅平卡保障內容包含：\n✅ 意外身故／失能保障\n✅ 海內外旅遊醫療費用\n';
+      msg += '✅ 海外突發疾病\n✅ (產險)不便險（班機延誤、行李遺失等）\n\n';
+      msg += '旅平卡自動續卡、保障全家，一張搞定！🌏\n\n';
+      msg += '當然有興趣了解詳情，歡迎隨時聯繫 ' + ADVISOR_NAME + '！🙌';
+      if (ADVISOR_LINE) msg += '\n📲 加入 LINE：https://line.me/ti/p/' + ADVISOR_LINE;
+      shareViaLine(msg);
+    });
   }
 
 

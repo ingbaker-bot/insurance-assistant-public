@@ -345,7 +345,9 @@
    * callback(salutation): 稱呼確定後的回呼，salutation 就是「建明哥」或「李建明」
    */
   function withNickname(insuredId, name, callback) {
+    document.getElementById('loading').style.display = 'block';
     gasCall('getCustomerNickname', { id: insuredId }, function(result) {
+        document.getElementById('loading').style.display = 'none';
         if (result && result.nickname) {
           callback(result.nickname);
         } else {
@@ -360,7 +362,7 @@
           };
           setTimeout(function() { document.getElementById('nicknameInput').focus(); }, 100);
         }
-      }, function() { callback(name); });
+      }, function() { document.getElementById('loading').style.display = 'none'; callback(name); });
   }
 
   function nicknameConfirm() {
