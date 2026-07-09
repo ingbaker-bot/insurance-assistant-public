@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+  <!-- ★ 2026/07 補上：告訴瀏覽器這個網站沒有 favicon，避免自動請求 favicon.ico 產生 404 -->
+  <link rel="icon" href="data:,">
   <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -26,6 +28,13 @@
       --text1:        #0A2540;
       --text2:        #4A6070;
       --text3:        #8899AA;
+      /* ★ 2026/07 補上：以下 5 個變數原本從未定義過，
+         導致對應按鈕文字（白字疊白底）消失、卡片背景色缺失 */
+      --ai-color:     #7B61FF;  /* AI智能話術用，紫色 */
+      --line-color:   #00B900;  /* LINE官方綠 */
+      --travel-color: #FF9800;  /* 旅平卡主題色，橘色 */
+      --card-bg:      #FFFFFF;  /* 卡片背景，沿用 --surface */
+      --text-muted:   #8899AA;  /* 沿用 --text3 */
       --shadow-sm:    0 1px 4px rgba(0,163,196,.08);
       --shadow-md:    0 4px 16px rgba(0,163,196,.12);
       --shadow-lg:    0 8px 32px rgba(0,163,196,.16);
@@ -790,7 +799,6 @@
     <div id="travelModalBody"></div>
     <div class="btn-group" id="travelActionButtons">
       <button class="btn-action bg-img"    onclick="generateTravelImageCard()">🖼️ 製作旅平卡圖卡</button>
-      <button class="btn-action bg-travel" onclick="shareTravelCard()">💬 分享旅平卡資訊</button>
       <button class="btn-action bg-close"  onclick="closeTravelModal()">關閉返回</button>
     </div>
   </div>

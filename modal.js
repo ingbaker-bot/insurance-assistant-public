@@ -249,22 +249,9 @@
     }
   }
 
-  function shareTravelCard() {
-    if (!currentTravelData) return;
-    var m   = currentTravelData.main;
-    var msg = "🏖️【旅平卡資訊】\n\n";
-    msg += "👤 要保人：" + m.appName + "\n";
-    msg += "📋 憑證號碼：" + m.certNo + "\n";
-    msg += "🗓️ 生效日：" + m.effDate + "\n";
-    msg += "📱 電話：" + (m.mobile || m.phone || '—') + "\n\n";
-    msg += "👥 被保人名冊（" + currentTravelData.members.length + " 人）：\n";
-    currentTravelData.members.forEach(function(mb) {
-      msg += "  • " + mb.name + "（" + mb.relation + "）\n";
-    });
-    msg += "\n如需查詢或更新資料，請聯繫 " + ADVISOR_NAME + "！";
-    if (ADVISOR_LINE) msg += "\n📲 加入 LINE：https://line.me/ti/p/" + ADVISOR_LINE;
-    shareViaLine(msg);
-  }
+  // ★ shareTravelCard 已移除（2026/07）：使用者確認不需要這個功能，
+  //   旅平卡明細畫面只保留「製作旅平卡圖卡」與「關閉返回」。
+  //   如果之後想找回，可從 git 歷史還原這段程式碼。
 
   function generateTravelImageCard() {
     var target = document.getElementById('travelModalBody');
@@ -315,7 +302,6 @@
 //   被最多其他模組依賴的入口，務必完整）
 // ══════════════════════════════════════════════════════
 window.loadFamilyReport        = loadFamilyReport;
-window.shareTravelCard         = shareTravelCard;
 window.generateTravelImageCard = generateTravelImageCard;
 window.downloadTravelImage     = downloadTravelImage;
 window.closeTravelModal        = closeTravelModal;
