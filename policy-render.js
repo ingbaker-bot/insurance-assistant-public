@@ -650,3 +650,5 @@ window.renderEarlyWarning      = renderEarlyWarning;
 window.withNickname            = withNickname;
 window.removeExpiryRow         = removeExpiryRow;
 window.removeEarlyWarningRow   = removeEarlyWarningRow;
+window.expiryQuickShare         = expiryQuickShare;
+window.earlyWarnShare           = earlyWarnShare;
