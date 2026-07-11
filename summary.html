@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" href="data:,">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NBS - 保單彙總</title>
+  <style>
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:#f5f5f3; min-height:100vh; color:#1a1a1a; }
+
+    .header { background:#fff; border-bottom:1px solid #eee; padding:12px 16px; display:flex; align-items:center; gap:10px; position:sticky; top:0; z-index:100; }
+    .back-btn { background:none; border:none; font-size:26px; color:#999; cursor:pointer; padding:0; }
+    .header-title { font-size:18px; font-weight:600; flex:1; }
+    .header-sub { font-size:14px; color:#bbb; }
+
+    .member-tabs { display:flex; background:#fafafa; border-bottom:1px solid #eee; overflow-x:auto; padding:0 16px; }
+    .member-tab { padding:9px 14px; font-size:14px; cursor:pointer; white-space:nowrap; border-bottom:2px solid transparent; color:#888; }
+    .member-tab.active { border-bottom-color:#378ADD; color:#378ADD; font-weight:500; }
+
+    .main { 
+      padding: 16px 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    @media (max-width: 768px) {
+      .main { padding: 16px; }
+    }
+
+    .stat-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:16px; }
+    .stat-card { padding:10px 12px; border-radius:10px; }
+    .stat-label { font-size:14px; margin-bottom:2px; }
+    .stat-value { font-size:19px; font-weight:600; }
+
+    .section-label { font-size:14px; font-weight:500; color:#999; margin-bottom:8px; letter-spacing:0.05em; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px; }
+    .small-btn { font-size:14px; padding:4px 12px; border:1px solid #ddd; border-radius:99px; background:transparent; color:#666; cursor:pointer; font-family:inherit; }
+
+    /* 保單號碼一覽 */
+    .policy-group-block { background:#fff; border:1px solid #e8e8e8; border-radius:10px; overflow:hidden; margin-bottom:16px; }
+    .group-header { display:flex; align-items:center; gap:8px; padding:8px 14px; background:#f7f7f5; flex-wrap:wrap; }
+    .policy-no-badge { font-family:monospace; font-size:14px; font-weight:500; background:#E6F1FB; color:#0C447C; padding:1px 8px; border-radius:99px; }
+    .group-company { font-size:16px; font-weight:500; }
+    .group-total { font-size:14px; color:#999; margin-left:auto; }
+    .policy-row { display:grid; grid-template-columns:minmax(96px,auto) 1fr minmax(90px,auto) minmax(220px,auto) minmax(70px,auto); align-items:center; gap:8px; padding:9px 14px; border-top:1px solid #f5f5f5; }
+    .cat-badge { font-size:14px; padding:2px 8px; border-radius:99px; text-align:center; display:inline-block; }
+    .policy-name { font-size:17px; padding-left:8px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .policy-prem { font-size:17px; font-weight:500; text-align:right; white-space:nowrap; }
+    .status-badge { font-size:14px; padding:1px 6px; border-radius:99px; text-align:center; }
+    .status-有效 { background:#EAF3DE; color:#27500A; }
+    .status-停效 { background:#FCEBEB; color:#791F1F; }
+
+    /* 圓餅圖 */
+    .pie-wrap { background:#fff; border:1px solid #e8e8e8; border-radius:10px; padding:14px; margin-bottom:16px; }
+    .pie-container { display:flex; align-items:center; gap:16px; flex-wrap:wrap; justify-content:center; }
+    .pie-legend { display:flex; flex-direction:column; gap:5px; }
+    .pie-legend-item { display:flex; align-items:center; gap:8px; font-size:14px; }
+    .pie-dot { width:12px; height:12px; border-radius:3px; flex-shrink:0; }
+
+    /* 保障加總網格排版 */
+    .coverage-grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 24px; }
+    @media (min-width: 768px) { .coverage-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 1024px) {
+      .coverage-grid { grid-template-columns: repeat(3, 1fr); align-items: start; }
+      .card-日額型住院 { grid-row: span 2; }
+      .card-癌症醫療   { grid-row: span 2; }
+      .card-失能長照   { grid-column: 2; }
+    }
+
+    /* 獨立保障卡片 */
+    .coverage-card { background: #fff; border: 1px solid #e8e8e8; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+    .cov-group-header { display: flex; align-items: center; padding: 8px 14px; border-bottom: 1px solid #f0f0f0; }
+    .cov-group-label { font-size: 17px; font-weight: 600; letter-spacing: 0.05em; }
+    .cov-item { display: flex; align-items: center; justify-content: space-between; padding: 9px 14px; border-bottom: 1px dashed #f5f5f5; flex-wrap: wrap; gap: 4px; }
+    .cov-item:last-child { border-bottom: none; }
+    .cov-item-label { font-size: 16px; color: #444; }
+    .cov-item-label.zero { color: #bbb; }
+    .cov-value-wrap { text-align: right; }
+    .cov-item-value { font-size: 17px; font-weight: 600; font-family: monospace; }
+    .cov-unit { font-size: 14px; color: #999; font-weight: normal; font-family: sans-serif; margin-left: 2px; }
+    .cov-breakdown { font-size: 14px; color: #aaa; margin-top: 2px; line-height: 1.2; }
+
+    /* 就醫情況 */
+    .medical-table { width:100%; border-collapse:collapse; }
+    .medical-table th { padding:8px 10px; text-align:center; font-size:14px; font-weight:500; border-bottom:1px solid #e8e8e8; }
+    .medical-table th:first-child { text-align:left; padding-left:14px; font-weight:400; color:#888; }
+    .medical-table td { padding:8px 10px; text-align:center; }
+    .medical-table td:first-child { text-align:left; padding-left:14px; font-weight:500; font-size:16px; color:#555; background:#fafafa; }
+    .nhi-badge { display:inline-flex; padding:4px 10px; border-radius:6px; background:#EAF3DE; }
+    .nhi-badge span { font-size:14px; font-weight:500; color:#27500A; }
+    .medical-input { width:150px; font-size:16px; padding:5px 8px; border:1px solid #e0e0e0; border-radius:5px; outline:none; text-align:right; font-family:inherit; }
+    .auto-hint { font-size:14px; color:#aaa; }
+
+    /* Modal */
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:200; align-items:flex-end; justify-content:center; }
+    .modal-overlay.active { display:flex; }
+    .modal { background:#fff; border-radius:16px 16px 0 0; padding:20px; width:100%; max-width:560px; max-height:80vh; overflow-y:auto; }
+    .modal-title { font-size:19px; font-weight:600; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; }
+    .modal-close { background:none; border:none; font-size:26px; color:#999; cursor:pointer; line-height:1; }
+    .modal-notice { font-size:14px; color:#5D4037; background:#FFF8E1; padding:8px 12px; border-radius:8px; margin-bottom:14px; line-height:1.6; }
+    .type-group-label { font-size:14px; font-weight:500; margin-bottom:6px; }
+    .type-tags { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+    .type-tag { display:flex; align-items:center; gap:4px; padding:5px 12px; border-radius:99px; cursor:pointer; }
+    .type-tag-dot { width:9px; height:9px; border-radius:50%; }
+    .type-tag-label { font-size:16px; }
+    .manual-badge { font-size:14px; color:#F5A623; font-weight:600; margin-left:2px; }
+
+    .loading { text-align:center; padding:40px; color:#bbb; font-size:14px; }
+    .spinner { display:inline-block; width:16px; height:16px; border:2px solid #e0e0e0; border-top-color:#378ADD; border-radius:50%; animation:spin 0.7s linear infinite; vertical-align:middle; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+  </style>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="nav.js"></script>
+</head>
+<body>
+
+<div class="header-sub" id="header-sub"></div>
+<div class="member-tabs" id="member-tabs"></div>
+<div class="main">
+  <div id="loading" class="loading"><span class="spinner"></span> 載入中…</div>
+  <div id="content" style="display:none"></div>
+</div>
+
+<!-- 手動調整 Modal -->
+<div class="modal-overlay" id="edit-modal" onclick="handleModalOverlay(event)">
+  <div class="modal">
+    <div class="modal-title">
+      手動調整保障有無
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-notice">
+      系統依保單及附約清單自動判斷。若有誤可手動切換，再次點擊恢復自動判斷。<br/>
+      橘色「手動」標籤表示已覆蓋自動判斷。
+    </div>
+    <div id="modal-types"></div>
+    <button onclick="closeModal()" style="width:100%;padding:10px;background:#378ADD;color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:500;cursor:pointer;font-family:inherit;margin-top:8px">完成</button>
+  </div>
+</div>
+
+<script>
+    // GAS_URL 已移至 nav.js 統一管理
+
+// ── 輔助加總計算機 ─────────────────────────────────────────
+// 保額單位換算成「萬元」。policy.html 的保額單位選項除了「萬元」「元」
+// 這兩種可以換算的貨幣單位，還有「計劃/型/份/自訂」這類非金額單位
+// （例如投資型保單常用「型」），這些無法換算成金額，回傳 null，
+// 呼叫端應該把這種情況當作「金額不明」處理，不要當成 0 或亂算。
+// 判斷保單目前是否仍在保障中：只有「停效」才算失去保障，
+// 其餘狀態（有效/繳費期滿/自動墊繳/展期/緩繳/減額繳清）都代表保單
+// 仍在繼續提供保障，都應該算進保障覆蓋率計算裡。
+function isPolicyActive(p) {
+  return p.status !== "停效";
+}
+
+function convertToWan(amount, unit) {
+  const n = parseFloat(amount);
+  if (isNaN(n)) return null;
+  const u = unit || "萬元";
+  if (u === "萬元") return n;
+  if (u === "元") return n / 10000;
+  return null; // 計劃/型/份/自訂等非金額單位，無法換算
+}
+
+function sumCov(keys, policies, coverage) {
+  let total = 0;
+  policies.forEach(p => {
+    keys.forEach(k => {
+      if (p.coverage && typeof p.coverage[k] === "number") {
+        total += p.coverage[k];
+      }
+    });
+  });
+  // 相容舊格式
+  if (total === 0 && coverage) {
+      policies.forEach(p => {
+          keys.forEach(k => {
+              if (coverage[p.id + "_" + k] && typeof coverage[p.id + "_" + k] === "number") {
+                  total += coverage[p.id + "_" + k];
+              }
+          });
+      });
+  }
+  return total;
+}
+
+// ── 保障群組與細項定義 (全新規劃) ─────────────────────────────────────────
+var GAP_GROUPS = [
+  { key:"family", label:"家庭責任", color:"#1565C0", items:[
+    { key:"life_permanent", label:"終身壽險",    unit:"萬元",   color:"#1565C0" },
+    { key:"life_term",      label:"定期壽險",    unit:"萬元",   color:"#1E88E5" },
+    { key:"investment",     label:"投資型保險",  unit:"",       color:"#7B1FA2", isBool:true },
+    { key:"savings",        label:"儲蓄險",      unit:"",       color:"#E91E8C", isBool:true },
+  ]},
+  { key:"before", label:"評估確診", color:"#E53935", items:[
+    { key:"ci_special",         label:"重大/特傷/重疾", unit:"萬元",   color:"#E53935" },
+    { key:"cancer",              label:"初次罹患癌症",      unit:"萬元",   color:"#C62828" },
+    { key:"cancer_hosp",         label:"癌症病房(含出院)",  unit:"元/日",  color:"#FFB300" },
+    { key:"cancer_surgery",      label:"癌症手術",          unit:"萬元/次",color:"#E64A19" },
+    { key:"cancer_death_hospice",label:"癌症身故/安寧",     unit:"萬元",   color:"#81C784" },
+  ]},
+  { key:"during", label:"積極修復", color:"#FF8F00", items:[
+    { key:"hosp_real_room",  label:"實支病房費",        unit:"元/日",  color:"#E65100" },
+    { key:"hosp_daily",      label:"住院日額+出院",      unit:"元/日",  color:"#F57C00" },
+    { key:"surgery",         label:"手術險(最高)",      unit:"",       color:"#FF9800", isBool:true },
+    { key:"acc_medical",     label:"意外醫療",          unit:"萬/次",  color:"#FFC107" },
+    { key:"acc_hosp",        label:"意外住院",          unit:"元/日",  color:"#FFE082" },
+  ]},
+  { key:"after", label:"康復療養", color:"#2E7D32", items:[
+    { key:"ltc_disable",    label:"失能一次金",      unit:"萬元",    color:"#1B5E20" },
+    { key:"ltc_support",    label:"失能扶助",        unit:"萬元/月", color:"#2E7D32" },
+    { key:"ltc_care",       label:"長照",            unit:"萬元/月", color:"#43A047" },
+    { key:"waiver",         label:"保費豁免",        unit:"",        color:"#A5D6A7", isBool:true },
+  ]},
+];
+
+// 精準對應 coverage.html 的資料庫欄位
+var GAP_KEY_MAP = {
+  life_permanent:  { cats:["壽險保障"],          keys:["life_basic"] },
+  life_term:       { cats:[],                   keys:["life_term"] },
+  investment:      { cats:["投資型保險"],        keys:[] },
+  savings:         { cats:["儲蓄險","年金險"],   keys:[] },
+  ci_special:      { cats:["重大疾病險","重大傷病險","特定傷病險"], keys:["can_first"] },
+  cancer:          { cats:["癌症醫療"],          keys:["can_first"] },
+  hosp_real_room:  { cats:["醫療保障"],          keys:["hosp_room", "hosp_ext_room"] },
+  hosp_daily:      { cats:["醫療保障"],          keys:["daily_room_1_30", "hosp_ext_daily", "daily_discharge"] },
+  surgery:         { cats:["醫療保障","定額手術"], keys:["hosp_surgery", "hosp_ext_surgery", "surg_hosp_max", "surg_opd_max"] },
+  cancer_hosp:     { cats:["癌症醫療"],          keys:["can_hosp", "can_discharge"] },
+  cancer_surgery:  { cats:["癌症醫療"],          keys:["can_surgery"] },
+  acc_medical:     { cats:["意外險"],            keys:["acc_opd"] },
+  acc_hosp:        { cats:["意外險"],            keys:["acc_hosp"] },
+  ltc_disable:     { cats:["失能長照"],          keys:["ltc_dis_amt"] },
+  ltc_support:     { cats:["失能長照"],          keys:["ltc_dis_life", "acc_support", "ltc_life"] },
+  ltc_care:        { cats:["失能長照"],          keys:["ltc_monthly", "ltc_care", "ltc_yr", "ltc_mo"] },
+  cancer_death_hospice: { cats:["癌症醫療"],     keys:["can_death","can_hospice"] },
+  waiver:          { cats:[],                   keys:["ltc_waiver"] },
+};
+
+var COVERAGE_TYPES = [
+  { key:"life",       label:"壽險保障", group:"壽險", color:"#4A90D9", detect:(p,c)=>p.some(x=>x.category==="壽險保障") },
+  { key:"acc_death",  label:"意外身故", group:"意外", color:"#F5A623", detect:(p,c)=>p.some(x=>x.category==="意外險") },
+  { key:"acc_medical",label:"意外醫療", group:"意外", color:"#F08C00", detect:(p,c)=>Object.keys(c).some(k=>k.includes("acc_opd")) },
+  { key:"acc_hosp",   label:"意外住院", group:"意外", color:"#D97706", detect:(p,c)=>Object.keys(c).some(k=>k.includes("daily_room"))&&p.some(x=>x.category==="意外險") },
+  { key:"hosp_real",  label:"實支實付", group:"醫療", color:"#27AE8F", detect:(p,c)=>Object.keys(c).some(k=>k.includes("hosp_room")) },
+  { key:"hosp_daily", label:"住院日額", group:"醫療", color:"#1E8A72", detect:(p,c)=>Object.keys(c).some(k=>k.includes("daily_room")) },
+  { key:"hosp_surg",  label:"手術險",   group:"醫療", color:"#166756", detect:(p,c)=>Object.keys(c).some(k=>k.includes("surg_opd")||k.includes("surg_hosp")) },
+  { key:"ci",         label:"重大疾病", group:"重大", color:"#9B59B6", detect:(p,c)=>p.some(x=>["重大疾病險","重大傷病險","特定傷病險"].includes(x.category)) },
+  { key:"cancer",     label:"癌症險",   group:"癌症", color:"#E74C3C", detect:(p,c)=>Object.keys(c).some(k=>k.includes("can_first")||k.includes("can_hosp")) },
+  { key:"ltc",        label:"長照險",   group:"長照", color:"#27500A", detect:(p,c)=>Object.keys(c).some(k=>k.includes("ltc_monthly")||k.includes("ltc_care")) },
+  { key:"disable",    label:"失能險",   group:"長照", color:"#5BAD6F", detect:(p,c)=>Object.keys(c).some(k=>k.includes("ltc_dis_amt")||k.includes("ltc_dis_life")) },
+  { key:"savings",    label:"儲蓄險",   group:"財務", color:"#E8638A", detect:(p,c)=>p.some(x=>x.category==="儲蓄險") },
+  { key:"annuity",    label:"年金險",   group:"財務", color:"#C0392B", detect:(p,c)=>p.some(x=>x.category==="年金險") },
+  { key:"investment", label:"投資型",   group:"財務", color:"#95A5A6", detect:(p,c)=>p.some(x=>x.category==="投資型保險") },
+];
+
+var GROUP_COLORS = { 壽險:"#4A90D9",意外:"#F5A623",醫療:"#27AE8F",重大:"#9B59B6",癌症:"#E74C3C",長照:"#27500A",財務:"#E8638A" };
+
+var CAT_COLORS = {
+  "壽險保障":"#4A90D9","醫療保障":"#27AE8F","意外險":"#F5A623",
+  "重大疾病險":"#9B59B6","重大傷病險":"#8E44AD","特定傷病險":"#7D3C98",
+  "儲蓄險":"#E8638A","年金險":"#C0392B","投資型保險":"#95A5A6",
+};
+
+var COVERAGE_GROUPS = [
+  { label:"壽險保障", color:"#4A90D9", items:[
+    { label:"壽險保障額度", keys:["life_basic", "life_term"], unit:"萬元" },
+  ]},
+  { label:"意外險", color:"#F5A623", items:[
+    { label:"意外門診", keys:["acc_opd"], unit:"萬元/次" },
+    { label:"意外住院日額", keys:["acc_hosp"], unit:"元/日" },
+    { label:"加護病房", keys:["acc_icu"], unit:"元/日" },
+    { label:"骨折療養金", keys:["acc_fracture_max", "acc_fracture"], unit:"元" },
+    { label:"重大/特定燒燙傷", keys:["acc_burn_max", "acc_burn"], unit:"萬元" },
+    { label:"特定事故加倍", keys:["acc_special_max", "acc_special"], unit:"萬元" },
+    { label:"食物中毒", keys:["acc_food"], unit:"元/次" },
+    { label:"意外失能 (2~11級)", keys:["acc_disable_max", "acc_disable"], unit:"萬元" },
+    { label:"喪失工作能力", keys:["acc_work"], unit:"萬元/月" },
+    { label:"失能扶助金", keys:["acc_support"], unit:"萬元/月" },
+  ]},
+  { label:"住院醫療 (實支實付)", color:"#085041", items:[
+    { label:"病房費", keys:["hosp_room", "hosp_ext_room"], unit:"元/日" },
+    { label:"手術費", keys:["hosp_surgery", "hosp_ext_surgery"], unit:"元/次" },
+    { label:"醫療雜費", keys:["hosp_misc", "hosp_ext_misc"], unit:"元/次" },
+    { label:"加護病房費", keys:["hosp_icu"], unit:"元/日" },
+    { label:"重大器官移植", keys:["hosp_organ_max", "hosp_organ"], unit:"萬元" },
+    { label:"自負額", keys:["hosp_deduct"], unit:"元" },
+    { label:"每次住院總限額", keys:["hosp_limit_per"], unit:"元/次" },
+    { label:"醫療給付總限額", keys:["hosp_limit_acct"], unit:"萬元" },
+  ]},
+  { label:"日額型住院", color:"#0C447C", items:[
+    { label:"病房費 (1~30日)", keys:["daily_room_1_30", "hosp_ext_daily"], unit:"元/日" },
+    { label:"病房費 (31日起)", keys:["daily_room_31"], unit:"元/日" },
+    { label:"加護病房", keys:["daily_icu"], unit:"元/日" },
+    { label:"燒燙傷中心", keys:["daily_burn"], unit:"元/日" },
+    { label:"老年住院關懷", keys:["daily_senior"], unit:"元/次" },
+    { label:"出院療養金", keys:["daily_discharge"], unit:"元/日" },
+    { label:"住院看護療養", keys:["daily_nurse"], unit:"元/日" },
+    { label:"住院前後門診", keys:["daily_opd"], unit:"元/次" },
+    { label:"住院前急診", keys:["daily_er"], unit:"元/次" },
+    { label:"緊急醫療轉送", keys:["daily_transport"], unit:"元/次" },
+    { label:"特殊醫材補助", keys:["daily_device"], unit:"元/次" },
+    { label:"罹患重大疾病", keys:["daily_major"], unit:"元" },
+    { label:"抗排斥藥物", keys:["daily_antirej"], unit:"元" },
+    { label:"代替手術放射線", keys:["daily_radiation"], unit:"元" },
+    { label:"帳戶金額", keys:["daily_limit"], unit:"萬元" },
+    { label:"給付倍數", keys:["daily_limit_times"], unit:"倍" },
+  ]},
+  { label:"定額手術", color:"#3C3489", items:[
+    { label:"門診手術醫療", keys:["surg_opd_max", "surg_opd"], unit:"元/次" },
+    { label:"特定處置項目", keys:["surg_special_max", "surg_special"], unit:"元/次" },
+    { label:"住院手術醫療", keys:["surg_hosp_max", "surg_hosp"], unit:"元/次" },
+    { label:"手術看護療養金", keys:["surg_nurse_max", "surg_nurse"], unit:"元" },
+    { label:"保險給付限制", keys:["surg_limit"], unit:"萬元" },
+  ]},
+  { label:"癌症醫療", color:"#E74C3C", items:[
+    { label:"低侵襲/特定癌症", keys:["can_low"], unit:"元" },
+    { label:"初次罹癌 (一次)", keys:["can_first"], unit:"萬元" },
+    { label:"癌症住院醫療", keys:["can_hosp"], unit:"元/日" },
+    { label:"出院療養", keys:["can_discharge"], unit:"元/日" },
+    { label:"癌症門診醫療", keys:["can_opd"], unit:"元/次" },
+    { label:"癌症質子治療", keys:["can_proton"], unit:"萬元/次" },
+    { label:"放射線治療", keys:["can_radiation"], unit:"元/日" },
+    { label:"癌症基因檢測", keys:["can_gene"], unit:"萬元" },
+    { label:"化學治療", keys:["can_chemo"], unit:"元/日" },
+    { label:"標靶藥物治療", keys:["can_target"], unit:"萬元" },
+    { label:"達文西手術", keys:["can_davinci"], unit:"萬元" },
+    { label:"義乳重建手術", keys:["can_breast"], unit:"萬元" },
+    { label:"自體免疫細胞治療", keys:["can_immune"], unit:"萬元" },
+    { label:"骨髓/幹細胞移植", keys:["can_marrow"], unit:"萬元" },
+    { label:"癌症給付總限額", keys:["can_total"], unit:"萬元" },
+    { label:"安寧照護", keys:["can_hospice"], unit:"萬元" },
+    { label:"癌症身故", keys:["can_death"], unit:"萬元" },
+  ]},
+  { label:"失能長照", color:"#27500A", items:[
+    { label:"長照/長看關懷", keys:["ltc_care"], unit:"萬元" },
+    { label:"長期照護療養 (月)", keys:["ltc_monthly"], unit:"萬元/月" },
+    { label:"生活扶助/重大傷病", keys:["ltc_life"], unit:"萬元/月" },
+    { label:"特定傷病 (年)", keys:["ltc_yr"], unit:"萬元/年" },
+    { label:"特定傷病 (月)", keys:["ltc_mo"], unit:"萬元/月" },
+    { label:"失能(殘廢)保險金", keys:["ltc_dis_amt"], unit:"萬元" },
+    { label:"失能生活扶助金", keys:["ltc_dis_life"], unit:"萬元/月" },
+  ]},
+];
+
+var currentUser    = null;
+var familyData     = null;
+var familyFileName = null;
+var personDataMap  = {};
+var currentPersonId = null;
+var overrides      = {};
+var medicalOverrides = {};
+var targets        = {};
+
+// 核心運算引擎：精準抓取資料庫數字
+function getItemCurrent(key, policies, coverage, covOverrides) {
+  const map = GAP_KEY_MAP[key];
+  if(!map) return 0;
+
+  const manualKey = currentPersonId+"_"+key;
+  if(covOverrides && covOverrides[manualKey] !== undefined) {
+    return covOverrides[manualKey] ? 1 : 0;
+  }
+
+  if(["investment","savings","waiver"].includes(key)) {
+    if(key==="investment") return policies.some(p=>p.category==="投資型保險")?1:0;
+    if(key==="savings")    return policies.some(p=>["儲蓄險","年金險"].includes(p.category))?1:0;
+    if(key==="waiver")     return sumCov(["ltc_waiver"], policies, coverage) > 0 ? 1 : 0;
+    return 0;
+  }
+
+  if (["life_permanent", "life_term"].includes(key)) {
+      let amt = 0;
+      const matchedPolicies = policies.filter(p => map.cats.includes(p.category));
+      matchedPolicies.forEach(p => {
+         const w = convertToWan(p.insuredAmount, p.insuredAmountUnit);
+         if (w !== null) amt += w;
+      });
+      if (amt === 0 && matchedPolicies.length > 0) return 1; 
+      return amt;
+  }
+
+  if (key === "ci_special") {
+      const matchedPolicies = policies.filter(p => map.cats.includes(p.category));
+      // 優先加總 coverage.html「重大」分類填的三個一次金欄位
+      let amt = sumCov(["ci_major_lump","ci_catastrophic_lump","ci_specific_lump"], matchedPolicies, coverage);
+      if (amt === 0) {
+        // 都沒填，退回用保單保額（相容還沒細分填寫的舊保單），含單位換算
+        matchedPolicies.forEach(p => {
+           const w = convertToWan(p.insuredAmount, p.insuredAmountUnit);
+           if (w !== null) amt += w;
+        });
+      }
+      if (amt === 0 && matchedPolicies.length > 0) return 1; 
+      return amt;
+  }
+
+  // 這些 key 是明細欄位，沒有填就應該是 0，不應該用保額填充
+  const NO_FALLBACK_KEYS = [
+    "acc_medical", "acc_hosp", "hosp_real_room", "hosp_daily",
+    "surgery", "cancer_hosp", "cancer_surgery", "ltc_disable", "ltc_support",
+    "ltc_care", "cancer_death_hospice"
+  ];
+  if (NO_FALLBACK_KEYS.includes(key)) {
+    return sumCov(map.keys, policies, coverage);
+  }
+
+  let amt = sumCov(map.keys, policies, coverage);
+
+  const matchedPolicies = policies.filter(p => map.cats.includes(p.category));
+  if (amt === 0 && matchedPolicies.length > 0) {
+      matchedPolicies.forEach(p => {
+          const w = convertToWan(p.insuredAmount, p.insuredAmountUnit);
+          if (w !== null) amt += w;
+      });
+      if (amt === 0) return 1; 
+  }
+
+  return amt;
+}
+
+function getItemStatus(key, policies, coverage, targets, covOverrides) {
+  const item = GAP_GROUPS.flatMap(g=>g.items).find(i=>i.key===key);
+  const current = getItemCurrent(key, policies, coverage, covOverrides);
+  const target  = targets[key];
+  const isBool  = item?.isBool;
+  if(!current) return {status:"gap", current:0, target, pct:0};
+  if(!target||isBool) return {status:"ok", current, target:null, pct:1};
+  if(current>=target) return {status:"ok", current, target, pct:1};
+  return {status:"insufficient", current, target, pct:current/target};
+}
+
+async function initPage(detail) {
+  currentUser       = detail.user;
+  familyData        = detail.familyData;
+  currentPersonId   = detail.currentPersonId;
+  familyFileName    = detail.familyFileName;
+
+  if (!currentUser || !familyData) {
+    document.getElementById("loading").innerHTML = "載入失敗：請重新登入";
+    return;
+  }
+
+  try {
+    const activeMembers = familyData.members.filter(m => m.role !== "beneficiary_only");
+    
+    const fetchPromises = activeMembers.map(m => {
+      const cacheKey = "nbs_person_" + m.personId;
+      const cachedData = sessionStorage.getItem(cacheKey);
+
+      if (cachedData) {
+        personDataMap[m.personId] = JSON.parse(cachedData);
+        return Promise.resolve();
+      } else {
+        return callGAS("readFile", {
+          email: currentUser.email,
+          fileType: "persons",
+          fileName: m.name + "_" + m.personId + ".json"
+        }).then(pr => {
+          if (pr.status === "ok") {
+            personDataMap[m.personId] = pr.content;
+            sessionStorage.setItem(cacheKey, JSON.stringify(pr.content));
+          }
+        }).catch(err => console.error("讀取 " + m.name + " 失敗", err));
+      }
+    });
+
+    await Promise.all(fetchPromises);
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("content").style.display = "block";
+    renderTabs();
+    renderContent();
+  } catch(err) {
+    console.error("summary.html init error", err);
+    document.getElementById("loading").innerHTML = "載入失敗：" + err.message;
+  }
+}
+
+// 支援兩種事件：nav.js 自行載入 或 family.html 先載入後通知
+window.addEventListener("nbs_nav_ready",     function(e) { initPage(e.detail); });
+window.addEventListener("nbs_family_loaded", function(e) {
+  if (familyData) return; // 已初始化
+  var u = JSON.parse(localStorage.getItem("nbs_user") || "{}");
+  initPage({
+    user:            u,
+    familyData:      e.detail.familyData,
+    currentPersonId: e.detail.familyData && e.detail.familyData.members && e.detail.familyData.members[0] && e.detail.familyData.members[0].personId,
+    familyFileName:  e.detail.familyFileName
+  });
+});
+
+function renderTabs() {
+  const members = familyData.members.filter(m=>m.role!=="beneficiary_only");
+  document.getElementById("member-tabs").innerHTML = members.map(m=>`
+    <div class="member-tab ${currentPersonId===m.personId?'active':''}" onclick="switchPerson('${m.personId}')">
+      ${m.name}${getInsAge(m.personId)!==null?' '+getInsAge(m.personId)+'歲':''}
+    </div>`).join("");
+}
+
+function getInsAge(pid) {
+  const p=personDataMap[pid];
+  if(!p) return null;
+  const b=new Date(p.profile.birthDate), a=new Date(p.profile.analysisDate||new Date());
+  let y=a.getFullYear()-b.getFullYear();
+  const mo=(a-new Date(b.getFullYear()+y,b.getMonth(),b.getDate()))/(1000*60*60*24*30.4375);
+  if(mo>=6)y++;
+  return y;
+}
+
+function switchPerson(pid) {
+  currentPersonId=pid;
+  renderTabs();
+  renderContent();
+}
+
+function renderContent() {
+  document.getElementById("loading").style.display="none";
+  document.getElementById("content").style.display="block";
+  const person  = personDataMap[currentPersonId];
+  const policies= person?.policies||[];
+  const active  = policies.filter(isPolicyActive);
+  const totalTWD= active.reduce((s,p)=>s+(p.premiumTWD||0),0);
+
+  const coverage = {};
+  Object.entries(person?.coverage||{}).forEach(([k,v])=>{
+    if(typeof v==="number") coverage[k]=(coverage[k]||0)+v;
+    else coverage[k]=v;
+  });
+  policies.forEach(p => {
+    Object.entries(p.coverage||{}).forEach(([k,v]) => {
+      if(typeof v === "number") coverage[k] = (coverage[k]||0)+v;
+      else coverage[k] = v;
+    });
+  });
+
+  const covTypes = COVERAGE_TYPES.map(t=>{
+    const auto = t.detect(active,coverage);
+    const manual = overrides[currentPersonId+"_"+t.key];
+    return {...t, covered: manual!==undefined?manual:auto, autoDetected:auto, isManual:manual!==undefined};
+  });
+
+  let html = "";
+
+  // 1. 頂部摘要
+  html += `<div class="stat-row">
+    <div class="stat-card" style="background:#E6F1FB">
+      <div class="stat-label" style="color:#0C447C">年繳總保費</div>
+      <div class="stat-value" style="color:#0C447C">NT$ ${(totalTWD/10000).toFixed(1)}萬</div>
+    </div>
+    <div class="stat-card" style="background:#EAF3DE">
+      <div class="stat-label" style="color:#27500A">月均保費</div>
+      <div class="stat-value" style="color:#27500A">NT$ ${Math.round(totalTWD/12).toLocaleString()}</div>
+    </div>
+  </div>`;
+
+  // 2. 保單號碼一覽
+  html += `<div class="section-label">保單號碼一覽</div>`;
+  html += `<div class="policy-group-block">`;
+  const groups={};
+  policies.forEach(p=>{ const k=p.policyNo||p.id; if(!groups[k]) groups[k]=[]; groups[k].push(p); });
+  Object.entries(groups).forEach(([no,rows],gi)=>{
+    const groupTotal=rows.reduce((s,p)=>s+(p.premiumTWD||0),0);
+    html+=`<div style="border-top:${gi>0?'1px solid #f0f0f0':'none'}">
+      <div class="group-header">
+        <span class="policy-no-badge">${no}</span>
+        <span class="group-company">${rows[0].company || '未知'}</span>
+        <span class="group-total">年繳 NT$${groupTotal.toLocaleString()}</span>
+      </div>`;
+    rows.forEach(p=>{
+      const cc=CAT_COLORS[p.category]||"#999";
+      const isFx = p.currency && p.currency !== "TWD";
+      const premDisplay = isFx
+        ? `NT$${(p.premiumTWD||0).toLocaleString()} <span style="font-size:14px;color:#9CA3AF;font-weight:400">(${p.currency} ${(p.premiumOrig||0).toLocaleString()})</span>`
+        : `${(p.premiumTWD||0).toLocaleString()}`;
+      const insuredDisplay = p.insuredAmount
+        ? `<span style="color:#3B82F6;font-size:15px;font-weight:500;white-space:nowrap">${p.insuredAmount} ${p.insuredAmountUnit||'萬元'}</span>`
+        : `<span style="color:#D1D5DB">—</span>`;
+      html+=`<div class="policy-row">
+        <span class="cat-badge" style="background:${cc}20;color:${cc}">${p.category}</span>
+        <span class="policy-name">${p.itemName||'—'}</span>
+        <span style="text-align:right">${insuredDisplay}</span>
+        <span class="policy-prem">${premDisplay}</span>
+        <span class="status-badge status-${p.status||'有效'}">${p.status||'有效'}</span>
+      </div>`;
+    });
+    html+=`</div>`;
+  });
+  html+=`</div>`;
+
+  // 3. 保障覆蓋率環形圖
+  html += `<div class="section-label">保障覆蓋率<button class="small-btn" onclick="openModal()">✏️ 手動調整</button><button class="small-btn" style="margin-left:6px;border-color:#378ADD;color:#378ADD" onclick="openTargetModal()">🎯 設定目標</button></div>`;
+  html += `<div class="section-hint" style="display:flex;gap:10px;font-size:14px;color:#888;margin-bottom:8px;flex-wrap:wrap">
+    <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#27AE8F;margin-right:3px"></span>已規劃</span>
+    <span style="color:#F5A623"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#F5A623;opacity:.5;margin-right:3px;border:1.5px dashed #F5A623"></span>不足</span>
+    <span style="color:#bbb"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#e0e0e0;margin-right:3px"></span>缺口</span>
+  </div>`;
+  html += `<div class="pie-wrap">${buildDonutChart(active, coverage, targets, overrides)}</div>`;
+
+  // 4. 就醫情況
+  html+=`<div class="section-label">就醫情況</div>`;
+  html+=`<div style="background:#fff;border:1px solid #e8e8e8;border-radius:10px;overflow:hidden;margin-bottom:16px">
+    <table class="medical-table">
+      <thead><tr>
+        <th></th>
+        <th style="color:#27AE8F">疾病</th>
+        <th style="color:#F5A623">意外</th>
+        <th style="color:#E74C3C">癌症</th>
+      </tr></thead>
+      <tbody>`;
+      
+  [["opd","門診"],["hosp","住院"]].forEach(([rk,rl],ri)=>{
+    html+=`<tr style="border-top:${ri>0?'1px solid #f0f0f0':'none'}">
+      <td>${rl}</td>`;
+    ["disease","accident","cancer"].forEach(ck=>{
+      if(rk==="opd"&&ck==="disease") {
+        html+=`<td><div class="nhi-badge"><span>健保</span></div></td>`;
+      } else {
+        const mk=rk+"_"+ck;
+        const manual=medicalOverrides[mk];
+        let auto=0;
+        let unitText = "";
+
+        const baseHosp = sumCov(["hosp_room", "hosp_ext_room", "daily_room_1_30", "hosp_ext_daily", "daily_discharge"], policies, coverage);
+
+        if(rk==="hosp") {
+          unitText = "元/日";
+          if(ck==="disease")  auto = baseHosp;
+          if(ck==="accident") auto = baseHosp + sumCov(["acc_hosp"], policies, coverage);
+          if(ck==="cancer")   auto = baseHosp + sumCov(["can_hosp", "can_discharge"], policies, coverage);
+        }
+        
+        if(rk==="opd") {
+          if(ck==="accident") { auto = sumCov(["acc_opd"], policies, coverage); unitText = "萬/次"; }
+          if(ck==="cancer")   { auto = sumCov(["can_opd"], policies, coverage); unitText = "元/次"; }
+        }
+
+        const val = manual !== undefined ? manual : (auto || "");
+        
+        html+=`<td>
+          <div style="display:flex;align-items:center;justify-content:center;gap:4px">
+            <input type="text" inputmode="numeric" class="medical-input" value="${val?Number(val).toLocaleString():''}" placeholder="—" style="width:68px;"
+              onchange="medicalOverrides['${mk}']=this.value.replace(/,/g,'')"
+              onfocus="this.style.borderColor='#378ADD'"
+              onblur="this.style.borderColor='#e0e0e0'; const raw=this.value.replace(/,/g,''); this.value=raw?Number(raw).toLocaleString():'';" />
+            <span style="font-size:14px;color:#888;white-space:nowrap">${val ? unitText : ''}</span>
+          </div>
+          ${manual===undefined && auto>0 ? '<div class="auto-hint">自動加總</div>':''}
+        </td>`;
+      }
+    });
+    html+=`</tr>`;
+  });
+  html+=`</tbody></table>
+  <div style="font-size:14px;color:#bbb;margin-top:8px;margin-bottom:8px;padding-left:14px">
+    💡 疾病住院＝實支病房＋日額病房＋日額出院療養<br>
+    💡 意外住院＝疾病住院＋意外日額，癌症以此類推（可手動修改）
+  </div></div>`;
+
+  // 5. 各項保障加總
+  html += `<div class="section-label">各項保障加總</div>`;
+  html += `<div class="coverage-grid">`;
+
+  COVERAGE_GROUPS.forEach((g) => {
+    const safeClass = "card-" + g.label.replace(/[\s\(\)（）]/g, '');
+    html += `<div class="coverage-card ${safeClass}" style="border-top: 3px solid ${g.color};">
+      <div class="cov-group-header" style="background:${g.color}0D">
+        <span class="cov-group-label" style="color:${g.color}">${g.label}</span>
+      </div>
+      <div style="padding: 4px 0;">`;
+
+    g.items.forEach(item => {
+      // 判斷是否為最低～最高範圍型欄位
+      // coverage.html 存成 xxx_min / xxx_max，COVERAGE_GROUPS keys 用 xxx_max
+      const maxKey = item.keys.find(k => k.endsWith("_max"));
+      const minKey = maxKey ? maxKey.replace("_max", "_min") : null;
+      // 確認 _min 版本在 coverage 裡有值才視為 range
+      const minVal = minKey ? sumCov([minKey], policies, coverage) : 0;
+      const maxVal = maxKey ? sumCov([maxKey], policies, coverage) : 0;
+      const isRange = !!(maxKey && (minVal > 0 || maxVal > 0));
+
+      let total, displayVal;
+      if (isRange) {
+        total = maxVal;
+        displayVal = minVal.toLocaleString() + `<span style="color:#aaa;font-size:14px;margin:0 2px">～</span>` + maxVal.toLocaleString() + `<span class="cov-unit">${item.unit}</span>`;
+      } else {
+        total = sumCov(item.keys, policies, coverage);
+        displayVal = total > 0 ? total.toLocaleString() + `<span class="cov-unit">${item.unit}</span>` : null;
+      }
+
+      const breakdown = policies.map(p => {
+        const v = item.keys.reduce((s, k) => s + (coverage[p.id + "_" + k] || 0), 0);
+        return v > 0 ? { name: (p.company || "保險").substring(0,2), val: v } : null; 
+      }).filter(Boolean);
+
+      html += `<div class="cov-item" style="background:${total > 0 ? '#fff' : '#fafafa'};opacity:${total > 0 ? 1 : 0.6}">
+        <div class="cov-item-label ${total > 0 ? '' : 'zero'}">${item.label}</div>
+        <div class="cov-value-wrap">
+          <div class="cov-item-value" style="color:${total > 0 ? g.color : '#ccc'}">
+            ${displayVal || '—'}
+          </div>
+          ${breakdown.length > 1 ? `<div class="cov-breakdown">${breakdown.map(b => `${b.name}:${b.val.toLocaleString()}`).join(' ')}</div>` : ''}
+        </div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  });
+  html += `</div>`;
+
+  // 6. 缺口／不足分析
+  html += `<div class="section-label" style="margin-top:16px">缺口 / 不足分析</div>`;
+  html += `<div style="background:#fff;border:1px solid #e8e8e8;border-radius:10px;padding:12px 14px;margin-bottom:16px">${buildGapAnalysis(active, coverage, targets, overrides)}</div>`;
+
+  document.getElementById("content").innerHTML = html;
+}
+
+// ── 環形圓餅圖與圖例 ────────────────────────────────────────────
+function buildDonutChart(active, coverage, targets, covOverrides) {
+  const allItems = GAP_GROUPS.flatMap(g=>g.items);
+  const n = allItems.length;
+  
+  const cx=220, cy=150, OR=100, IR=54;
+  const gapA=0.03, sliceA=(Math.PI*2-n*gapA)/n;
+
+  let angle=-Math.PI/2;
+  let paths="";
+  let labels=""; 
+
+  function renderLegend(g) {
+    let legendHtml = `<div style="font-size:17px;font-weight:500;color:${g.color};margin-bottom:8px;border-bottom:1px solid ${g.color}30;padding-bottom:4px">${g.label}</div>`;
+    
+    g.items.forEach(item => {
+      const {status, pct, current, target} = getItemStatus(item.key, active, coverage, targets, covOverrides);
+      const icon = status==="gap"?"❌":status==="insufficient"?"⚠️":"✅";
+      const dotColor = status==="gap"?"#e0e0e0":item.color;
+
+      let amtHtml = "";
+      if (item.isBool) {
+        amtHtml = current > 0 ? `<span style="color:#555;font-size:14px">有</span>` : `<span style="color:#bbb;font-size:14px">無</span>`;
+      } else {
+        if (current > 0 || target > 0) {
+          let displayVal = current > 0 ? current.toLocaleString() : "0";
+          if (target > 0) displayVal += ` / ${target.toLocaleString()}`;
+          
+          amtHtml = `<span style="color:${current>0?'#0C447C':'#888'};font-family:monospace;font-weight:600;font-size:16px">${displayVal}<span style="font-size:14px;color:#888;margin-left:3px;font-family:sans-serif">${item.unit}</span></span>`;
+        } else {
+          amtHtml = `<span style="color:#bbb;font-size:14px">0</span>`;
+        }
+      }
+
+      legendHtml += `<div style="display:flex;align-items:center;gap:6px;font-size:14px;margin-bottom:5px">
+        <div style="width:10px;height:10px;border-radius:2px;background:${dotColor};flex-shrink:0"></div>
+        <span style="color:${status==="gap"?"#bbb":"#444"};flex:1;white-space:nowrap">${item.label}</span>
+        ${amtHtml}
+        <span style="margin-left:4px">${icon}</span>
+      </div>`;
+    });
+    return legendHtml;
+  }
+
+  const legendFamily = renderLegend(GAP_GROUPS[0]);
+  const legendBefore = renderLegend(GAP_GROUPS[1]);
+  const legendDuring = renderLegend(GAP_GROUPS[2]);
+  const legendAfter  = renderLegend(GAP_GROUPS[3]);
+
+  allItems.forEach(item => {
+    const {status,pct} = getItemStatus(item.key, active, coverage, targets, covOverrides);
+    const start = angle+gapA/2;
+    const end   = angle+gapA/2+sliceA;
+    const filledEnd = start + sliceA*pct;
+    const midA  = start + sliceA/2; 
+    angle += sliceA+gapA;
+
+    const px=(r,a)=>cx+r*Math.cos(a), py=(r,a)=>cy+r*Math.sin(a);
+    const donut=(a1,a2,lg,r1,r2)=>`M${px(r1,a1)},${py(r1,a1)} A${r1},${r1} 0 ${lg} 1 ${px(r1,a2)},${py(r1,a2)} L${px(r2,a2)},${py(r2,a2)} A${r2},${r2} 0 ${lg} 0 ${px(r2,a1)},${py(r2,a1)} Z`;
+
+    paths += `<path d="${donut(start,end,sliceA>Math.PI?1:0,OR,IR)}" fill="#f0f0f0"/>`;
+    if(pct>0.01) paths += `<path d="${donut(start,filledEnd,sliceA*pct>Math.PI?1:0,OR,IR)}" fill="${item.color}"/>`;
+    if(status==="insufficient" && pct<0.99) {
+      const gapSize=sliceA*(1-pct);
+      paths += `<path d="${donut(filledEnd,end,gapSize>Math.PI?1:0,OR,IR)}" fill="none" stroke="${item.color}" stroke-width="2.5" stroke-dasharray="4 3" opacity="0.45"/>`;
+    }
+
+    const isRight = Math.cos(midA) >= 0; 
+    const x0 = px(OR, midA), y0 = py(OR, midA); 
+    const x1 = px(OR + 14, midA), y1 = py(OR + 14, midA); 
+    const x2 = x1 + (isRight ? 18 : -18), y2 = y1; 
+
+    const textAnchor = isRight ? "start" : "end";
+    const textX = x2 + (isRight ? 4 : -4);
+    const textColor = status === "gap" ? "#aaa" : "#555";
+    const fw = status === "ok" ? "500" : "400";
+    const prefix = status === "gap" ? "❌ " : status === "insufficient" ? "⚠️ " : "";
+
+    labels += `
+      <polyline points="${x0},${y0} ${x1},${y1} ${x2},${y2}" fill="none" stroke="${item.color}60" stroke-width="1.2"/>
+      <circle cx="${x0}" cy="${y0}" r="2" fill="${item.color}"/>
+      <text x="${textX}" y="${y2+4}" text-anchor="${textAnchor}" style="font-size:14px;fill:${textColor};font-weight:${fw};letter-spacing:0.03em">${prefix}${item.label}</text>
+    `;
+  });
+
+  const okN = allItems.filter(item=>getItemStatus(item.key,active,coverage,targets,covOverrides).status==="ok").length;
+  const gapN = allItems.filter(item=>getItemStatus(item.key,active,coverage,targets,covOverrides).status==="gap").length;
+  const insN = allItems.filter(item=>getItemStatus(item.key,active,coverage,targets,covOverrides).status==="insufficient").length;
+
+  return `<div style="display:flex;flex-direction:column;width:100%">
+    <div style="display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;margin-bottom:20px;padding:0">
+      <svg viewBox="0 0 440 300" style="width:100%; max-width:480px; flex-shrink:0;">
+        ${paths}
+        ${labels}
+        <text x="${cx}" y="${cy-16}" text-anchor="middle" style="font-size:14px;fill:#888">✅ 達標</text>
+        <text x="${cx}" y="${cy+6}"  text-anchor="middle" style="font-size:19px;font-weight:bold;fill:#333">${okN}</text>
+        <text x="${cx}" y="${cy+24}" text-anchor="middle" style="font-size:14px;fill:#E74C3C">❌ 缺口 ${gapN}</text>
+        <text x="${cx}" y="${cy+40}" text-anchor="middle" style="font-size:14px;fill:#F5A623">⚠ 不足 ${insN}</text>
+      </svg>
+      <div style="min-width:170px;background:#fafafa;padding:12px 16px;border-radius:10px;border:1px solid #f0f0f0">
+        ${legendFamily}
+      </div>
+    </div>
+    
+    <div style="border-top:1px dashed #e8e8e8;padding-top:20px">
+      <!-- 箭頭指標列 -->
+      <div style="display:flex;align-items:stretch;margin-bottom:16px;font-size:17px;font-weight:600;letter-spacing:0.05em;height:46px">
+        <!-- 醫療前期 -->
+        <div style="
+          flex:1;
+          display:flex;align-items:center;justify-content:center;
+          background:#4CAF86;
+          color:#fff;
+          position:relative;
+          clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%);
+          padding-right:14px;
+        ">醫療前期</div>
+        <!-- 醫療中期 -->
+        <div style="
+          flex:1.4;
+          display:flex;align-items:center;justify-content:center;
+          background:#378ADD;
+          color:#fff;
+          position:relative;
+          clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%, 14px 50%);
+          margin-left:-1px;
+          padding: 0 14px;
+        ">醫療中期</div>
+        <!-- 醫療後期 -->
+        <div style="
+          flex:1;
+          display:flex;align-items:center;justify-content:center;
+          background:#E87BAD;
+          color:#fff;
+          position:relative;
+          clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 14px 50%);
+          margin-left:-1px;
+          padding-left:14px;
+        ">醫療後期</div>
+      </div>
+      <!-- 圖例內容 -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:16px">
+        <div>${legendBefore}</div>
+        <div>${legendDuring}</div>
+        <div>${legendAfter}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── 缺口／不足分析 ────────────────────────────────────────
+function buildGapAnalysis(active, coverage, targets, covOverrides) {
+  const allItems = GAP_GROUPS.flatMap(g=>g.items);
+  const gaps = [], insufficients = [];
+  allItems.forEach(item => {
+    const s = getItemStatus(item.key, active, coverage, targets, covOverrides);
+    if(s.status==="gap") gaps.push({item, ...s});
+    if(s.status==="insufficient") insufficients.push({item, ...s});
+  });
+
+  let html = "";
+
+  if(insufficients.length) {
+    html += `<div style="font-size:17px;font-weight:500;color:#F5A623;margin-bottom:8px">⚠ 規劃不足</div>`;
+    insufficients.forEach(({item,current,target,pct}) => {
+      html += `<div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:3px;flex-wrap:wrap;gap:4px">
+          <span style="font-size:16px;color:#555">${item.label}</span>
+          <div style="display:flex;gap:6px;align-items:center">
+            <span style="font-size:17px;color:#555;font-weight:500">${current.toLocaleString()}${item.unit}</span>
+            <span style="font-size:14px;color:#aaa">/ 目標 ${target?.toLocaleString()}${item.unit}</span>
+          </div>
+        </div>
+        <div style="height:7px;background:#f0f0f0;border-radius:99px;overflow:hidden">
+          <div style="height:100%;width:${Math.round(pct*100)}%;background:${item.color};border-radius:99px"></div>
+        </div>
+        <div style="font-size:14px;color:#E74C3C;margin-top:3px">尚不足 ${(target-current).toLocaleString()}${item.unit}（${Math.round(pct*100)}% 達成）</div>
+      </div>`;
+    });
+  }
+
+  if(gaps.length) {
+    html += `<div style="font-size:17px;font-weight:500;color:#E74C3C;margin-bottom:8px;margin-top:${insufficients.length?12:0}px">❌ 尚未規劃</div>`;
+    html += `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">`;
+    gaps.forEach(({item}) => {
+      html += `<span style="padding:4px 12px;background:#FCEBEB;border:1px solid #F0A8BF;border-radius:99px;font-size:14px;color:#791F1F">${item.label}</span>`;
+    });
+    html += `</div><div style="font-size:14px;color:#aaa">💡 可與保戶討論是否有需要規劃</div>`;
+  }
+
+  if(!insufficients.length && !gaps.length) {
+    html += `<div style="font-size:17px;color:#27AE8F;text-align:center;padding:12px 0">🎉 所有已設目標項目均達標！</div>`;
+  }
+
+  html += `<button onclick="openTargetModal()" style="width:100%;margin-top:10px;padding:8px;background:transparent;border:1px dashed #ddd;border-radius:8px;font-size:16px;color:#666;cursor:pointer;font-family:inherit">🎯 設定 / 修改目標保額</button>`;
+  return html;
+}
+
+// ── 目標設定 Modal ────────────────────────────────────────
+function openTargetModal() {
+  const person = personDataMap[currentPersonId];
+  const policies = person?.policies||[];
+  const active = policies.filter(isPolicyActive);
+
+  const coverage = {};
+  Object.entries(person?.coverage||{}).forEach(([k,v])=>{
+    if(typeof v==="number") coverage[k]=(coverage[k]||0)+v;
+    else coverage[k]=v;
+  });
+  policies.forEach(p => {
+    Object.entries(p.coverage||{}).forEach(([k,v]) => {
+      if(typeof v === "number") coverage[k] = (coverage[k]||0)+v;
+      else coverage[k] = v;
+    });
+  });
+
+  let bodyHtml = `<div style="font-size:14px;color:#888;background:#f7f7f5;padding:8px 12px;border-radius:8px;margin-bottom:14px;line-height:1.6">
+    設定後顯示「不足」；未設定的項目只顯示「有/無（缺口）」，不計算差額。
+  </div>`;
+
+  GAP_GROUPS.forEach(g => {
+    bodyHtml += `<div style="font-size:17px;font-weight:500;color:${g.color};padding:4px 10px;background:${g.color}15;border-radius:5px;margin-bottom:8px">${g.label}</div>`;
+    g.items.filter(item=>!item.isBool).forEach(item => {
+      const current = getItemCurrent(item.key, active, coverage, overrides);
+      const tval = targets[item.key]||"";
+      bodyHtml += `<div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:3px;flex-wrap:wrap;gap:4px">
+          <label style="font-size:16px;color:#333">${item.label}</label>
+          <span style="font-size:14px;color:#aaa">目前：${current.toLocaleString()||0} ${item.unit}</span>
+        </div>
+        <div style="display:flex;align-items:center;border:1px solid #e0e0e0;border-radius:7px;overflow:hidden">
+          <input type="number" id="target_${item.key}" value="${tval}" placeholder="不設定（只顯示有/無）"
+            style="flex:1;padding:10px 12px;font-size:17px;border:none;outline:none;font-family:inherit"/>
+          ${item.unit?`<span style="padding:0 10px;font-size:14px;color:#aaa;background:#fafafa;border-left:1px solid #f0f0f0">${item.unit}</span>`:""}
+        </div>
+      </div>`;
+    });
+    bodyHtml += `<div style="margin-bottom:14px"></div>`;
+  });
+
+  const existing = document.getElementById("target-modal-overlay");
+  if(existing) existing.remove();
+
+  const overlay = document.createElement("div");
+  overlay.id = "target-modal-overlay";
+  overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:300;display:flex;align-items:flex-end;justify-content:center";
+  overlay.innerHTML = `<div style="background:#fff;border-radius:16px 16px 0 0;padding:20px;width:100%;max-width:560px;max-height:85vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;margin-bottom:14px">
+      <span style="font-weight:600;font-size:19px">🎯 設定目標保額</span>
+      <button onclick="document.getElementById('target-modal-overlay')?.remove()" style="background:none;border:none;font-size:26px;color:#999;cursor:pointer;line-height:1">×</button>
+    </div>
+    ${bodyHtml}
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button onclick="document.getElementById('target-modal-overlay')?.remove()"
+        style="flex:1;padding:10px;background:transparent;color:#666;border:1px solid #ddd;border-radius:8px;cursor:pointer;font-family:inherit;font-size:16px">取消</button>
+      <button onclick="saveTargets()"
+        style="flex:2;padding:10px;background:#378ADD;color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:500;cursor:pointer;font-family:inherit">儲存目標</button>
+    </div>
+  </div>`;
+  overlay.onclick = e => { if(e.target===overlay) overlay.remove(); };
+  document.body.appendChild(overlay);
+}
+
+function saveTargets() {
+  GAP_GROUPS.flatMap(g=>g.items.filter(i=>!i.isBool)).forEach(item => {
+    const el = document.getElementById("target_"+item.key);
+    if(el) {
+      const v = parseFloat(el.value);
+      if(!isNaN(v) && v > 0) targets[item.key] = v;
+      else delete targets[item.key];
+    }
+  });
+  document.getElementById("target-modal-overlay")?.remove();
+  renderContent();
+}
+
+function openModal() {
+  const person  = personDataMap[currentPersonId];
+  const policies= person?.policies||[];
+  const coverage= person?.coverage||{};
+  const active  = policies.filter(isPolicyActive);
+  const covTypes= COVERAGE_TYPES.map(t=>{
+    const auto=t.detect(active,coverage);
+    const manual=overrides[currentPersonId+"_"+t.key];
+    return {...t,covered:manual!==undefined?manual:auto,autoDetected:auto,isManual:manual!==undefined};
+  });
+
+  const groups=["壽險","意外","醫療","重大","癌症","長照","財務"];
+  let html="";
+  groups.forEach(g=>{
+    const gTypes=covTypes.filter(t=>t.group===g);
+    const gc=GROUP_COLORS[g];
+    html+=`<div class="type-group-label" style="color:${gc}">${g}</div><div class="type-tags">`;
+    gTypes.forEach(t=>{
+      html+=`<div class="type-tag" id="tag_${t.key}" onclick="toggleOverride('${t.key}')"
+        style="background:${t.covered?t.color+'18':'#f5f5f5'};border:1.5px ${t.covered?'solid':'dashed'} ${t.covered?t.color:'#ddd'}">
+        <div class="type-tag-dot" style="background:${t.covered?t.color:'transparent'};border:${t.covered?'none':'1.5px solid #ccc'}"></div>
+        <span class="type-tag-label" style="color:${t.covered?'#333':'#bbb'};font-weight:${t.covered?500:400}">${t.label}</span>
+        ${t.isManual?'<span class="manual-badge">手動</span>':''}
+      </div>`;
+    });
+    html+=`</div>`;
+  });
+  document.getElementById("modal-types").innerHTML=html;
+  document.getElementById("edit-modal").classList.add("active");
+}
+
+function toggleOverride(key) {
+  const fk=currentPersonId+"_"+key;
+  const person=personDataMap[currentPersonId];
+  const active=(person?.policies||[]).filter(isPolicyActive);
+  const cov=person?.coverage||{};
+  const t=COVERAGE_TYPES.find(x=>x.key===key);
+  const auto=t?t.detect(active,cov):false;
+  const cur=overrides[fk];
+  if(cur===undefined) overrides[fk]=!auto;
+  else delete overrides[fk];
+  openModal();
+}
+function closeModal() { document.getElementById("edit-modal").classList.remove("active"); renderContent(); }
+function handleModalOverlay(e) { if(e.target===document.getElementById("edit-modal")) closeModal(); }
+
+function goBack() { window.location.href="family.html"; }
+
+function callGAS(action, params) {
+  // 統一路由到 nav.js 的 NBS_NAV.callGAS（直連 Drive API，含 OAuth token）
+  if (window.NBS_NAV && typeof NBS_NAV.callGAS === 'function') {
+    return NBS_NAV.callGAS(action, params);
+  }
+  return Promise.reject(new Error('nav.js 未載入，請重新整理頁面'));
+}
+
+NBS_NAV.onMemberChange = function(pid) {
+  currentPersonId = pid;
+  if (typeof renderContent  === "function") renderContent();
+};
+NBS_NAV.init({ page: "summary" });
+
+</script>
+</body>
+</html>
