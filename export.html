@@ -1020,7 +1020,7 @@ function buildDonutChartEx(active, coverage, targets, covOverrides) {
   var insN = allItems.filter(item=>getItemStatusEx(item.key,active,coverage,targets,covOverrides).status==="insufficient").length;
 
   return `<div style="display:flex;flex-direction:column;width:100%">
-    <div style="display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;margin-bottom:20px;padding:0">
+    <div style="display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;margin-bottom:24px;padding:0">
       <svg viewBox="0 0 600 420" style="width:100%; max-width:660px; flex-shrink:0;">
         ${paths}
         ${labels}
@@ -1029,21 +1029,21 @@ function buildDonutChartEx(active, coverage, targets, covOverrides) {
         <text x="${cx}" y="${cy+20}" text-anchor="middle" style="font-size:14px;fill:#E74C3C">❌ 缺口 ${gapN}</text>
         <text x="${cx}" y="${cy+34}" text-anchor="middle" style="font-size:14px;fill:#F5A623">⚠ 不足 ${insN}</text>
       </svg>
-      <div style="min-width:170px;background:#fafafa;padding:12px 16px;border-radius:10px;border:1px solid #f0f0f0">
+      <div style="min-width:180px;background:#fafbfc;padding:16px 18px;border-radius:16px;border:1px solid rgba(0,0,0,.04);box-shadow:0 3px 10px -4px rgba(0,0,0,.06)">
         ${legendFamily}
       </div>
     </div>
     
-    <div style="border-top:1px dashed #e8e8e8;padding-top:20px">
+    <div style="border-top:1px dashed #e8e8e8;padding-top:22px">
       ${buildSvgArrows([
         {label:GAP_GROUPS_EX[1].arrowLabel, color:"#4CAF86"},
         {label:GAP_GROUPS_EX[2].arrowLabel, color:"#378ADD"},
         {label:GAP_GROUPS_EX[3].arrowLabel, color:"#E87BAD"}
       ])}
-      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:16px">
-        <div>${legendBefore}</div>
-        <div>${legendDuring}</div>
-        <div>${legendAfter}</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));gap:14px;margin-top:14px">
+        <div style="background:#fafbfc;padding:14px 16px;border-radius:14px;border:1px solid rgba(0,0,0,.04)">${legendBefore}</div>
+        <div style="background:#fafbfc;padding:14px 16px;border-radius:14px;border:1px solid rgba(0,0,0,.04)">${legendDuring}</div>
+        <div style="background:#fafbfc;padding:14px 16px;border-radius:14px;border:1px solid rgba(0,0,0,.04)">${legendAfter}</div>
       </div>
     </div>
   </div>`;
@@ -1287,42 +1287,57 @@ function renderBlock(key){
     var html='<div style="padding:0">';
 
     // ── 保障覆蓋率環形圖（左：圓餅圖 / 右：家庭責任圖例，下：醫療前中後期）──
-    html+='<div style="padding:10px 12px">';
-    html+='<div style="font-size:14px;font-weight:500;color:#999;margin-bottom:6px">保障覆蓋率</div>';
-    html+='<div style="display:flex;gap:10px;font-size:14px;color:#888;margin-bottom:8px;flex-wrap:wrap">'+
-      '<span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#27AE8F;margin-right:3px"></span>已規劃</span>'+
-      '<span style="color:#F5A623"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#F5A623;opacity:.5;margin-right:3px;border:1.5px dashed #F5A623"></span>不足</span>'+
-      '<span style="color:#bbb"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#e0e0e0;margin-right:3px"></span>缺口</span>'+
+    html+='<div style="padding:14px 12px">';
+    html+='<div style="font-size:15px;font-weight:800;color:#444;margin-bottom:8px">保障覆蓋率</div>';
+    html+='<div style="display:flex;gap:14px;font-size:13px;color:#888;margin-bottom:10px;flex-wrap:wrap;font-weight:600">'+
+      '<span><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#27AE8F;margin-right:4px"></span>已規劃</span>'+
+      '<span style="color:#F5A623"><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#F5A623;opacity:.5;margin-right:4px;border:1.5px dashed #F5A623"></span>不足</span>'+
+      '<span style="color:#bbb"><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#e0e0e0;margin-right:4px"></span>缺口</span>'+
     '</div>';
-    html+='<div style="background:#fff;border:1px solid #e8e8e8;border-radius:10px;padding:14px;margin-bottom:8px">'+buildDonutChartEx(active,cov,{},{})+'</div>';
+    html+='<div style="background:#fff;border-radius:20px;box-shadow:0 4px 14px -4px rgba(0,0,0,.08);border:1px solid rgba(0,0,0,.04);padding:20px;margin-bottom:14px">'+buildDonutChartEx(active,cov,{},{})+'</div>';
     html+='</div>';
 
-    // ── 就醫情況 ──
-    html+='<div style="padding:10px 12px">';
-    html+='<div style="font-size:14px;font-weight:500;color:#999;margin-bottom:8px">就醫情況</div>';
+    // ── 就醫情況：改成三張並排 Stat 卡片，取代原本的表格 ──
+    html+='<div style="padding:14px 12px">';
+    html+='<div style="font-size:15px;font-weight:800;color:#444;margin-bottom:10px">就醫情況</div>';
     var baseHosp=sumCovEx(["hosp_room","hosp_ext_room","daily_room_1_30","hosp_ext_daily","daily_discharge"],policies,cov);
-    html+='<div style="background:#fff;border:1px solid #e8e8e8;border-radius:10px;overflow:hidden;margin-bottom:14px">'+
-      '<table style="width:100%;border-collapse:collapse;font-size:14px">'+
-      '<thead><tr><th style="padding:7px 10px;text-align:left;font-weight:400;color:#888;font-size:14px"></th>'+
-        '<th style="padding:7px 10px;text-align:center;color:#27AE8F">疾病</th>'+
-        '<th style="padding:7px 10px;text-align:center;color:#F5A623">意外</th>'+
-        '<th style="padding:7px 10px;text-align:center;color:#E74C3C">癌症</th>'+
-      '</tr></thead><tbody>';
-    [["門診","opd"],["住院","hosp"]].forEach(function(rc,ri){
-      html+='<tr style="border-top:'+(ri>0?"1px solid #f0f0f0":"none")+'"><td style="padding:7px 10px;font-weight:500;color:#555;background:#fafafa">'+rc[0]+'</td>';
-      ["disease","accident","cancer"].forEach(function(ck){
-        if(rc[1]==="opd"&&ck==="disease"){html+='<td style="text-align:center;padding:7px 10px"><div style="display:inline-flex;padding:3px 10px;border-radius:6px;background:#EAF3DE"><span style="font-size:14px;font-weight:500;color:#27500A">健保</span></div></td>';}
-        else{
-          var val="—",unit="";
-          if(rc[1]==="hosp"){unit="元/日";if(ck==="disease")val=baseHosp||"—";else if(ck==="accident")val=(baseHosp+sumCovEx(["acc_hosp"],policies,cov))||"—";else val=(baseHosp+sumCovEx(["can_hosp","can_discharge"],policies,cov))||"—";}
-          if(rc[1]==="opd"){if(ck==="accident"){val=sumCovEx(["acc_opd"],policies,cov)||"—";unit="萬/次";}else if(ck==="cancer"){val=sumCovEx(["can_opd"],policies,cov)||"—";unit="元/次";}}
-          var valDisp = typeof val==="number" ? val.toLocaleString() : val;
-          html+='<td style="text-align:center;padding:7px 10px"><span style="font-size:16px;font-weight:500;color:#333">'+valDisp+'</span>'+(val!=="—"?'<span style="font-size:14px;color:#aaa;margin-left:2px">'+unit+'</span><div style="font-size:14px;color:#bbb">自動加總</div>':'')+' </td>';
-        }
-      });
-      html+='</tr>';
+    var visitCats = [
+      { label:"疾病", color:"#27AE8F", bg:"#EAF3DE" },
+      { label:"意外", color:"#F5A623", bg:"#FAEEDA" },
+      { label:"癌症", color:"#E74C3C", bg:"#FCEBEB" },
+    ];
+    html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:8px">';
+    visitCats.forEach(function(vc, ci){
+      var ck = ["disease","accident","cancer"][ci];
+      var opdVal="—", opdUnit="", opdIsInsurance=false;
+      if(ck==="disease"){ opdIsInsurance=true; }
+      else if(ck==="accident"){ opdVal=sumCovEx(["acc_opd"],policies,cov)||"—"; opdUnit="萬/次"; }
+      else { opdVal=sumCovEx(["can_opd"],policies,cov)||"—"; opdUnit="元/次"; }
+
+      var hospVal="—", hospUnit="元/日";
+      if(ck==="disease") hospVal=baseHosp||"—";
+      else if(ck==="accident") hospVal=(baseHosp+sumCovEx(["acc_hosp"],policies,cov))||"—";
+      else hospVal=(baseHosp+sumCovEx(["can_hosp","can_discharge"],policies,cov))||"—";
+
+      html+='<div style="background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 4px 14px -4px rgba(0,0,0,.08);border:1px solid rgba(0,0,0,.04)">'+
+        '<div style="padding:10px 14px;background:linear-gradient(135deg,'+vc.color+'26,'+vc.color+'0A);text-align:center">'+
+          '<span style="font-size:14px;font-weight:800;color:'+vc.color+'">'+vc.label+'</span>'+
+        '</div>'+
+        '<div style="padding:12px 14px;border-top:1px solid #f2f2f4">'+
+          '<div style="font-size:11px;color:#9aa0ac;font-weight:700;margin-bottom:2px">門診</div>'+
+          (opdIsInsurance
+            ? '<div style="display:inline-flex;padding:3px 10px;border-radius:8px;background:#EAF3DE"><span style="font-size:13px;font-weight:700;color:#27500A">健保</span></div>'
+            : '<div style="font-size:19px;font-weight:800;color:'+(opdVal!=="—"?"#1a1a1a":"#c7cad2")+';font-variant-numeric:tabular-nums">'+(typeof opdVal==="number"?opdVal.toLocaleString():opdVal)+(opdVal!=="—"?'<span style="font-size:11px;color:#9aa0ac;font-weight:700;margin-left:2px">'+opdUnit+'</span>':'')+'</div>')+
+        '</div>'+
+        '<div style="padding:12px 14px;border-top:1px solid #f2f2f4">'+
+          '<div style="font-size:11px;color:#9aa0ac;font-weight:700;margin-bottom:2px">住院</div>'+
+          '<div style="font-size:19px;font-weight:800;color:'+(hospVal!=="—"?"#1a1a1a":"#c7cad2")+';font-variant-numeric:tabular-nums">'+(typeof hospVal==="number"?hospVal.toLocaleString():hospVal)+(hospVal!=="—"?'<span style="font-size:11px;color:#9aa0ac;font-weight:700;margin-left:2px">'+hospUnit+'</span>':'')+'</div>'+
+          (hospVal!=="—" ? '<div style="font-size:10px;color:#c7cad2;margin-top:1px">自動加總</div>' : '')+
+        '</div>'+
+      '</div>';
     });
-    html+='</tbody></table><div style="font-size:14px;color:#bbb;padding:6px 14px">💡 疾病住院＝實支病房＋日額病房＋日額出院療養　　💡 意外住院＝疾病住院＋意外日額</div></div>';
+    html+='</div>';
+    html+='<div style="font-size:12px;color:#b7bac2;padding:2px 4px">💡 疾病住院＝實支病房＋日額病房＋日額出院療養　　💡 意外住院＝疾病住院＋意外日額</div>';
     html+='</div>';
     return html;
   }
