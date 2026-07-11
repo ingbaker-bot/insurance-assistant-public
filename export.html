@@ -1306,7 +1306,7 @@ function renderBlock(key){
       { label:"意外", color:"#F5A623", bg:"#FAEEDA" },
       { label:"癌症", color:"#E74C3C", bg:"#FCEBEB" },
     ];
-    html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:8px">';
+    html+='<div style="background:#f7f8fa;border-radius:20px;padding:14px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:8px">';
     visitCats.forEach(function(vc, ci){
       var ck = ["disease","accident","cancer"][ci];
       var opdVal="—", opdUnit="", opdIsInsurance=false;
@@ -1319,18 +1319,18 @@ function renderBlock(key){
       else if(ck==="accident") hospVal=(baseHosp+sumCovEx(["acc_hosp"],policies,cov))||"—";
       else hospVal=(baseHosp+sumCovEx(["can_hosp","can_discharge"],policies,cov))||"—";
 
-      html+='<div style="background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 4px 14px -4px rgba(0,0,0,.08);border:1px solid rgba(0,0,0,.04)">'+
+      html+='<div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 3px 10px -3px rgba(0,0,0,.12)">'+
         '<div style="padding:12px 14px;background:linear-gradient(135deg,'+vc.color+'26,'+vc.color+'0A);text-align:center">'+
           '<span style="font-size:16px;font-weight:800;color:'+vc.color+'">'+vc.label+'</span>'+
         '</div>'+
-        '<div style="padding:14px 16px;border-top:1px solid #f2f2f4">'+
-          '<div style="font-size:12px;color:#9aa0ac;font-weight:700;margin-bottom:3px">門診</div>'+
+        '<div style="padding:14px 16px;border-top:1px solid #f2f2f4;min-height:66px;display:flex;flex-direction:column;justify-content:center">'+
+          '<div style="font-size:12px;color:#9aa0ac;font-weight:700;margin-bottom:4px">門診</div>'+
           (opdIsInsurance
-            ? '<div style="display:inline-flex;padding:4px 12px;border-radius:9px;background:#EAF3DE"><span style="font-size:15px;font-weight:700;color:#27500A">健保</span></div>'
+            ? '<div style="display:inline-flex;padding:6px 14px;border-radius:9px;background:#EAF3DE"><span style="font-size:18px;font-weight:800;color:#27500A">健保</span></div>'
             : '<div style="font-size:26px;font-weight:800;color:'+(opdVal!=="—"?"#1a1a1a":"#c7cad2")+';font-variant-numeric:tabular-nums">'+(typeof opdVal==="number"?opdVal.toLocaleString():opdVal)+(opdVal!=="—"?'<span style="font-size:13px;color:#9aa0ac;font-weight:700;margin-left:2px">'+opdUnit+'</span>':'')+'</div>')+
         '</div>'+
         '<div style="padding:14px 16px;border-top:1px solid #f2f2f4">'+
-          '<div style="font-size:12px;color:#9aa0ac;font-weight:700;margin-bottom:3px">住院</div>'+
+          '<div style="font-size:12px;color:#9aa0ac;font-weight:700;margin-bottom:4px">住院</div>'+
           '<div style="font-size:26px;font-weight:800;color:'+(hospVal!=="—"?"#1a1a1a":"#c7cad2")+';font-variant-numeric:tabular-nums">'+(typeof hospVal==="number"?hospVal.toLocaleString():hospVal)+(hospVal!=="—"?'<span style="font-size:13px;color:#9aa0ac;font-weight:700;margin-left:2px">'+hospUnit+'</span>':'')+'</div>'+
           (hospVal!=="—" ? '<div style="font-size:11px;color:#c7cad2;margin-top:2px">自動加總</div>' : '')+
         '</div>'+
