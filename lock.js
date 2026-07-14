@@ -192,11 +192,34 @@ function _lockResetIdle() {
   }, { passive: true });
 });
 
+// ★ 2026/07 新增：鎖定畫面顯示時，支援用實體鍵盤輸入 PIN 碼
+// （電腦版用滑鼠點畫面數字鍵不方便，改用鍵盤 0-9 與 Backspace）
+document.addEventListener('keydown', function(e) {
+  if (document.getElementById('lockScreen').style.display === 'none') return;
+  if (e.key >= '0' && e.key <= '9') {
+    _lockKey(e.key);
+    e.preventDefault();
+  } else if (e.key === 'Backspace' || e.key === 'Delete') {
+    _lockDel();
+    e.preventDefault();
+  }
+});
+
 // 頁面重新可見時（從背景切回）也檢查
+var _hiddenAt = null;  // ★ 記錄畫面被切走(分頁隱藏)的時間點
+
 document.addEventListener('visibilitychange', function() {
-  if (!document.hidden && _savedPin) {
-    // 頁面重新可見時鎖定（模擬App切換回來）
-    _lockLock();
+  if (document.hidden) {
+    _hiddenAt = Date.now();
+  } else if (_savedPin) {
+    // 只有離開超過 _IDLE_MS（跟閒置自動鎖定同一個門檻）才重新鎖定，
+    // 短暫切到別的分頁（例如複製貼上）再切回來不會鎖住
+    if (_hiddenAt !== null && (Date.now() - _hiddenAt) >= _IDLE_MS) {
+      _lockLock();
+    } else {
+      _lockResetIdle();
+    }
+    _hiddenAt = null;
   }
 });
 
