@@ -472,3 +472,8 @@
 // ══════════════════════════════════════════════════════
 window.gasCall       = gasCall;
 window.directGasCall = directGasCall;
+
+function isWebView() {
+  var ua = navigator.userAgent || '';
+  return /Line\/|FBAN|FBAV|Instagram|MicroMessenger|WhatsApp/i.test(ua);
+}
