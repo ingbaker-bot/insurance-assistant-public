@@ -31,8 +31,12 @@ function _lockInit() {
     _isSetupMode = true;
     _setupFirst  = '';
     document.getElementById('lockSubtitle').textContent = '首次使用，請設定 PIN 碼';
-  } else {
+    } else {
     document.getElementById('lockSetupHint').style.display = 'block';
+    var lastUnlockAt = parseInt(localStorage.getItem('nbs_unlock_at') || '0');
+    if (lastUnlockAt && (Date.now() - lastUnlockAt) < _IDLE_MS) {
+      _lockUnlock();
+    }
   }
 }
 
@@ -156,6 +160,7 @@ function _lockUnlock() {
   _lockPin = '';
   _lockUpdateDots();
   _lockResetIdle();
+  localStorage.setItem('nbs_unlock_at', Date.now());
 }
 
 // ── 鎖定 ──
@@ -166,6 +171,9 @@ function _lockLock() {
   document.getElementById('lockSubtitle').textContent = '請輸入 PIN 碼';
   document.getElementById('lockError').textContent = '';
   clearTimeout(_idleTimer);
+  localStorage.removeItem('nbs_unlock_at');
+
+  // 自動嘗試生物辨識
 
   // 自動嘗試生物辨識
   if (_bioAvailable && localStorage.getItem('nbs_bio_cred')) {
@@ -176,6 +184,7 @@ function _lockLock() {
 // ── 閒置計時器 ──
 function _lockResetIdle() {
   clearTimeout(_idleTimer);
+  localStorage.setItem('nbs_unlock_at', Date.now());
   _idleTimer = setTimeout(function() {
     if (document.getElementById('lockScreen').style.display === 'none') {
       _lockLock();
