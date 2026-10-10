@@ -487,10 +487,10 @@
   <!-- 近期到期提醒（頁面載入時自動查詢） -->
   <!-- 近期到期提醒 -->
   <div id="expiryLoadingHint" style="padding:0 16px;margin-top:10px;display:flex;flex-direction:column;gap:10px;">
-    <!-- 5天骨架 -->
+    <!-- 30日骨架 -->
     <div class="skeleton-alert skeleton-urgent">
       <div style="display:flex;justify-content:space-between;align-items:center;">
-        <span style="font-size:14px;font-weight:bold;color:#DC2626;">⏰ 5 天內即將到期</span>
+        <span style="font-size:14px;font-weight:bold;color:#DC2626;">⏰ 30 日內即將到期</span>
         <div style="display:flex;gap:8px;align-items:center;">
           <div class="skeleton-bar" style="width:44px;height:22px;border-radius:var(--radius-md);"></div>
           <span style="color:#DC2626;font-size:12px;">等待回覆</span>
@@ -1300,7 +1300,7 @@
   // getSystemConfig 已在 handleGoogleSignIn 中呼叫
 
   // ══════════════════════════════════════════════
-  // ★ 近期到期提醒（5天內）& 提前預警（45~51天）
+  // ★ 近期到期提醒（30日內）& 提前預警（45~51天）
   // ══════════════════════════════════════════════
   var expiringListCache    = [];
   var earlyWarningCache    = [];
@@ -1324,7 +1324,7 @@
     var html =
       '<div class="expiry-alert-bar">' +
         '<div class="expiry-alert-header" onclick="toggleExpiryAlert()">' +
-          '<span class="expiry-alert-title">⏰ 5 天內即將到期</span>' +
+          '<span class="expiry-alert-title">⏰ 30 日內即將到期</span>' +
           '<span style="display:flex;align-items:center;gap:8px;">' +
             '<span class="expiry-alert-badge">' + list.length + ' 張</span>' +
             '<span style="font-size:12px;color:var(--text3);">' + badgeText + '　▼</span>' +
@@ -1692,7 +1692,7 @@
     });
   }
 
-  // 5天內到期提醒的按鈕控制
+  // 30日內到期提醒的按鈕控制
   function setRenewalStatus(policyNo, status) {
     var onSuccess = function(result) {
       if (result && result.success) {
