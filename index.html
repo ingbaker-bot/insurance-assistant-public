@@ -131,7 +131,12 @@
     #cardSaveDialog p { margin: 8px 0; font-size: 14px; overflow-wrap: anywhere; }
     #cardSaveImage { display: block; width: 100%; max-height: 43vh; object-fit: contain; margin-top: 12px; }
     #cardSaveDialog .btn-group { margin-top: 12px; }
-    #cardSaveShare { background: #087A3E; }
+    #cardSaveShare, #cardSaveEnlarge { background: #087A3E; }
+    #cardSaveDownload { text-decoration: none; }
+    #cardSaveDialog.card-save-image-only { width: 100%; max-width: 100%; max-height: 100%; padding: 6px; box-sizing: border-box; }
+    #cardSaveDialog.card-save-image-only > :not(#cardSaveImage):not(#cardSaveBack) { display: none; }
+    #cardSaveDialog.card-save-image-only #cardSaveImage { max-height: calc(100dvh - 54px); margin: 0; }
+    #cardSaveBack { margin-top: 4px; }
     #generatedImage { max-width: 100%; border-radius: var(--radius-md); box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 15px; }
 
     /* ── 家庭總覽 ── */
@@ -794,14 +799,16 @@
 <dialog id="cardSaveDialog" aria-labelledby="cardSaveTitle" onclose="resetCardSaveDialog()">
   <h2 id="cardSaveTitle">儲存圖卡</h2>
   <p id="cardSaveFilename"></p>
-  <p id="cardSaveHelp">在手機分享選單選「儲存影像」，到「照片」查看。選「儲存到檔案」時，可指定資料夾。</p>
+  <p>要存到「照片」，請長按下方圖卡，選「儲存圖片」或「加入照片」。如果沒有這個選項，點「放大圖卡」後截圖，再到「照片」查看。</p>
   <p id="cardSaveStatus" role="status"></p>
   <img id="cardSaveImage" alt="要儲存的圖卡預覽">
   <div class="btn-group">
-    <button class="btn-action" id="cardSaveShare" onclick="shareCardImage()" hidden>分享／儲存影像</button>
-    <button class="btn-action bg-close" onclick="downloadCardFromPreview()">下載檔案</button>
+    <button class="btn-action" id="cardSaveEnlarge" onclick="setCardImageOnly(true)">放大圖卡</button>
+    <a class="btn-action bg-close" id="cardSaveDownload" target="_blank" rel="noopener" onclick="showCardDownloadHelp()">下載檔案</a>
+    <button class="btn-action" id="cardSaveShare" onclick="shareCardImage()" hidden>分享圖卡（LINE 等）</button>
     <form method="dialog"><button class="btn-action bg-close">關閉</button></form>
   </div>
+  <button class="btn-action bg-close" id="cardSaveBack" onclick="setCardImageOnly(false)" hidden>返回儲存選項</button>
 </dialog>
 
 <!-- 旅平卡 Modal -->
@@ -3034,6 +3041,7 @@
     });
   }
   var cardSaveFile = null;
+  var cardSaveUrl = '';
 
   function isMobileCardSave() {
     return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
@@ -3058,31 +3066,31 @@
 
     var preview = document.getElementById('cardSaveImage');
     var shareButton = document.getElementById('cardSaveShare');
-    var help = document.getElementById('cardSaveHelp');
-    var status = document.getElementById('cardSaveStatus');
-    cardSaveFile = null;
+    var downloadLink = document.getElementById('cardSaveDownload');
+    resetCardSaveDialog();
     shareButton.hidden = true;
     preview.src = src;
+    downloadLink.href = src;
+    downloadLink.download = filename;
     document.getElementById('cardSaveFilename').textContent = filename;
-    help.hidden = true;
-    status.textContent = '可長按圖卡，若有「儲存影像」選項即可存到照片。';
+    document.getElementById('cardSaveStatus').textContent = '';
     dialog.showModal();
-
-    if (typeof navigator.share !== 'function' || typeof navigator.canShare !== 'function') return;
 
     fetch(src).then(function(response) {
       return response.blob();
     }).then(function(blob) {
-      if (!dialog.open || preview.src !== src ||
-          document.getElementById('cardSaveFilename').textContent !== filename) return;
+      if (!dialog.open || preview.src !== src || downloadLink.download !== filename) return;
+      cardSaveUrl = URL.createObjectURL(blob);
+      preview.src = cardSaveUrl;
+      downloadLink.href = cardSaveUrl;
+
+      if (typeof navigator.share !== 'function' || typeof navigator.canShare !== 'function') return;
       var file = new File([blob], filename, { type: blob.type });
       if (!navigator.canShare({ files: [file] })) return;
       cardSaveFile = file;
       shareButton.hidden = false;
-      help.hidden = false;
-      status.textContent = '';
     }).catch(function() {
-      // The preview and the manual download remain available.
+      // The original preview and download link remain available.
     });
   }
 
@@ -3096,17 +3104,25 @@
     });
   }
 
-  function downloadCardFromPreview() {
-    var preview = document.getElementById('cardSaveImage');
-    var filename = document.getElementById('cardSaveFilename').textContent;
-    downloadCardFile(preview.src, filename);
+  function setCardImageOnly(show) {
+    document.getElementById('cardSaveDialog').classList.toggle('card-save-image-only', show);
+    document.getElementById('cardSaveBack').hidden = !show;
+  }
+
+  function showCardDownloadHelp() {
     document.getElementById('cardSaveStatus').textContent =
-      '請查看瀏覽器的下載清單。Safari 可到「檔案 → 下載項目」找，Chrome 可從「⋯ → 下載內容」查看。若瀏覽器詢問儲存位置，請選擇資料夾後完成儲存。';
+      '請在瀏覽器完成下載或儲存。Safari 可查「檔案 → 下載項目」，Chrome 可查「⋯ → 下載內容」。如果沒有出現檔案，請長按圖卡存照片，或放大圖卡後截圖。';
   }
 
   function resetCardSaveDialog() {
     cardSaveFile = null;
     document.getElementById('cardSaveImage').removeAttribute('src');
+    document.getElementById('cardSaveDownload').removeAttribute('href');
+    setCardImageOnly(false);
+    if (cardSaveUrl) {
+      URL.revokeObjectURL(cardSaveUrl);
+      cardSaveUrl = '';
+    }
   }
 
   function downloadImage() {
