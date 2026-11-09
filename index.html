@@ -4067,15 +4067,15 @@
               '<div style="font-size:12px;color:var(--text2);">' + item.type + '</div>' +
             '</div>' +
             '<div style="display:flex;gap:6px;flex-wrap:wrap;">' +
-              (safeId ?
-                '<button onclick="caliCopyAndGo(\''+safeId+'\',\'id\')" ' +
-                  'style="flex:1;padding:8px 6px;background:#E3F2FD;color:#1565C0;border:1px solid #90CAF9;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">' +
-                  '🆔 複製身分證<br><span style="font-size:11px;font-weight:400">'+safeId+'</span></button>'
-              : '') +
               (safePlate ?
                 '<button onclick="caliCopyAndGo(\''+safePlate+'\',\'plate\')" ' +
                   'style="flex:1;padding:8px 6px;background:#E8F5E9;color:#1B5E20;border:1px solid #A5D6A7;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">' +
                   '🚗 複製車牌<br><span style="font-size:11px;font-weight:400">'+safePlate+'</span></button>'
+              : '') +
+              (safeId ?
+                '<button onclick="caliCopyAndGo(\''+safeId+'\',\'id\')" ' +
+                  'style="flex:1;padding:8px 6px;background:#E3F2FD;color:#1565C0;border:1px solid #90CAF9;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">' +
+                  '🆔 複製身分證<br><span style="font-size:11px;font-weight:400">'+safeId+'</span></button>'
               : '') +
               '<a href="https://ecard.cali.org.tw/PPCP_QRY/" target="_blank" rel="noopener noreferrer" ' +
                 'style="flex:1;display:block;padding:8px 6px;background:#00796B;color:white;border-radius:6px;font-size:12px;font-weight:700;text-decoration:none;text-align:center;">' +
