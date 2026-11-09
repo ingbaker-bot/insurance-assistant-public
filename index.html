@@ -125,6 +125,13 @@
     .bg-line   { background-color: var(--line-color, #087A3E); }
     .bg-close  { background-color: #f1f1f1; color: var(--text1); }
     .bg-travel { background-color: var(--travel-color); }
+    #cardSaveDialog { width: min(92%, 480px); max-height: 88vh; padding: 18px; border: none; border-radius: 14px; color: var(--text1); background: var(--surface); }
+    #cardSaveDialog::backdrop { background: rgba(0,0,0,.55); }
+    #cardSaveDialog h2 { margin: 0 0 8px; font-size: 18px; }
+    #cardSaveDialog p { margin: 8px 0; font-size: 14px; overflow-wrap: anywhere; }
+    #cardSaveImage { display: block; width: 100%; max-height: 43vh; object-fit: contain; margin-top: 12px; }
+    #cardSaveDialog .btn-group { margin-top: 12px; }
+    #cardSaveShare { background: #087A3E; }
     #generatedImage { max-width: 100%; border-radius: var(--radius-md); box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 15px; }
 
     /* ── 家庭總覽 ── */
@@ -783,6 +790,19 @@
     </div>
   </div>
 </div>
+
+<dialog id="cardSaveDialog" aria-labelledby="cardSaveTitle" onclose="resetCardSaveDialog()">
+  <h2 id="cardSaveTitle">儲存圖卡</h2>
+  <p id="cardSaveFilename"></p>
+  <p id="cardSaveHelp">在手機分享選單選「儲存影像」，到「照片」查看。選「儲存到檔案」時，可指定資料夾。</p>
+  <p id="cardSaveStatus" role="status"></p>
+  <img id="cardSaveImage" alt="要儲存的圖卡預覽">
+  <div class="btn-group">
+    <button class="btn-action" id="cardSaveShare" onclick="shareCardImage()" hidden>分享／儲存影像</button>
+    <button class="btn-action bg-close" onclick="downloadCardFromPreview()">下載檔案</button>
+    <form method="dialog"><button class="btn-action bg-close">關閉</button></form>
+  </div>
+</dialog>
 
 <!-- 旅平卡 Modal -->
 <div id="travelModal" class="modal">
@@ -3013,11 +3033,86 @@
       }
     });
   }
+  var cardSaveFile = null;
+
+  function isMobileCardSave() {
+    return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }
+
+  function downloadCardFile(src, filename) {
+    var link = document.createElement('a');
+    link.href = src;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }
+
+  function saveCardImage(src, filename) {
+    var dialog = document.getElementById('cardSaveDialog');
+    if (!isMobileCardSave() || typeof dialog.showModal !== 'function') {
+      downloadCardFile(src, filename);
+      return;
+    }
+
+    var preview = document.getElementById('cardSaveImage');
+    var shareButton = document.getElementById('cardSaveShare');
+    var help = document.getElementById('cardSaveHelp');
+    var status = document.getElementById('cardSaveStatus');
+    cardSaveFile = null;
+    shareButton.hidden = true;
+    preview.src = src;
+    document.getElementById('cardSaveFilename').textContent = filename;
+    help.hidden = true;
+    status.textContent = '可長按圖卡，若有「儲存影像」選項即可存到照片。';
+    dialog.showModal();
+
+    if (typeof navigator.share !== 'function' || typeof navigator.canShare !== 'function') return;
+
+    fetch(src).then(function(response) {
+      return response.blob();
+    }).then(function(blob) {
+      if (!dialog.open || preview.src !== src ||
+          document.getElementById('cardSaveFilename').textContent !== filename) return;
+      var file = new File([blob], filename, { type: blob.type });
+      if (!navigator.canShare({ files: [file] })) return;
+      cardSaveFile = file;
+      shareButton.hidden = false;
+      help.hidden = false;
+      status.textContent = '';
+    }).catch(function() {
+      // The preview and the manual download remain available.
+    });
+  }
+
+  function shareCardImage() {
+    if (!cardSaveFile) return;
+    var status = document.getElementById('cardSaveStatus');
+    navigator.share({ files: [cardSaveFile] }).catch(function(error) {
+      if (error.name !== 'AbortError') {
+        status.textContent = '無法開啟分享選單。請長按圖卡儲存影像，或點「下載檔案」。';
+      }
+    });
+  }
+
+  function downloadCardFromPreview() {
+    var preview = document.getElementById('cardSaveImage');
+    var filename = document.getElementById('cardSaveFilename').textContent;
+    downloadCardFile(preview.src, filename);
+    document.getElementById('cardSaveStatus').textContent =
+      '請查看瀏覽器的下載清單。Safari 可到「檔案 → 下載項目」找，Chrome 可從「⋯ → 下載內容」查看。若瀏覽器詢問儲存位置，請選擇資料夾後完成儲存。';
+  }
+
+  function resetCardSaveDialog() {
+    cardSaveFile = null;
+    document.getElementById('cardSaveImage').removeAttribute('src');
+  }
+
   function downloadImage() {
-    var a = document.createElement('a');
-    a.href = document.getElementById('generatedImage').src;
-    a.download = currentPolicyData.main.insuredName + '_保單摘要.jpg';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    var src = document.getElementById('generatedImage').src;
+    var filename = currentPolicyData.main.insuredName + '_保單摘要.jpg';
+    saveCardImage(src, filename);
   }
 
   // ══════════════════════════════════════════════════════
@@ -5641,7 +5736,7 @@
     </div>
     <p class="cmp-hint">💡 點選「未投保」格子可手動標記，再截圖傳送給保戶</p>
     <div class="cmp-action-bar">
-      <button class="cmp-btn cmp-btn-download" onclick="downloadCarMapCard()">📥 下載圖片</button>
+      <button class="cmp-btn cmp-btn-download" onclick="downloadCarMapCard(this)">📥 下載圖片</button>
       <button class="cmp-btn cmp-btn-line" onclick="shareCarMapLine()">💬 LINE 分享</button>
       <button class="cmp-btn cmp-btn-reset" onclick="resetManualCells()" title="重設手動標記">↺</button>
     </div>
@@ -6285,6 +6380,8 @@ function _lockUnlock() {
 
 // ── 鎖定 ──
 function _lockLock() {
+  var cardSaveDialog = document.getElementById('cardSaveDialog');
+  if (cardSaveDialog.open) cardSaveDialog.close();
   _lockPin = '';
   _lockUpdateDots();
   document.getElementById('lockScreen').style.display = 'flex';
@@ -6871,17 +6968,20 @@ function resetManualCells() {
 }
 
 // ── 截圖下載 ──
-function downloadCarMapCard() {
-  html2canvas(document.getElementById('carMapCard'), {
-    scale:2, useCORS:true, backgroundColor:'#ffffff'
-  }).then(function(canvas) {
+async function downloadCarMapCard(button) {
+  button.disabled = true;
+  try {
+    var canvas = await html2canvas(document.getElementById('carMapCard'), {
+      scale:2, useCORS:true, backgroundColor:'#ffffff'
+    });
     var plate = (document.getElementById('cmpPlate').textContent || 'carmap').replace(/[^A-Za-z0-9\u4e00-\u9fa5\-]/g,'');
-    var a = document.createElement('a');
-    a.download = '車險保障_' + plate + '.png';
-    a.href = canvas.toDataURL('image/png');
-    a.click();
-    _cmpToast('📥 圖片已下載！');
-  });
+    if (document.getElementById('lockScreen').style.display === 'flex') return;
+    saveCardImage(canvas.toDataURL('image/png'), '車險保障_' + plate + '.png');
+  } catch (error) {
+    _cmpToast('無法產生圖片，請重試');
+  } finally {
+    button.disabled = false;
+  }
 }
 
 // ── LINE 分享 ──
